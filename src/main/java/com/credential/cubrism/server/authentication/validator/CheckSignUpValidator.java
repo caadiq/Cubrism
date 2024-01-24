@@ -1,8 +1,7 @@
-package com.credential.cubrism.server.authentication;
+package com.credential.cubrism.server.authentication.validator;
 
 
 import com.credential.cubrism.server.authentication.dto.UserDTO;
-import com.credential.cubrism.server.authentication.dto.UserSaveDTO;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

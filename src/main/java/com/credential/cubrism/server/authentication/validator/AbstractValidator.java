@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.authentication;
+package com.credential.cubrism.server.authentication.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.Errors;
