@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 @RestController
 @Slf4j
 public class UserController {
@@ -37,8 +35,6 @@ public class UserController {
     @PostMapping("/signup")
     public String registerUserAccount(@RequestBody @Valid UserDTO userDto, Errors errors, Model model) {
         if (errors.hasErrors()){ // 유효성 검사 실패. 즉, 중복되는게 있을 경우
-
-
             return "duplication error";
         }
         try {

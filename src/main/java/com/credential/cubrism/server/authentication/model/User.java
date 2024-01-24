@@ -31,10 +31,10 @@ public class User {
     private String nickname;
 
     @CreatedDate
-    @Column(name = "createdDate", nullable = false, updatable = false)
+    @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
     @LastModifiedDate
-    @Column(name = "modifiedDate", nullable = false)
+    @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
 }
