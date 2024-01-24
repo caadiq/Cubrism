@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.authentication.controller;
 
-import com.credential.cubrism.server.authentication.CheckSignUpValidator;
+import com.credential.cubrism.server.authentication.validator.CheckSignUpValidator;
 import com.credential.cubrism.server.authentication.dto.UserDTO;
 import com.credential.cubrism.server.authentication.service.UserService;
 import jakarta.validation.Valid;
