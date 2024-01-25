@@ -1,6 +1,7 @@
 package com.credential.cubrism.server.authentication.controller;
 
 import com.credential.cubrism.server.authentication.dto.FieldErrorDTO;
+import com.credential.cubrism.server.authentication.dto.SignUpResponseDTO;
 import com.credential.cubrism.server.authentication.dto.UserDTO;
 import com.credential.cubrism.server.authentication.service.UserService;
 import com.credential.cubrism.server.authentication.validator.CheckSignUpValidator;
@@ -36,22 +37,22 @@ public class UserController {
         this.checksignUpvalidator = checksignUpvalidator;
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/auth/signup")
     public ResponseEntity<?> registerUserAccount(@RequestBody @Valid UserDTO userDto, BindingResult bindingResult) {
+        log.info("회원가입 시도: 이메일 = {}, 비밀번호 = {}, 닉네임 = {} ", userDto.getEmail(), userDto.getPassword(), userDto.getNickname());
         if (bindingResult.hasErrors()) {
-            // 유효성 검사 실패 시 오류 메시지 반환
             List<FieldErrorDTO> fieldErrors = bindingResult.getFieldErrors()
                     .stream()
                     .map(fieldError -> new FieldErrorDTO(fieldError.getField(), fieldError.getDefaultMessage()))
                     .collect(Collectors.toList());
-            return new ResponseEntity<>(fieldErrors, HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(new SignUpResponseDTO<>(false, fieldErrors));
         }
 
         try {
             userService.signUp(userDto);
-            return new ResponseEntity<>("회원가입 성공!", HttpStatus.CREATED);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new SignUpResponseDTO<>(true, null));
         } catch (Exception e) {
-            return new ResponseEntity<>("회원가입 실패: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignUpResponseDTO<>(false, null));
         }
     }
 }
