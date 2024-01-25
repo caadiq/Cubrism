@@ -4,10 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
-public class SignUpResponseDTO<T> {
+public class SignUpResponseDTO {
     private boolean success;
-    private T data;
+    private List<FieldErrorDTO> validation;
 }
