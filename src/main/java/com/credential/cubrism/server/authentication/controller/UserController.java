@@ -45,14 +45,14 @@ public class UserController {
                     .stream()
                     .map(fieldError -> new FieldErrorDTO(fieldError.getField(), fieldError.getDefaultMessage()))
                     .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(new SignUpResponseDTO<>(false, fieldErrors));
+            return ResponseEntity.badRequest().body(new SignUpResponseDTO(false, fieldErrors));
         }
 
         try {
             userService.signUp(userDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new SignUpResponseDTO<>(true, null));
+            return ResponseEntity.status(HttpStatus.CREATED).body(new SignUpResponseDTO(true, null));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignUpResponseDTO<>(false, null));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignUpResponseDTO(false, null));
         }
     }
 }
