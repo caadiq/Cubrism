@@ -1,6 +1,7 @@
 package com.credential.cubrism.server.authentication.dto;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.util.UUID;
 public class UserDTO {
     private UUID uuid;
 
+    @NotBlank(message = "이메일을 입력해주세요.")
     @Email(message = "이메일 형식에 맞게 입력해주세요.")
     private String email;
 
