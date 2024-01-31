@@ -22,7 +22,7 @@ public class UserService {
     }
 
     @Transactional
-    public void signUp(UserDTO userDto) throws Exception {
+    public void signUp(UserDTO userDto) {
         // Internal Server Error 테스트용
         // internalserver@error로 회원가입 시도하면 RuntimeException 발생
         if (userDto.getEmail().equals("internalserver@error.com")) {

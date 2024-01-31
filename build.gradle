@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.1'
+    id 'org.springframework.boot' version '3.2.2'
     id 'io.spring.dependency-management' version '1.1.4'
 }
 
@@ -26,9 +26,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework:spring-context-support'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
     implementation 'javax.persistence:javax.persistence-api:2.2'
-    implementation 'javax.mail:mail:1.4.7'
+
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.4'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.4'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.4'
 
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
