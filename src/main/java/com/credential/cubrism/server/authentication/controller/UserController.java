@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RestController
 @Slf4j
+@RestController
 public class UserController {
     private final UserService userService;
     private final CheckSignUpValidator checksignUpvalidator;
