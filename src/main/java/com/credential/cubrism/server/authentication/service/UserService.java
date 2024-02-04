@@ -1,7 +1,7 @@
 package com.credential.cubrism.server.authentication.service;
 
-import com.credential.cubrism.server.authentication.dto.UserDTO;
-import com.credential.cubrism.server.authentication.model.User;
+import com.credential.cubrism.server.authentication.dto.UsersDTO;
+import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -22,17 +22,17 @@ public class UserService {
     }
 
     @Transactional
-    public void signUp(UserDTO userDto) {
+    public void signUp(UsersDTO usersDto) {
         // Internal Server Error 테스트용
         // internalserver@error로 회원가입 시도하면 RuntimeException 발생
-        if (userDto.getEmail().equals("internalserver@error.com")) {
+        if (usersDto.getEmail().equals("internalserver@error.com")) {
             throw new RuntimeException("내부 서버 오류 테스트");
         }
 
-        User user = new User();
-        user.setEmail(userDto.getEmail());
-        user.setPassword(bCryptPasswordEncoder.encode(userDto.getPassword()));
-        user.setNickname(userDto.getNickname());
-        userRepository.save(user);
+        Users users = new Users();
+        users.setEmail(usersDto.getEmail());
+        users.setPassword(bCryptPasswordEncoder.encode(usersDto.getPassword()));
+        users.setNickname(usersDto.getNickname());
+        userRepository.save(users);
     }
 }
