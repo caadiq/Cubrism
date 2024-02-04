@@ -2,7 +2,7 @@ package com.credential.cubrism.server.authentication.controller;
 
 import com.credential.cubrism.server.authentication.dto.FieldErrorDTO;
 import com.credential.cubrism.server.authentication.dto.SignUpResponseDTO;
-import com.credential.cubrism.server.authentication.dto.UserDTO;
+import com.credential.cubrism.server.authentication.dto.UsersDTO;
 import com.credential.cubrism.server.authentication.service.UserService;
 import com.credential.cubrism.server.authentication.validator.CheckSignUpValidator;
 import jakarta.validation.Valid;
@@ -38,8 +38,8 @@ public class UserController {
     }
 
     @PostMapping("/auth/signup")
-    public ResponseEntity<?> registerUserAccount(@RequestBody @Valid UserDTO userDto, BindingResult bindingResult) {
-        log.info("회원가입 시도: 이메일 = {}, 비밀번호 = {}, 닉네임 = {} ", userDto.getEmail(), userDto.getPassword(), userDto.getNickname());
+    public ResponseEntity<?> registerUserAccount(@RequestBody @Valid UsersDTO usersDto, BindingResult bindingResult) {
+        log.info("회원가입 시도: 이메일 = {}, 비밀번호 = {}, 닉네임 = {} ", usersDto.getEmail(), usersDto.getPassword(), usersDto.getNickname());
         if (bindingResult.hasErrors()) {
             List<FieldErrorDTO> fieldErrors = bindingResult.getFieldErrors()
                     .stream()
@@ -49,7 +49,7 @@ public class UserController {
         }
 
         try {
-            userService.signUp(userDto);
+            userService.signUp(usersDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(new SignUpResponseDTO(true, null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignUpResponseDTO(false, null));

@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class UserDTO {
+public class UsersDTO {
     private UUID uuid;
 
     @NotBlank(message = "이메일을 입력해주세요.")

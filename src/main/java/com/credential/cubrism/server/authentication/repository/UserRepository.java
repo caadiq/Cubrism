@@ -1,10 +1,10 @@
 package com.credential.cubrism.server.authentication.repository;
 
-import com.credential.cubrism.server.authentication.model.User;
+import com.credential.cubrism.server.authentication.model.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface UserRepository extends JpaRepository<User, UUID> {
+public interface UserRepository extends JpaRepository<Users, UUID> {
     boolean existsByEmail(String email);
 }
