@@ -1,8 +1,6 @@
 package com.credential.cubrism.server.authentication.controller;
 
-import com.credential.cubrism.server.authentication.dto.FieldErrorDTO;
-import com.credential.cubrism.server.authentication.dto.SignUpResponseDTO;
-import com.credential.cubrism.server.authentication.dto.UsersDTO;
+import com.credential.cubrism.server.authentication.dto.*;
 import com.credential.cubrism.server.authentication.service.UserService;
 import com.credential.cubrism.server.authentication.validator.CheckSignUpValidator;
 import jakarta.validation.Valid;
@@ -54,5 +52,19 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignUpResponseDTO(false, null));
         }
+    }
+    @PostMapping("/auth/signin")
+    public JwtToken signIn(@RequestBody SignInDto signInDto) {
+        String email = signInDto.getEmail();
+        String password = signInDto.getPassword();
+        log.info("request email = {}, password = {}", email, password);
+        JwtToken jwtToken = userService.signIn(email, password);
+        log.info("jwtToken accessToken = {}, refreshToken = {}", jwtToken.getAccessToken(), jwtToken.getRefreshToken());
+        return jwtToken;
+    }
+
+    @PostMapping("/auth/test")
+    public String test() {
+        return "success";
     }
 }
