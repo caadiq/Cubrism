@@ -1,21 +1,16 @@
 package com.credential.cubrism.server.authentication.service;
 
-import com.credential.cubrism.server.authentication.Jwt.JwtTokenProvider;
-import com.credential.cubrism.server.authentication.dto.JwtToken;
+import com.credential.cubrism.server.Jwt.LoginRequest;
 import com.credential.cubrism.server.authentication.dto.UsersDTO;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -23,15 +18,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final JwtTokenProvider jwtTokenProvider;
-
     @Autowired
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, AuthenticationManagerBuilder authenticationManagerBuilder, JwtTokenProvider jwtTokenProvider) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.authenticationManagerBuilder = authenticationManagerBuilder;
-        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Transactional
@@ -49,20 +39,56 @@ public class UserService {
         userRepository.save(users);
     }
 
-    @Transactional
-    public JwtToken signIn(String email, String password) {
-        // 1. username + password 를 기반으로 Authentication 객체 생성
-        // 이때 authentication 은 인증 여부를 확인하는 authenticated 값이 false
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
+    /**
+     *  로그인 기능
+     *  화면에서 LoginRequest(loginId, password)을 입력받아 loginId와 password가 일치하면 User return
+     *  loginId가 존재하지 않거나 password가 일치하지 않으면 null return
+     */
+    public Users login(LoginRequest req) {
+        Optional<Users> optionalUser = userRepository.findByEmail(req.getEmail());
 
+        // loginId와 일치하는 User가 없으면 null return
+        if(optionalUser.isEmpty()) {
+            return null;
+        }
 
-        // 2. 실제 검증. authenticate() 메서드를 통해 요청된 Member 에 대한 검증 진행
-        // authenticate 메서드가 실행될 때 CustomUserDetailsService 에서 만든 loadUserByUsername 메서드 실행
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        Users user = optionalUser.get();
 
-        // 3. 인증 정보를 기반으로 JWT 토큰 생성
-        JwtToken jwtToken = jwtTokenProvider.generateToken(authentication);
+        // 찾아온 User의 password와 입력된 password가 다르면 null return
+        if(!bCryptPasswordEncoder.matches(req.getPassword(), user.getPassword())) {
+            return null;
+        }
 
-        return jwtToken;
+        return user;
+    }
+
+    /**
+     * userId(Long)를 입력받아 User을 return 해주는 기능
+     * 인증, 인가 시 사용
+     * userId가 null이거나(로그인 X) userId로 찾아온 User가 없으면 null return
+     * userId로 찾아온 User가 존재하면 User return
+     */
+    public Users getLoginUserById(String email) {
+        if(email == null) return null;
+
+        Optional<Users> optionalUser = userRepository.findByEmail(email);
+        if(optionalUser.isEmpty()) return null;
+
+        return optionalUser.get();
+    }
+
+    /**
+     * loginId(String)를 입력받아 User을 return 해주는 기능
+     * 인증, 인가 시 사용
+     * loginId가 null이거나(로그인 X) userId로 찾아온 User가 없으면 null return
+     * loginId로 찾아온 User가 존재하면 User return
+     */
+    public Users getLoginUserByLoginId(String email) {
+        if(email == null) return null;
+
+        Optional<Users> optionalUser = userRepository.findByEmail(email);
+        if(optionalUser.isEmpty()) return null;
+
+        return optionalUser.get();
     }
 }

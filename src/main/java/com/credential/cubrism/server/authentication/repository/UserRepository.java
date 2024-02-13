@@ -3,7 +3,6 @@ package com.credential.cubrism.server.authentication.repository;
 import com.credential.cubrism.server.authentication.model.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.lang.reflect.Member;
 import java.util.Optional;
 import java.util.UUID;
 

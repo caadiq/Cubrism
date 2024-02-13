@@ -1,15 +1,15 @@
-package com.credential.cubrism.server.authentication.dto;
+package com.credential.cubrism.server.Jwt;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
-public class SignInDto {
+public class LoginRequest {
+
     private String email;
     private String password;
+
 }
