@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class QualificationDetailsDTO {
+public class QualificationDetailsRequestDTO {
     private String code;
     private String name;
 }
