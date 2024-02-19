@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.qualification.service;
 
-import com.credential.cubrism.server.qualification.dto.QualificationListDTO;
+import com.credential.cubrism.server.qualification.dto.QualificationListApiDTO;
 import com.credential.cubrism.server.qualification.dto.QualificationListResponseDTO;
 import com.credential.cubrism.server.qualification.model.QualificationList;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class QualificationListService {
@@ -34,17 +37,30 @@ public class QualificationListService {
     }
 
     private void saveQualificationList(QualificationListResponseDTO response) {
-        for (QualificationListDTO qualificationListDTO : response.getResponse().getBody().getItems().getItem()) {
-            if (qualificationListDTO.getQualName().equals("국가기술자격")) {
-                QualificationList qualificationList = new QualificationList();
-                qualificationList.setCode(qualificationListDTO.getCode());
-                qualificationList.setName(qualificationListDTO.getName());
-                qualificationList.setMiddleFieldName(qualificationListDTO.getMiddleFieldName());
-                qualificationList.setMajorFieldName(qualificationListDTO.getMajorFieldName());
-                qualificationList.setQualName(qualificationListDTO.getQualName());
-                qualificationList.setSeriesName(qualificationListDTO.getSeriesName());
-                qualificationListRepository.save(qualificationList);
-            }
-        }
+        List<QualificationList> qualificationLists = response.getResponse().getBody().getItems().getItem().stream()
+                .filter(item -> "국가기술자격".equals(item.getQualgbnm()))
+                .map(item -> {
+                    QualificationList qualificationList = new QualificationList();
+                    qualificationList.setCode(item.getJmcd());
+                    qualificationList.setName(item.getJmfldnm());
+                    qualificationList.setMiddleFieldName(item.getMdobligfldnm());
+                    qualificationList.setMajorFieldName(item.getObligfldnm());
+                    qualificationList.setQualName(item.getQualgbnm());
+                    qualificationList.setSeriesName(item.getSeriesnm());
+                    return qualificationList;
+                })
+                .collect(Collectors.toList());
+        qualificationListRepository.saveAll(qualificationLists);
+    }
+
+    public List<QualificationListApiDTO> returnQualificationList() {
+        return qualificationListRepository.findAll().stream()
+                .map(qualificationList -> new QualificationListApiDTO(
+                        qualificationList.getCode(),
+                        qualificationList.getName(),
+                        qualificationList.getMiddleFieldName(),
+                        qualificationList.getMajorFieldName()
+                ))
+                .collect(Collectors.toList());
     }
 }
