@@ -5,7 +5,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class QualificationDetailsRequestDTO {
-    private String code;
+public class KakaoBookRequestDTO {
     private String name;
 }

@@ -27,4 +27,7 @@ public class QualificationList {
 
     @Column(name = "series_name")
     private String seriesName;
+
+    @OneToOne(mappedBy = "qualificationList", cascade = CascadeType.ALL)
+    private QualificationDetails qualificationDetails;
 }

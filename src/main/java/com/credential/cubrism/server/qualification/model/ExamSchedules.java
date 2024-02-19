@@ -15,9 +15,6 @@ public class ExamSchedules {
     @Column(name = "schedule_id", nullable = false)
     private UUID scheduleId;
 
-    @Column(name = "code", nullable = false)
-    private String code;
-
     @Column(name = "category")
     private String category;
 
@@ -39,7 +36,7 @@ public class ExamSchedules {
     @Column(name = "practical_exam_result")
     private String practicalExamResult;
 
-    @ManyToOne()
-    @JoinColumn(name = "code", referencedColumnName = "code", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "code")
     private QualificationDetails qualificationDetails;
 }
