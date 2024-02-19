@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.qualification.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.List;
@@ -20,6 +21,16 @@ public class QualificationListResponseDTO {
 
     @Getter
     public static class Items {
-        private List<QualificationListDTO> item;
+        private List<Item> item;
+    }
+
+    @Getter
+    public static class Item {
+        private String jmcd;
+        private String jmfldnm;
+        private String mdobligfldnm;
+        private String obligfldnm;
+        private String qualgbnm;
+        private String seriesnm;
     }
 }
