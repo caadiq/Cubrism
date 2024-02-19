@@ -13,6 +13,7 @@ public class QualificationDetailsResponseDTO {
     private List<Standard> standard;
     private List<Question> question;
     private String acquisition;
+    private List<Books> books;
 
     @Getter
     public static class Schedule {
@@ -41,5 +42,18 @@ public class QualificationDetailsResponseDTO {
     public static class Question {
         private String filePath;
         private String fileName;
+    }
+
+    @Getter
+    public static class Books {
+        private List<String> authors;
+        private String datetime;
+        private String isbn;
+        private int price;
+        private String publisher;
+        private int sale_price;
+        private String thumbnail;
+        private String title;
+        private String url;
     }
 }

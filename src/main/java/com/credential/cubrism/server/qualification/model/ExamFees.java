@@ -19,7 +19,7 @@ public class ExamFees {
     @Column(name = "practical_fee")
     private Integer practicalFee;
 
-    @OneToOne
-    @JoinColumn(name = "code", referencedColumnName = "code", insertable = false, updatable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "code")
     private QualificationDetails qualificationDetails;
 }

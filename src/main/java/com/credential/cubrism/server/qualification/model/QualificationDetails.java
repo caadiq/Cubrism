@@ -21,6 +21,10 @@ public class QualificationDetails {
     @Column(name = "acquisition")
     private String acquisition;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "code")
+    private QualificationList qualificationList;
+
     @OneToMany(mappedBy = "qualificationDetails", cascade = CascadeType.ALL)
     private List<ExamSchedules> examSchedules;
 
@@ -32,4 +36,7 @@ public class QualificationDetails {
 
     @OneToMany(mappedBy = "qualificationDetails", cascade = CascadeType.ALL)
     private List<PublicQuestions> publicQuestions;
+
+    @OneToMany(mappedBy = "qualificationDetails", cascade = CascadeType.ALL)
+    private List<RecommendBooks> recommendBooks;
 }
