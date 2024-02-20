@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.authentication.config;
 
+import com.credential.cubrism.server.Jwt.CustomAuthenticationEntryPoint;
 import com.credential.cubrism.server.Jwt.JwtTokenFilter;
 import com.credential.cubrism.server.Jwt.PrincipalOauth2UserService;
 import com.credential.cubrism.server.authentication.service.UserService;
@@ -26,6 +27,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
+                .exceptionHandling(exceptionHandlingConfigurer -> {
+                    exceptionHandlingConfigurer.authenticationEntryPoint(new CustomAuthenticationEntryPoint());
+                }) // 인증되지 않은 사용자가 리소스에 액세스 할 때 호출되는 커스텀 AuthenticationEntryPoint(나중에 지워도 됨)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessionManagementConfigurer -> { // 세션 사용 안함(jwt 사용시 세션 사용 안함)

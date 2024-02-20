@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -26,18 +27,31 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         log.info("getAttributes : {}", oAuth2User.getAttributes());
 
+        OAuth2UserInfo oAuth2UserInfo = null;
+
         String provider = userRequest.getClientRegistration().getRegistrationId();
-        String providerId = oAuth2User.getAttribute("sub");
-        String email = oAuth2User.getAttribute("email");
+
+        if(provider.equals("google")) {
+            log.info("구글 로그인 요청");
+            oAuth2UserInfo = new GoogleUserInfo( oAuth2User.getAttributes() );
+        } else if(provider.equals("kakao")) {
+            log.info("카카오 로그인 요청");
+            oAuth2UserInfo = new KakaoUserInfo( (Map)oAuth2User.getAttributes() );
+        }
+
+        String providerId = oAuth2UserInfo.getProviderId();
+        String email = oAuth2UserInfo.getEmail();
+        String loginId = provider + "_" + providerId;
+        String nickname = oAuth2UserInfo.getName();
+
 
         Optional<Users> optionalUser = userRepository.findByEmail(email);
-        Users user;
+        Users user = null;
 
         if(optionalUser.isEmpty()) {
             user = Users.builder()
                     .email(email)
-                    .nickname(oAuth2User.getAttribute("name"))
-                    .password(encoder.encode("oauth2"))
+                    .nickname(nickname)
                     .provider(provider)
                     .providerId(providerId)
                     .build();
