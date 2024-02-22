@@ -1,6 +1,7 @@
 package com.credential.cubrism.server.Jwt;
 
 import com.credential.cubrism.server.authentication.model.Users;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -11,6 +12,7 @@ import java.util.Map;
 
 public class PrincipalDetails implements UserDetails, OAuth2User {
 
+    @Getter
     private Users user;
 
     private Map<String, Object> attributes;
@@ -74,4 +76,5 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
     public Map<String, Object> getAttributes() {
         return attributes;
     }
+
 }
