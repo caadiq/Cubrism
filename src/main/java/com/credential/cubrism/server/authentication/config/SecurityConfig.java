@@ -42,6 +42,8 @@ public class SecurityConfig {
                         .requestMatchers("/googleLoginTest").permitAll()
                         .requestMatchers("/oauth2/authorization/google").permitAll()
                         .requestMatchers("/home").authenticated()
+                        .requestMatchers("/api/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2Login -> {

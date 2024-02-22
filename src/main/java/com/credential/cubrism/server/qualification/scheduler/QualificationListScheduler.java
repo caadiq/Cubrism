@@ -16,6 +16,6 @@ public class QualificationListScheduler {
 
     @Scheduled(cron = "0 0 0 * * *")
     public void saveQualificationListData() {
-        qualificationListService.saveQualificationListData();
+        qualificationListService.getQualificationList();
     }
 }
