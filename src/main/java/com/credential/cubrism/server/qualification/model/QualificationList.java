@@ -1,9 +1,6 @@
 package com.credential.cubrism.server.qualification.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,4 +27,7 @@ public class QualificationList {
 
     @Column(name = "series_name")
     private String seriesName;
+
+    @OneToOne(mappedBy = "qualificationList", cascade = CascadeType.ALL)
+    private QualificationDetails qualificationDetails;
 }

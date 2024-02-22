@@ -2,12 +2,12 @@ package com.credential.cubrism.server.qualification.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 @AllArgsConstructor
-public class QualificationDetailsDTO {
+public class QualificationListApiDTO {
     private String code;
     private String name;
+    private String middleFieldName;
+    private String majorFieldName;
 }

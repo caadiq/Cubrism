@@ -14,8 +14,8 @@ public class QualificationDetailsScheduler {
         this.qualificationDetailsService = QualificationDetailsService;
     }
 
-    @Scheduled(cron = "0 9 * * * *") // 임시 스케줄러
-    public void saveQualificationListData() {
-        qualificationDetailsService.saveQualificationDetailsData();
+    @Scheduled(cron = "0 5 0 * * *")
+    public void saveQualificationDetailsData() {
+        qualificationDetailsService.getQualificationDetails();
     }
 }

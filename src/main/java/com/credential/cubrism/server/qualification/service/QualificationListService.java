@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.qualification.service;
 
-import com.credential.cubrism.server.qualification.dto.QualificationDTO;
+import com.credential.cubrism.server.qualification.dto.QualificationListApiDTO;
 import com.credential.cubrism.server.qualification.dto.QualificationListResponseDTO;
 import com.credential.cubrism.server.qualification.model.QualificationList;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class QualificationListService {
@@ -24,27 +26,41 @@ public class QualificationListService {
         this.webClient = webClient;
     }
 
-    public void saveQualificationListData() {
+    public void getQualificationList() {
         String url = "http://openapi.q-net.or.kr/api/service/rest/InquiryListNationalQualifcationSVC/getList?_type=json&serviceKey=" + apiKey;
 
-        Mono<QualificationListResponseDTO> responseMono = webClient.get()
+        webClient.get()
                 .uri(url)
                 .retrieve()
-                .bodyToMono(QualificationListResponseDTO.class);
-        
-        responseMono.subscribe(response -> {
-            for (QualificationDTO qualificationDTO : response.getResponse().getBody().getItems().getItem()) {
-                if (qualificationDTO.getQualName().equals("국가기술자격")) {
+                .bodyToMono(QualificationListResponseDTO.class)
+                .subscribe(this::saveQualificationList);
+    }
+
+    private void saveQualificationList(QualificationListResponseDTO response) {
+        List<QualificationList> qualificationLists = response.getResponse().getBody().getItems().getItem().stream()
+                .filter(item -> "국가기술자격".equals(item.getQualgbnm()))
+                .map(item -> {
                     QualificationList qualificationList = new QualificationList();
-                    qualificationList.setCode(qualificationDTO.getCode());
-                    qualificationList.setName(qualificationDTO.getName());
-                    qualificationList.setMiddleFieldName(qualificationDTO.getMiddleFieldName());
-                    qualificationList.setMajorFieldName(qualificationDTO.getMajorFieldName());
-                    qualificationList.setQualName(qualificationDTO.getQualName());
-                    qualificationList.setSeriesName(qualificationDTO.getSeriesName());
-                    qualificationListRepository.save(qualificationList);
-                }
-            }
-        });
+                    qualificationList.setCode(item.getJmcd());
+                    qualificationList.setName(item.getJmfldnm());
+                    qualificationList.setMiddleFieldName(item.getMdobligfldnm());
+                    qualificationList.setMajorFieldName(item.getObligfldnm());
+                    qualificationList.setQualName(item.getQualgbnm());
+                    qualificationList.setSeriesName(item.getSeriesnm());
+                    return qualificationList;
+                })
+                .collect(Collectors.toList());
+        qualificationListRepository.saveAll(qualificationLists);
+    }
+
+    public List<QualificationListApiDTO> returnQualificationList() {
+        return qualificationListRepository.findAll().stream()
+                .map(qualificationList -> new QualificationListApiDTO(
+                        qualificationList.getCode(),
+                        qualificationList.getName(),
+                        qualificationList.getMiddleFieldName(),
+                        qualificationList.getMajorFieldName()
+                ))
+                .collect(Collectors.toList());
     }
 }
