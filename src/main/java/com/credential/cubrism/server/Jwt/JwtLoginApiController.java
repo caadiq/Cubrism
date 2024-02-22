@@ -37,8 +37,8 @@ public class JwtLoginApiController {
     public String userInfo(Authentication auth) {
         Users loginUser = userService.getLoginUserByLoginId(auth.getName());
 
-        return String.format("loginId : %s\nnickname : %s\nrole : %s",
-                loginUser.getEmail(), loginUser.getNickname(), "USER");
+        return String.format("loginId : %s\nnickname : %s",
+                loginUser.getEmail(), loginUser.getNickname());
     }
 
     @GetMapping("/admin")

@@ -39,4 +39,10 @@ public class Users {
     @LastModifiedDate
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
+
+    @Column(name = "provider", nullable = true)
+    private String provider;
+
+    @Column(name = "provider_id", nullable = true)
+    private String providerId;
 }
