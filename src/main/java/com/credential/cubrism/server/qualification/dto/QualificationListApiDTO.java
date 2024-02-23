@@ -10,4 +10,5 @@ public class QualificationListApiDTO {
     private String name;
     private String middleFieldName;
     private String majorFieldName;
+    private String imageUrl;
 }

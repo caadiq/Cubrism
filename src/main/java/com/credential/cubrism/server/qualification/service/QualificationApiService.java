@@ -5,6 +5,7 @@ import com.credential.cubrism.server.qualification.dto.QualificationListApiDTO;
 import com.credential.cubrism.server.qualification.repository.QualificationDetailsRepository;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +16,9 @@ public class QualificationApiService {
     private final QualificationListRepository qualificationListRepository;
     private final QualificationDetailsRepository qualificationDetailsRepository;
 
+    @Value("${cloud.aws.s3.bucket.qualificationIcon.url}")
+    private String qualificationIconUrl;
+
     @Autowired
     public QualificationApiService(QualificationListRepository qualificationListRepository, QualificationDetailsRepository qualificationDetailsRepository) {
         this.qualificationListRepository = qualificationListRepository;
@@ -23,12 +27,16 @@ public class QualificationApiService {
 
     public List<QualificationListApiDTO> qualificationListApi() {
         return qualificationListRepository.findAll().stream()
-                .map(qualificationList -> new QualificationListApiDTO(
-                        qualificationList.getCode(),
-                        qualificationList.getName(),
-                        qualificationList.getMiddleFieldName(),
-                        qualificationList.getMajorFieldName()
-                ))
+                .map(qualificationList -> {
+                    String imageUrl = qualificationIconUrl + qualificationList.getMajorFieldName().replace(".", "_") + ".webp"; // 자격증 아이콘 이미지 URL
+                    return new QualificationListApiDTO(
+                            qualificationList.getCode(),
+                            qualificationList.getName(),
+                            qualificationList.getMiddleFieldName(),
+                            qualificationList.getMajorFieldName(),
+                            imageUrl
+                    );
+                })
                 .collect(Collectors.toList());
     }
 
