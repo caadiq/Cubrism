@@ -54,13 +54,13 @@ public class QualificationDetailsApiDTO {
     @Getter
     @AllArgsConstructor
     public static class Books {
+        private String title;
         private String authors;
+        private String publisher;
         private LocalDate date;
         private Integer price;
-        private String publisher;
         private Integer sale_price;
         private String thumbnail;
-        private String title;
         private String url;
     }
 }

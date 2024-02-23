@@ -67,13 +67,13 @@ public class QualificationApiService {
                         qualificationDetails.getAcquisition(),
                         qualificationDetails.getRecommendBooks().stream()
                                 .map(book -> new QualificationDetailsApiDTO.Books(
+                                        book.getTitle(),
                                         book.getAuthors(),
+                                        book.getPublisher(),
                                         book.getDate(),
                                         book.getPrice(),
-                                        book.getPublisher(),
                                         book.getSalePrice(),
                                         book.getThumbnail(),
-                                        book.getTitle(),
                                         book.getUrl()
                                 ))
                                 .collect(Collectors.toList())
