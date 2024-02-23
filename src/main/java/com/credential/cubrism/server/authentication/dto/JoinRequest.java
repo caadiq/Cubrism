@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.Jwt;
+package com.credential.cubrism.server.authentication.dto;
 
 import com.credential.cubrism.server.authentication.model.Users;
 import jakarta.validation.constraints.NotBlank;

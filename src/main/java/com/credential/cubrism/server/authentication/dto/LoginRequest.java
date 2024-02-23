@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.Jwt;
+package com.credential.cubrism.server.authentication.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

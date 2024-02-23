@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.authentication.service;
 
-import com.credential.cubrism.server.Jwt.LoginRequest;
+import com.credential.cubrism.server.authentication.dto.LoginRequest;
 import com.credential.cubrism.server.authentication.dto.UsersDTO;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;

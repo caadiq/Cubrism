@@ -1,8 +1,8 @@
 package com.credential.cubrism.server.authentication.config;
 
-import com.credential.cubrism.server.Jwt.CustomAuthenticationEntryPoint;
-import com.credential.cubrism.server.Jwt.JwtTokenFilter;
-import com.credential.cubrism.server.Jwt.PrincipalOauth2UserService;
+import com.credential.cubrism.server.jwt.CustomAuthenticationEntryPoint;
+import com.credential.cubrism.server.jwt.JwtTokenFilter;
+import com.credential.cubrism.server.jwt.PrincipalOauth2UserService;
 import com.credential.cubrism.server.authentication.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -13,8 +13,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
