@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.Jwt;
+package com.credential.cubrism.server.jwt;
 
 import lombok.AllArgsConstructor;
 

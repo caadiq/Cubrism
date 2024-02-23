@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.Jwt;
+package com.credential.cubrism.server.jwt;
 
 public interface OAuth2UserInfo {
     String getProviderId();

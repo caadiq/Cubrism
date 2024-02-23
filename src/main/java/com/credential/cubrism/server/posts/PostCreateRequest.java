@@ -1,10 +1,9 @@
-package com.credential.cubrism.server.Posts;
+package com.credential.cubrism.server.posts;
 
+import com.credential.cubrism.server.authentication.model.Posts;
 import com.credential.cubrism.server.authentication.model.Users;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.UUID;
 
 @Setter
 @Getter

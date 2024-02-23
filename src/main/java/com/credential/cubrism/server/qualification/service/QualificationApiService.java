@@ -16,7 +16,7 @@ public class QualificationApiService {
     private final QualificationListRepository qualificationListRepository;
     private final QualificationDetailsRepository qualificationDetailsRepository;
 
-    @Value("${cloud.aws.s3.bucket.qualificationIcon.url}")
+//    @Value("${cloud.aws.s3.bucket.qualificationIcon.url}")
     private String qualificationIconUrl;
 
     @Autowired

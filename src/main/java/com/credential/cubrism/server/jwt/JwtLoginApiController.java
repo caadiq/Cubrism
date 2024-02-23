@@ -1,5 +1,6 @@
-package com.credential.cubrism.server.Jwt;
+package com.credential.cubrism.server.jwt;
 
+import com.credential.cubrism.server.authentication.dto.LoginRequest;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.service.UserService;
 import lombok.RequiredArgsConstructor;

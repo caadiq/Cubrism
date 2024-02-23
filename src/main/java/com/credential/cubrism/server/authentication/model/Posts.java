@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.Posts;
+package com.credential.cubrism.server.authentication.model;
 
 import com.credential.cubrism.server.authentication.model.Users;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
