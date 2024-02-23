@@ -50,14 +50,20 @@ public class QualificationDetailsService {
     }
 
     private void saveQualificationDetails(QualificationDetailsResponseDTO response) {
-        // 데이터가 중복되지 않도록 기존 데이터 삭제
-        qualificationDetailsRepository.deleteByCode(response.getCode());
-
+        qualificationDetailsRepository.deleteByCode(response.getCode()); // 데이터가 중복되지 않도록 기존 데이터 삭제
         QualificationDetails qualificationDetails = new QualificationDetails();
         qualificationDetails.setCode(response.getCode());
         qualificationDetails.setTendency(response.getTendency());
         qualificationDetails.setAcquisition(response.getAcquisition());
+        setExamSchedules(response, qualificationDetails);
+        setExamFees(response, qualificationDetails);
+        setExamStandards(response, qualificationDetails);
+        setPublicQuestions(response, qualificationDetails);
+        setRecommendBooks(response, qualificationDetails);
+        qualificationDetailsRepository.save(qualificationDetails);
+    }
 
+    private void setExamSchedules(QualificationDetailsResponseDTO response, QualificationDetails qualificationDetails) {
         List<ExamSchedules> examSchedulesList = Optional.ofNullable(response.getSchedule()).orElse(Collections.emptyList()).stream()
                 .map(schedule -> {
                     ExamSchedules examSchedules = new ExamSchedules();
@@ -73,13 +79,17 @@ public class QualificationDetailsService {
                     return examSchedules;
                 }).collect(Collectors.toList());
         qualificationDetails.setExamSchedules(examSchedulesList);
+    }
 
+    private void setExamFees(QualificationDetailsResponseDTO response, QualificationDetails qualificationDetails) {
         ExamFees examFees = new ExamFees();
         examFees.setCode(response.getCode());
         examFees.setWrittenFee(Optional.ofNullable(response.getFee()).map(QualificationDetailsResponseDTO.Fee::getWrittenFee).orElse(null)); // 필기 수수료
         examFees.setPracticalFee(Optional.ofNullable(response.getFee()).map(QualificationDetailsResponseDTO.Fee::getPracticalFee).orElse(null)); // 실기 수수료
         qualificationDetails.setExamFees(examFees);
+    }
 
+    private void setExamStandards(QualificationDetailsResponseDTO response, QualificationDetails qualificationDetails) {
         List<ExamStandards> examStandardsList = Optional.ofNullable(response.getStandard()).orElse(Collections.emptyList()).stream()
                 .map(standard -> {
                     ExamStandards examStandards = new ExamStandards();
@@ -90,7 +100,9 @@ public class QualificationDetailsService {
                     return examStandards;
                 }).collect(Collectors.toList());
         qualificationDetails.setExamStandards(examStandardsList);
+    }
 
+    private void setPublicQuestions(QualificationDetailsResponseDTO response, QualificationDetails qualificationDetails) {
         List<PublicQuestions> publicQuestionsList = Optional.ofNullable(response.getQuestion()).orElse(Collections.emptyList()).stream()
                 .map(question -> {
                     PublicQuestions publicQuestions = new PublicQuestions();
@@ -101,7 +113,9 @@ public class QualificationDetailsService {
                     return publicQuestions;
                 }).collect(Collectors.toList());
         qualificationDetails.setPublicQuestions(publicQuestionsList);
+    }
 
+    private void setRecommendBooks(QualificationDetailsResponseDTO response, QualificationDetails qualificationDetails) {
         List<RecommendBooks> recommendBooksList = Optional.ofNullable(response.getBooks()).orElse(Collections.emptyList()).stream()
                 .map(books -> {
                     RecommendBooks recommendBooks = new RecommendBooks();
@@ -119,7 +133,5 @@ public class QualificationDetailsService {
                     return recommendBooks;
                 }).collect(Collectors.toList());
         qualificationDetails.setRecommendBooks(recommendBooksList);
-
-        qualificationDetailsRepository.save(qualificationDetails);
     }
 }
