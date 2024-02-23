@@ -33,8 +33,8 @@ public class QualificationDetailsApiDTO {
     @Getter
     @AllArgsConstructor
     public static class Fee {
-        private int writtenFee;
-        private int practicalFee;
+        private Integer writtenFee;
+        private Integer practicalFee;
     }
 
     @Getter
@@ -56,9 +56,9 @@ public class QualificationDetailsApiDTO {
     public static class Books {
         private String authors;
         private LocalDate date;
-        private int price;
+        private Integer price;
         private String publisher;
-        private int sale_price;
+        private Integer sale_price;
         private String thumbnail;
         private String title;
         private String url;
