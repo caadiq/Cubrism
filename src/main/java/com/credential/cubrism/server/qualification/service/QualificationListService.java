@@ -1,6 +1,5 @@
 package com.credential.cubrism.server.qualification.service;
 
-import com.credential.cubrism.server.qualification.dto.QualificationListApiDTO;
 import com.credential.cubrism.server.qualification.dto.QualificationListResponseDTO;
 import com.credential.cubrism.server.qualification.model.QualificationList;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
@@ -51,16 +50,5 @@ public class QualificationListService {
                 })
                 .collect(Collectors.toList());
         qualificationListRepository.saveAll(qualificationLists);
-    }
-
-    public List<QualificationListApiDTO> returnQualificationList() {
-        return qualificationListRepository.findAll().stream()
-                .map(qualificationList -> new QualificationListApiDTO(
-                        qualificationList.getCode(),
-                        qualificationList.getName(),
-                        qualificationList.getMiddleFieldName(),
-                        qualificationList.getMajorFieldName()
-                ))
-                .collect(Collectors.toList());
     }
 }
