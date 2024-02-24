@@ -1,6 +1,10 @@
-package com.credential.cubrism.server.Jwt;
+package com.credential.cubrism.server.authentication.service;
 
 import com.credential.cubrism.server.authentication.model.Users;
+import com.credential.cubrism.server.authentication.oauth.GoogleUserInfo;
+import com.credential.cubrism.server.authentication.oauth.KakaoUserInfo;
+import com.credential.cubrism.server.authentication.oauth.OAuth2UserInfo;
+import com.credential.cubrism.server.authentication.oauth.PrincipalDetails;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +37,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
         if(provider.equals("google")) {
             log.info("구글 로그인 요청");
+
             oAuth2UserInfo = new GoogleUserInfo( oAuth2User.getAttributes() );
         } else if(provider.equals("kakao")) {
             log.info("카카오 로그인 요청");

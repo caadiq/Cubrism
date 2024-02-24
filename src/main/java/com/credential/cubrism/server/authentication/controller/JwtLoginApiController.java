@@ -1,5 +1,7 @@
-package com.credential.cubrism.server.Jwt;
+package com.credential.cubrism.server.authentication.controller;
 
+import com.credential.cubrism.server.authentication.jwt.JwtTokenUtil;
+import com.credential.cubrism.server.authentication.dto.LoginRequestDTO;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +16,9 @@ public class JwtLoginApiController {
     private final UserService userService;
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest loginRequest) {
+    public String login(@RequestBody LoginRequestDTO loginRequestDTO) {
 
-        Users user = userService.login(loginRequest);
+        Users user = userService.login(loginRequestDTO);
 
         // 로그인 아이디나 비밀번호가 틀린 경우 global error return
         if(user == null) {

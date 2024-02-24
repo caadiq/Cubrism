@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.Jwt;
+package com.credential.cubrism.server.authentication.dto;
 
 import com.credential.cubrism.server.authentication.model.Users;
 import jakarta.validation.constraints.NotBlank;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class JoinRequest {
+public class JoinRequestDTO {
 
     @NotBlank(message = "이메일이 비어있습니다.")
     private String email;
