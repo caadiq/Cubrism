@@ -1,11 +1,12 @@
-package com.credential.cubrism.server.jwt;
+package com.credential.cubrism.server.authentication.jwt;
 
+import com.credential.cubrism.server.authentication.oauth.OAuth2UserInfo;
 import lombok.AllArgsConstructor;
 
 import java.util.Map;
 
 @AllArgsConstructor
-public class GoogleUserInfo implements OAuth2UserInfo{
+public class GoogleUserInfo implements OAuth2UserInfo {
 
     private Map<String, Object> attributes;
 

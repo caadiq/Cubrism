@@ -1,8 +1,8 @@
 package com.credential.cubrism.server.authentication.config;
 
-import com.credential.cubrism.server.jwt.CustomAuthenticationEntryPoint;
-import com.credential.cubrism.server.jwt.JwtTokenFilter;
-import com.credential.cubrism.server.jwt.PrincipalOauth2UserService;
+import com.credential.cubrism.server.authentication.jwt.CustomAuthenticationEntryPoint;
+import com.credential.cubrism.server.authentication.jwt.JwtTokenFilter;
+import com.credential.cubrism.server.authentication.service.PrincipalOauth2UserService;
 import com.credential.cubrism.server.authentication.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

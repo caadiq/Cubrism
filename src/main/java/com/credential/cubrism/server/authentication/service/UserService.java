@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.authentication.service;
 
-import com.credential.cubrism.server.authentication.dto.LoginRequest;
+import com.credential.cubrism.server.authentication.dto.LoginRequestDTO;
 import com.credential.cubrism.server.authentication.dto.UsersDTO;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
@@ -44,7 +44,7 @@ public class UserService {
      *  화면에서 LoginRequest(loginId, password)을 입력받아 loginId와 password가 일치하면 User return
      *  loginId가 존재하지 않거나 password가 일치하지 않으면 null return
      */
-    public Users login(LoginRequest req) {
+    public Users login(LoginRequestDTO req) {
         Optional<Users> optionalUser = userRepository.findByEmail(req.getEmail());
 
         // loginId와 일치하는 User가 없으면 null return

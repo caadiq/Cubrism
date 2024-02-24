@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.jwt;
+package com.credential.cubrism.server.authentication.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

@@ -1,7 +1,11 @@
-package com.credential.cubrism.server.jwt;
+package com.credential.cubrism.server.authentication.service;
 
 import com.credential.cubrism.server.authentication.model.Users;
+import com.credential.cubrism.server.authentication.oauth.KakaoUserInfo;
+import com.credential.cubrism.server.authentication.oauth.OAuth2UserInfo;
+import com.credential.cubrism.server.authentication.oauth.PrincipalDetails;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
+import com.credential.cubrism.server.authentication.jwt.GoogleUserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

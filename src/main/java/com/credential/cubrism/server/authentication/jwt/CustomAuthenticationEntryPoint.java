@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.jwt;
+package com.credential.cubrism.server.authentication.jwt;
 
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
