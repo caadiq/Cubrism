@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.jwt;
+package com.credential.cubrism.server.authentication.jwt;
 
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.service.UserService;
