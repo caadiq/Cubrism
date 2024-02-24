@@ -1,44 +1,30 @@
-package com.credential.cubrism.server.posts;
+package com.credential.cubrism.server.posts.service;
 
 import com.credential.cubrism.server.authentication.oauth.PrincipalDetails;
+import com.credential.cubrism.server.authentication.model.Posts;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
+import com.credential.cubrism.server.posts.dto.PostCreateRequestDTO;
+import com.credential.cubrism.server.posts.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-@Controller
+@Service
 @RequiredArgsConstructor
-public class PostController {
-    private final PostService postService;
+public class PostService {
+    private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    @PostMapping("/write")
-    @ResponseBody
-    public String writeBoard(@RequestBody PostCreateRequest req, Authentication auth) {
-        try {
-            postService.writeBoard(req, auth);
-            return "Success";
-        } catch (Throwable t) {
-            return String.format("error : %s", t.getMessage());
-        }
-    }
-
-    @GetMapping("/post-titles")
-    @ResponseBody
-    public List<String> getPostTitles() {
-        return postService.getAllPostTitles();
-    }
-
-    @GetMapping("/my-post-titles")
-    @ResponseBody
-    public List<String> getMyPostTitles(Authentication auth) {
+    @Transactional
+    public Long writeBoard(PostCreateRequestDTO req, Authentication auth) throws IOException {
         Object principal = auth.getPrincipal();
         PrincipalDetails principalDetails;
         if (principal instanceof PrincipalDetails) {
@@ -48,10 +34,26 @@ public class PostController {
             Users user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with email : " + email));
             principalDetails = new PrincipalDetails(user, new HashMap<>());
+
         } else {
             throw new IllegalArgumentException("Unsupported principal type: " + principal.getClass().getName());
         }
-        UUID uuid = principalDetails.getUser().getUuid();
-        return postService.getAllPostTitlesByUuid(uuid);
+
+        Posts post = req.toEntity(principalDetails.getUser());
+
+
+
+        Posts savedBoard = postRepository.save(post);
+
+        return savedBoard.getPostId();
     }
+
+    public List<String> getAllPostTitles() {
+        return postRepository.findAllTitles();
+    }
+
+    public List<String> getAllPostTitlesByUuid(UUID uuid) {
+        return postRepository.findAllTitlesByUuid(uuid);
+    }
+
 }
