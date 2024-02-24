@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.posts;
+package com.credential.cubrism.server.posts.dto;
 
 import com.credential.cubrism.server.authentication.model.Posts;
 import com.credential.cubrism.server.authentication.model.Users;
@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class PostCreateRequest {
+public class PostCreateRequestDTO {
     private String title;
     private String content;
     private String board_name;
