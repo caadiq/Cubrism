@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.posts.controller;
 
+import com.credential.cubrism.server.authentication.model.Posts;
 import com.credential.cubrism.server.authentication.oauth.PrincipalDetails;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
@@ -55,5 +56,38 @@ public class PostController {
         }
         UUID uuid = principalDetails.getUser().getUuid();
         return postService.getAllPostTitlesByUuid(uuid);
+    }
+
+    @GetMapping("/{category}")
+    @ResponseBody
+    public List<Posts> getPostsByCategory(@PathVariable String category) {
+        return postService.getPostsByCategory(category);
+    }
+
+    @PostMapping("/{category}/write")
+    @ResponseBody
+    public String writeBoardWithCategory(@PathVariable String category, @RequestBody PostCreateRequestDTO req, Authentication auth) {
+        try {
+            postService.writeBoardWithCategory(req, auth, category);
+            return "Success(write with category)";
+        } catch (Throwable t) {
+            return String.format("error : %s", t.getMessage());
+        }
+    }
+
+    @GetMapping("/{category}/{postId}")
+    @ResponseBody
+    public Object writeBoardWithCategory(@PathVariable String category, @PathVariable Long postId, Authentication auth) {
+        Posts post = postService.getPostByPostId(postId);
+
+          if (post == null) {
+              return "Post not found";
+          }
+
+        if (!post.getCategory().equals(category)) {
+            return "category not match";
+        }
+
+        return post;
     }
 }
