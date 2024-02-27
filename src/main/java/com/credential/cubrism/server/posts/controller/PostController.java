@@ -4,6 +4,8 @@ import com.credential.cubrism.server.authentication.model.Posts;
 import com.credential.cubrism.server.authentication.oauth.PrincipalDetails;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
+import com.credential.cubrism.server.posts.dto.AddCategoryDTO;
+import com.credential.cubrism.server.posts.repository.PostRepository;
 import com.credential.cubrism.server.posts.service.PostService;
 import com.credential.cubrism.server.posts.dto.PostCreateRequestDTO;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Controller
@@ -21,6 +24,7 @@ import java.util.UUID;
 public class PostController {
     private final PostService postService;
     private final UserRepository userRepository;
+    private final PostRepository postRepository;
 
     @PostMapping("/write")
     @ResponseBody
@@ -90,4 +94,120 @@ public class PostController {
 
         return post;
     }
+
+    @PostMapping("/addFavoriteCategory")
+    @ResponseBody
+    public Object addFavoriteCategory(@RequestBody AddCategoryDTO addCategoryDTO, Authentication auth) {
+        Object principal = auth.getPrincipal();
+        PrincipalDetails principalDetails;
+        if (principal instanceof PrincipalDetails) {
+            principalDetails = (PrincipalDetails) principal;
+        } else if (principal instanceof String) {
+            String email = (String) principal;
+            Users user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email : " + email));
+            principalDetails = new PrincipalDetails(user, new HashMap<>());
+            // AddCategoryDTO 객체에서 카테고리를 가져옵니다.
+            String category = addCategoryDTO.getCategory();
+
+            // 사용자의 categories 리스트에 이미 해당 카테고리가 있는지 확인합니다.
+            if (user.getCategories().contains(category)) {
+                // 이미 있다면, 카테고리를 추가하지 않고 메시지를 반환합니다.
+                return "Category already exists in favorites";
+            }
+
+            // 사용자의 categories 리스트에 카테고리를 추가합니다.
+            user.getCategories().add(category);
+
+            // 변경 사항을 저장합니다.
+            userRepository.save(user);
+        } else {
+            throw new IllegalArgumentException("Unsupported principal type: " + principal.getClass().getName());
+        }
+
+        return "Success"+" "+addCategoryDTO.getCategory();
+    }
+
+    @PostMapping("/removeFavoriteCategory")
+    @ResponseBody
+    public Object removeFavoriteCategory(@RequestBody AddCategoryDTO addCategoryDTO, Authentication auth) {
+        Object principal = auth.getPrincipal();
+        PrincipalDetails principalDetails;
+        if (principal instanceof PrincipalDetails) {
+            principalDetails = (PrincipalDetails) principal;
+        } else if (principal instanceof String) {
+            String email = (String) principal;
+            Users user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email : " + email));
+            principalDetails = new PrincipalDetails(user, new HashMap<>());
+            // AddCategoryDTO 객체에서 카테고리를 가져옵니다.
+            String category = addCategoryDTO.getCategory();
+
+            // 사용자의 categories 리스트에 해당 카테고리가 있는지 확인합니다.
+            if (!user.getCategories().contains(category)) {
+                // 없다면, 메시지를 반환합니다.
+                return "Category not found in favorites";
+            }
+
+            // 사용자의 categories 리스트에서 카테고리를 삭제합니다.
+            user.getCategories().remove(category);
+
+            // 변경 사항을 저장합니다.
+            userRepository.save(user);
+        } else {
+            throw new IllegalArgumentException("Unsupported principal type: " + principal.getClass().getName());
+        }
+
+        return "Success"+" "+addCategoryDTO.getCategory();
+    }
+
+    @GetMapping("/myFavoriteCategory")
+    @ResponseBody
+    public Object myFavoriteCategory(Authentication auth) {
+        Object principal = auth.getPrincipal();
+        PrincipalDetails principalDetails;
+        if (principal instanceof PrincipalDetails) {
+            principalDetails = (PrincipalDetails) principal;
+        } else if (principal instanceof String) {
+            String email = (String) principal;
+            Users user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email : " + email));
+            List<String> categories = user.getCategories();
+
+            return categories;
+        } else {
+            throw new IllegalArgumentException("Unsupported principal type: " + principal.getClass().getName());
+        }
+
+        return "error";
+    }
+
+    @GetMapping("/myFavoriteCategoryPosts")
+    @ResponseBody
+    public Object myFavoriteCategoryPosts(Authentication auth) {
+        Object principal = auth.getPrincipal();
+        PrincipalDetails principalDetails;
+        if (principal instanceof PrincipalDetails) {
+            principalDetails = (PrincipalDetails) principal;
+        } else if (principal instanceof String) {
+            String email = (String) principal;
+            Users user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email : " + email));
+            List<String> categories = user.getCategories();
+            List<Posts> posts = postRepository.findByCategoryIn(categories);
+
+            String result = "{";
+            for (Posts post : posts) {
+                result += post.getTitle() + ", ";
+            }
+            result += "}";
+
+            return result; // 나중에 얘 post로 바꾸면 json 형태로 전달될거임
+        } else {
+            throw new IllegalArgumentException("Unsupported principal type: " + principal.getClass().getName());
+        }
+
+        return "error";
+    }
+
 }
