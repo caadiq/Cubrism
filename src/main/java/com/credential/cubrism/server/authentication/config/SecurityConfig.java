@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final UserService userService;
     private final PrincipalOauth2UserService principalOauth2UserService;
-    private static String secretKey = "my-secret-key-123123";
+    private static final String secretKey = "my-secret-key-123123";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -33,9 +33,10 @@ public class SecurityConfig {
                 .sessionManagement(sessionManagementConfigurer -> { // 세션 사용 안함(jwt 사용시 세션 사용 안함)
                     sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                 })
-                .authorizeRequests((authz) -> authz
+                .authorizeHttpRequests((authz) -> authz
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/auth/signup/**").permitAll()
+                        .requestMatchers("/auth/profileimage/**").permitAll()
                         .requestMatchers("/jwt-login/login").permitAll()
                         .requestMatchers("/googleLoginTest").permitAll()
                         .requestMatchers("/oauth2/authorization/google").permitAll()
