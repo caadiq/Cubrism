@@ -37,4 +37,7 @@ public class Posts {
 
     @Column(name = "post_content", nullable = false)
     private String content;
+
+    @Column(name = "category", nullable = true)
+    private String category;
 }

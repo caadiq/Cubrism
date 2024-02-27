@@ -40,7 +40,7 @@ public class PostService {
         }
 
         Posts post = req.toEntity(principalDetails.getUser());
-
+        post.setCategory("default");
 
 
         Posts savedBoard = postRepository.save(post);
@@ -56,4 +56,35 @@ public class PostService {
         return postRepository.findAllTitlesByUuid(uuid);
     }
 
+    public List<Posts> getPostsByCategory(String category) {
+        return postRepository.findAllByCategory(category);
+    }
+
+    public Long writeBoardWithCategory(PostCreateRequestDTO req, Authentication auth, String category) {
+        Object principal = auth.getPrincipal();
+        PrincipalDetails principalDetails;
+        if (principal instanceof PrincipalDetails) {
+            principalDetails = (PrincipalDetails) principal;
+        } else if (principal instanceof String) {
+            String email = (String) principal;
+            Users user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email : " + email));
+            principalDetails = new PrincipalDetails(user, new HashMap<>());
+
+        } else {
+            throw new IllegalArgumentException("Unsupported principal type: " + principal.getClass().getName());
+        }
+
+        Posts post = req.toEntity(principalDetails.getUser());
+        post.setCategory(category);
+
+        Posts savedBoard = postRepository.save(post);
+
+        return savedBoard.getPostId();
+
+    }
+
+    public Posts getPostByPostId(Long postId) {
+        return postRepository.findByPostId(postId);
+    }
 }
