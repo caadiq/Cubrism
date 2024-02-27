@@ -28,7 +28,7 @@ public class JwtLoginApiController {
         // 로그인 성공 => Jwt Token 발급
 
         String secretKey = "my-secret-key-123123";
-        long expireTimeMs = 1000 * 60 * 60;     // Token 유효 시간 = 60분
+        long expireTimeMs = 1000 * 60 * 600;     // Token 유효 시간 = 600분
 
         String jwtToken = JwtTokenUtil.createToken(user.getEmail(), secretKey, expireTimeMs);
 

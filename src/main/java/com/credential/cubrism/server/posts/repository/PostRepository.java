@@ -18,5 +18,9 @@ public interface PostRepository extends JpaRepository<Posts, UUID> {
 
     @Query("SELECT p.title FROM Posts p WHERE p.user.uuid = :uuid")
     List<String> findAllTitlesByUuid(UUID uuid);
+
+    List<Posts> findAllByCategory(String category);
+
+    Posts findByPostId(Long postId);
 }
 

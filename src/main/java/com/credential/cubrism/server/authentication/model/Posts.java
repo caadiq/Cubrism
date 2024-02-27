@@ -9,6 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -37,4 +38,12 @@ public class Posts {
 
     @Column(name = "post_content", nullable = false)
     private String content;
+
+    @Column(name = "category", nullable = true)
+    private String category;
+
+//    @OneToMany(mappedBy = "post", orphanRemoval = true)
+//    private List<Comment> comments;
+
+
 }
