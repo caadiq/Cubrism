@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -45,4 +46,9 @@ public class Users {
 
     @Column(name = "provider_id", nullable = true)
     private String providerId;
+
+    @ElementCollection //얘가 자동으로 테이블 만들어줌
+    @CollectionTable(name = "user_categories", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "category")
+    private List<String> categories;
 }

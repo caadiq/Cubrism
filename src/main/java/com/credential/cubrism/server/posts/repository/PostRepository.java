@@ -20,7 +20,8 @@ public interface PostRepository extends JpaRepository<Posts, UUID> {
     List<String> findAllTitlesByUuid(UUID uuid);
 
     List<Posts> findAllByCategory(String category);
-
+    List<Posts> findByCategoryIn(List<String> categories);
     Posts findByPostId(Long postId);
+
 }
 
