@@ -1,5 +1,6 @@
-package com.credential.cubrism.server.authentication.model;
+package com.credential.cubrism.server.posts.model;
 
+import com.credential.cubrism.server.authentication.model.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

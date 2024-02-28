@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.posts.controller;
 
-import com.credential.cubrism.server.authentication.model.Posts;
+import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.authentication.oauth.PrincipalDetails;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Controller
