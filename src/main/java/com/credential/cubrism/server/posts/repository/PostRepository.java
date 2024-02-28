@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.posts.repository;
 
-import com.credential.cubrism.server.authentication.model.Posts;
+import com.credential.cubrism.server.posts.model.Posts;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

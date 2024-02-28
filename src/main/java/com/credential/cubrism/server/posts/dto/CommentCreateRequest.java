@@ -1,7 +1,7 @@
 package com.credential.cubrism.server.posts.dto;
 
-import com.credential.cubrism.server.authentication.model.Comment;
-import com.credential.cubrism.server.authentication.model.Posts;
+import com.credential.cubrism.server.posts.model.Comment;
+import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.authentication.model.Users;
 import lombok.Data;
 
