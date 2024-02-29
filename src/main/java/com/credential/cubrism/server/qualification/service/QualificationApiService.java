@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.qualification.service;
 
+import com.credential.cubrism.server.qualification.dto.MajorFieldListApiDTO;
 import com.credential.cubrism.server.qualification.dto.QualificationDetailsApiDTO;
 import com.credential.cubrism.server.qualification.dto.QualificationListApiDTO;
 import com.credential.cubrism.server.qualification.repository.QualificationDetailsRepository;
@@ -25,18 +26,23 @@ public class QualificationApiService {
         this.qualificationDetailsRepository = qualificationDetailsRepository;
     }
 
-    public List<QualificationListApiDTO> qualificationListApi() {
-        return qualificationListRepository.findAll().stream()
-                .map(qualificationList -> {
-                    String imageUrl = qualificationIconUrl + qualificationList.getMajorFieldName().replace(".", "_") + ".webp"; // 자격증 아이콘 이미지 URL
-                    return new QualificationListApiDTO(
-                            qualificationList.getCode(),
-                            qualificationList.getName(),
-                            qualificationList.getMiddleFieldName(),
-                            qualificationList.getMajorFieldName(),
-                            imageUrl
-                    );
+    public List<MajorFieldListApiDTO> majorFieldListApi() {
+        return qualificationListRepository.findDistinctMajorFieldNames().stream()
+                .sorted()
+                .map(majorFieldName -> {
+                    String imageUrl = qualificationIconUrl + majorFieldName.replace(".", "_") + ".webp";
+                    return new MajorFieldListApiDTO(majorFieldName, imageUrl);
                 })
+                .collect(Collectors.toList());
+    }
+
+    public List<QualificationListApiDTO> qualificationListApi(String field) {
+        return qualificationListRepository.findByMajorFieldName(field).stream()
+                .map(qualificationList -> new QualificationListApiDTO(
+                        qualificationList.getMiddleFieldName(),
+                        qualificationList.getCode(),
+                        qualificationList.getName()
+                ))
                 .collect(Collectors.toList());
     }
 
