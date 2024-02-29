@@ -6,9 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class QualificationListApiDTO {
+    private String middleFieldName;
     private String code;
     private String name;
-    private String middleFieldName;
-    private String majorFieldName;
-    private String imageUrl;
 }

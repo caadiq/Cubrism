@@ -5,12 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/cubrism")
 public class QualificationController {
     private final QualificationApiService qualificationApiService;
 
@@ -22,6 +20,7 @@ public class QualificationController {
     @GetMapping("/qualification")
     public ResponseEntity<?> getQualification(
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String field,
             @RequestParam(required = false) String code
     ) {
         try {
@@ -30,7 +29,13 @@ public class QualificationController {
             }
 
             return switch (type) {
-                case "list" -> ResponseEntity.ok(qualificationApiService.qualificationListApi());
+                case "list" -> {
+                    if (field == null || field.isEmpty()) {
+                        yield ResponseEntity.ok(qualificationApiService.majorFieldListApi());
+                    } else {
+                        yield ResponseEntity.ok(qualificationApiService.qualificationListApi(field));
+                    }
+                }
                 case "details" -> {
                     if (code == null || code.isEmpty()) {
                         yield ResponseEntity.status(HttpStatus.BAD_REQUEST).body("'code' 파라미터가 필요합니다.");
