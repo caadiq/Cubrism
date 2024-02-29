@@ -1,7 +1,6 @@
 package com.credential.cubrism.server.authentication.oauth;
 
 import com.credential.cubrism.server.authentication.model.Users;
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -10,37 +9,25 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-public class PrincipalDetails implements UserDetails, OAuth2User {
-
-    @Getter
-    private Users user;
-
-    private Map<String, Object> attributes;
-
-    public PrincipalDetails(Users user, Map<String, Object> attributes) {
-        this.user = user;
-        this.attributes = attributes;
-    }
-
+public record PrincipalDetails(Users user, Map<String, Object> attributes) implements UserDetails, OAuth2User {
     // 권한 관련 작업을 하기 위한 role return
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> collections = new ArrayList<>();
         collections.add(() -> "USER");
-
         return collections;
     }
 
     // get Password 메서드
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return user().getPassword();
     }
 
     // get Username 메서드 (생성한 User은 loginId 사용)
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return user().getEmail();
     }
 
     // 계정이 만료 되었는지 (true: 만료X)
@@ -74,7 +61,6 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
     @Override
     public Map<String, Object> getAttributes() {
-        return attributes;
+        return attributes();
     }
-
 }

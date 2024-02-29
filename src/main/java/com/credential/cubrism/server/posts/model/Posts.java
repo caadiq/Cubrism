@@ -1,35 +1,26 @@
 package com.credential.cubrism.server.posts.model;
 
 import com.credential.cubrism.server.authentication.model.Users;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.util.List;
-import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
-@Builder
 @Table(name = "Posts")
-@NoArgsConstructor
-@AllArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 public class Posts {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id", nullable = false)
     private Long postId;
 
-    @Column(name = "board_name", nullable = false)
-    private String board_name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
@@ -38,12 +29,4 @@ public class Posts {
 
     @Column(name = "post_content", nullable = false)
     private String content;
-
-    @Column(name = "category", nullable = true)
-    private String category;
-
-//    @OneToMany(mappedBy = "post", orphanRemoval = true)
-//    private List<Comment> comments;
-
-
 }
