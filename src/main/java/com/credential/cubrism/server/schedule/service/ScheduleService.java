@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -36,7 +37,10 @@ public class ScheduleService {
         Schedules schedules = new Schedules();
         schedules.setUser(user);
         schedules.setStartDate(LocalDateTime.parse(addScheduleRequestDTO.getStartDate()));
-        schedules.setEndDate(LocalDateTime.parse(addScheduleRequestDTO.getEndDate()));
+        Optional.ofNullable(addScheduleRequestDTO.getEndDate())
+                .filter(endDate -> !endDate.isEmpty())
+                .map(LocalDateTime::parse)
+                .ifPresent(schedules::setEndDate);
         schedules.setAllDay(addScheduleRequestDTO.isAllDay());
         schedules.setTitle(addScheduleRequestDTO.getTitle());
         schedules.setContent(addScheduleRequestDTO.getContent());
