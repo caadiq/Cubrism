@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.qualification.controller;
 
+import com.credential.cubrism.server.common.dto.ErrorDTO;
 import com.credential.cubrism.server.qualification.service.QualificationApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,7 +26,7 @@ public class QualificationController {
     ) {
         try {
             if (type == null || type.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("'type' 파라미터가 필요합니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'type' 파라미터가 필요합니다."));
             }
 
             return switch (type) {
@@ -38,14 +39,14 @@ public class QualificationController {
                 }
                 case "details" -> {
                     if (code == null || code.isEmpty()) {
-                        yield ResponseEntity.status(HttpStatus.BAD_REQUEST).body("'code' 파라미터가 필요합니다.");
+                        yield ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'code' 파라미터가 필요합니다."));
                     }
                     yield ResponseEntity.ok(qualificationApiService.qualificationDetailsApi(code));
                 }
-                default -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body("'type' 파라미터가 잘못되었습니다.");
+                default -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'type' 파라미터가 잘못되었습니다."));
             };
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorDTO(e.getMessage()));
         }
     }
 }
