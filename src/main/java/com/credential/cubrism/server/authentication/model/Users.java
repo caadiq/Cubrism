@@ -1,5 +1,7 @@
 package com.credential.cubrism.server.authentication.model;
 
+import com.credential.cubrism.server.posts.model.Posts;
+import com.credential.cubrism.server.schedule.model.Schedules;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -41,14 +43,20 @@ public class Users {
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
 
-    @Column(name = "provider", nullable = true)
+    @Column(name = "provider")
     private String provider;
 
-    @Column(name = "provider_id", nullable = true)
+    @Column(name = "provider_id")
     private String providerId;
 
     @ElementCollection //얘가 자동으로 테이블 만들어줌
     @CollectionTable(name = "user_categories", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "category")
     private List<String> categories;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Posts> posts;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Schedules> schedules;
 }
