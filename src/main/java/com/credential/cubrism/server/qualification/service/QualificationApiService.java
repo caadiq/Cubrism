@@ -92,6 +92,6 @@ public class QualificationApiService {
                                 ))
                                 .collect(Collectors.toList())
                 ))
-                .orElseThrow(() -> new RuntimeException(code + " code에 해당하는 자격증이 없습니다."));
+                .orElseThrow(() -> new RuntimeException("'" + code + "' code에 해당하는 자격증이 없습니다."));
     }
 }
