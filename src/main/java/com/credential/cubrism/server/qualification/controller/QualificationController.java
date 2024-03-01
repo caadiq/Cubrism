@@ -2,7 +2,7 @@ package com.credential.cubrism.server.qualification.controller;
 
 import com.credential.cubrism.server.common.dto.ErrorDTO;
 import com.credential.cubrism.server.qualification.service.QualificationApiService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,13 +10,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class QualificationController {
     private final QualificationApiService qualificationApiService;
-
-    @Autowired
-    public QualificationController(QualificationApiService qualificationApiService) {
-        this.qualificationApiService = qualificationApiService;
-    }
 
     @GetMapping("/qualification")
     public ResponseEntity<?> getQualification(
