@@ -4,10 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @AllArgsConstructor
-public class ScheduleDTO {
+public class ScheduleListGetDTO {
+    private UUID scheduleId;
     private String startDate;
     private String endDate;
     private boolean isAllDay;
