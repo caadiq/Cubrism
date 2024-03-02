@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/schedule")
@@ -16,7 +18,10 @@ public class ScheduleController {
     private final ScheduleService scheduleService;
 
     @PostMapping("/add")
-    public ResponseEntity<?> addSchedule(@RequestBody ScheduleAddPostDTO dto, Authentication authentication) {
+    public ResponseEntity<?> addSchedule(
+            @RequestBody ScheduleAddPostDTO dto,
+            Authentication authentication
+    ) {
         try {
             scheduleService.addSchedule(dto, authentication);
             return ResponseEntity.ok("일정 추가 성공");
@@ -25,15 +30,18 @@ public class ScheduleController {
         }
     }
 
-//    @PostMapping("/delete")
-//    public ResponseEntity<?> deleteSchedule(@RequestBody RemoveScheduleRequestDTO dto, Authentication authentication) {
-//        try {
-//            scheduleService.deleteSchedule(dto, authentication);
-//            return ResponseEntity.ok("일정 삭제 성공");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-//        }
-//    }
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteSchedule(
+            @RequestParam(required = false) UUID scheduleId,
+            Authentication authentication
+    ) {
+        try {
+            scheduleService.deleteSchedule(scheduleId, authentication);
+            return ResponseEntity.ok("일정 삭제 성공");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
 //    @PostMapping("/update")
 //    public ResponseEntity<?> updateSchedule(@RequestBody UpdateScheduleRequestDTO dto, Authentication authentication) {
