@@ -1,12 +1,11 @@
 package com.credential.cubrism.server.qualification.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-public class QualificationListResponseDTO {
+public class QualificationListApiGetDTO {
     private Response response;
 
     @Getter

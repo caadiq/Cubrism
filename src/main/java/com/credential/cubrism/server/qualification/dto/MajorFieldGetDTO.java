@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class MajorFieldListApiDTO {
+public class MajorFieldGetDTO {
     private String majorFieldName;
     private String iconUrl;
 }

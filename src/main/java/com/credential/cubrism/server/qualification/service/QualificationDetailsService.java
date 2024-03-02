@@ -1,7 +1,7 @@
 package com.credential.cubrism.server.qualification.service;
 
-import com.credential.cubrism.server.qualification.dto.QualificationDetailsRequestDTO;
-import com.credential.cubrism.server.qualification.dto.QualificationDetailsResponseDTO;
+import com.credential.cubrism.server.qualification.dto.QualificationDetailsApiPostDTO;
+import com.credential.cubrism.server.qualification.dto.QualificationDetailsApiResponseDTO;
 import com.credential.cubrism.server.qualification.model.*;
 import com.credential.cubrism.server.qualification.repository.QualificationDetailsRepository;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
@@ -33,38 +33,36 @@ public class QualificationDetailsService {
 
     public void getQualificationDetails() {
         String url = "http://localhost:8000/qualification";
-
         List<QualificationList> qualificationList = qualificationListRepository.findAll();
-
-        List<QualificationDetailsRequestDTO> qualificationDetailsRequestDTO = qualificationList.stream()
-                .map(qualification -> new QualificationDetailsRequestDTO(qualification.getCode(), qualification.getName()))
+        List<QualificationDetailsApiPostDTO> qualificationDetailsApiPostDTO = qualificationList.stream()
+                .map(qualification -> new QualificationDetailsApiPostDTO(qualification.getCode(), qualification.getName()))
                 .collect(Collectors.toList());
 
         webClient.post()
                 .uri(url)
-                .bodyValue(qualificationDetailsRequestDTO)
+                .bodyValue(qualificationDetailsApiPostDTO)
                 .retrieve()
-                .bodyToFlux(QualificationDetailsResponseDTO.class)
+                .bodyToFlux(QualificationDetailsApiResponseDTO.class)
                 .retryWhen(Retry.backoff(5, Duration.ofMinutes(1)).maxBackoff(Duration.ofSeconds(10)))
                 .subscribe(this::saveQualificationDetails);
     }
 
-    private void saveQualificationDetails(QualificationDetailsResponseDTO response) {
-        qualificationDetailsRepository.deleteByCode(response.getCode()); // 데이터가 중복되지 않도록 기존 데이터 삭제
+    private void saveQualificationDetails(QualificationDetailsApiResponseDTO qualificationDetailsApiResponseDTO) {
+        qualificationDetailsRepository.deleteByCode(qualificationDetailsApiResponseDTO.getCode()); // 데이터가 중복되지 않도록 기존 데이터 삭제
         QualificationDetails qualificationDetails = new QualificationDetails();
-        qualificationDetails.setCode(response.getCode());
-        qualificationDetails.setTendency(response.getTendency());
-        qualificationDetails.setAcquisition(response.getAcquisition());
-        setExamSchedules(response, qualificationDetails);
-        setExamFees(response, qualificationDetails);
-        setExamStandards(response, qualificationDetails);
-        setPublicQuestions(response, qualificationDetails);
-        setRecommendBooks(response, qualificationDetails);
+        qualificationDetails.setCode(qualificationDetailsApiResponseDTO.getCode());
+        qualificationDetails.setTendency(qualificationDetailsApiResponseDTO.getTendency());
+        qualificationDetails.setAcquisition(qualificationDetailsApiResponseDTO.getAcquisition());
+        setExamSchedules(qualificationDetailsApiResponseDTO, qualificationDetails);
+        setExamFees(qualificationDetailsApiResponseDTO, qualificationDetails);
+        setExamStandards(qualificationDetailsApiResponseDTO, qualificationDetails);
+        setPublicQuestions(qualificationDetailsApiResponseDTO, qualificationDetails);
+        setRecommendBooks(qualificationDetailsApiResponseDTO, qualificationDetails);
         qualificationDetailsRepository.save(qualificationDetails);
     }
 
-    private void setExamSchedules(QualificationDetailsResponseDTO response, QualificationDetails qualificationDetails) {
-        List<ExamSchedules> examSchedulesList = Optional.ofNullable(response.getSchedule()).orElse(Collections.emptyList()).stream()
+    private void setExamSchedules(QualificationDetailsApiResponseDTO qualificationDetailsApiResponseDTO, QualificationDetails qualificationDetails) {
+        List<ExamSchedules> examSchedulesList = Optional.ofNullable(qualificationDetailsApiResponseDTO.getSchedule()).orElse(Collections.emptyList()).stream()
                 .map(schedule -> {
                     ExamSchedules examSchedules = new ExamSchedules();
                     examSchedules.setScheduleId(UUID.randomUUID());
@@ -81,16 +79,16 @@ public class QualificationDetailsService {
         qualificationDetails.setExamSchedules(examSchedulesList);
     }
 
-    private void setExamFees(QualificationDetailsResponseDTO response, QualificationDetails qualificationDetails) {
+    private void setExamFees(QualificationDetailsApiResponseDTO dto, QualificationDetails qualificationDetails) {
         ExamFees examFees = new ExamFees();
-        examFees.setCode(response.getCode());
-        examFees.setWrittenFee(Optional.ofNullable(response.getFee()).map(QualificationDetailsResponseDTO.Fee::getWrittenFee).orElse(null)); // 필기 수수료
-        examFees.setPracticalFee(Optional.ofNullable(response.getFee()).map(QualificationDetailsResponseDTO.Fee::getPracticalFee).orElse(null)); // 실기 수수료
+        examFees.setCode(dto.getCode());
+        examFees.setWrittenFee(Optional.ofNullable(dto.getFee()).map(QualificationDetailsApiResponseDTO.Fee::getWrittenFee).orElse(null)); // 필기 수수료
+        examFees.setPracticalFee(Optional.ofNullable(dto.getFee()).map(QualificationDetailsApiResponseDTO.Fee::getPracticalFee).orElse(null)); // 실기 수수료
         qualificationDetails.setExamFees(examFees);
     }
 
-    private void setExamStandards(QualificationDetailsResponseDTO response, QualificationDetails qualificationDetails) {
-        List<ExamStandards> examStandardsList = Optional.ofNullable(response.getStandard()).orElse(Collections.emptyList()).stream()
+    private void setExamStandards(QualificationDetailsApiResponseDTO dto, QualificationDetails qualificationDetails) {
+        List<ExamStandards> examStandardsList = Optional.ofNullable(dto.getStandard()).orElse(Collections.emptyList()).stream()
                 .map(standard -> {
                     ExamStandards examStandards = new ExamStandards();
                     examStandards.setFileId(UUID.randomUUID());
@@ -102,8 +100,8 @@ public class QualificationDetailsService {
         qualificationDetails.setExamStandards(examStandardsList);
     }
 
-    private void setPublicQuestions(QualificationDetailsResponseDTO response, QualificationDetails qualificationDetails) {
-        List<PublicQuestions> publicQuestionsList = Optional.ofNullable(response.getQuestion()).orElse(Collections.emptyList()).stream()
+    private void setPublicQuestions(QualificationDetailsApiResponseDTO dto, QualificationDetails qualificationDetails) {
+        List<PublicQuestions> publicQuestionsList = Optional.ofNullable(dto.getQuestion()).orElse(Collections.emptyList()).stream()
                 .map(question -> {
                     PublicQuestions publicQuestions = new PublicQuestions();
                     publicQuestions.setFileId(UUID.randomUUID());
@@ -115,8 +113,8 @@ public class QualificationDetailsService {
         qualificationDetails.setPublicQuestions(publicQuestionsList);
     }
 
-    private void setRecommendBooks(QualificationDetailsResponseDTO response, QualificationDetails qualificationDetails) {
-        List<RecommendBooks> recommendBooksList = Optional.ofNullable(response.getBooks()).orElse(Collections.emptyList()).stream()
+    private void setRecommendBooks(QualificationDetailsApiResponseDTO dto, QualificationDetails qualificationDetails) {
+        List<RecommendBooks> recommendBooksList = Optional.ofNullable(dto.getBooks()).orElse(Collections.emptyList()).stream()
                 .map(books -> {
                     RecommendBooks recommendBooks = new RecommendBooks();
                     recommendBooks.setBooksId(UUID.randomUUID()); // 책 ID

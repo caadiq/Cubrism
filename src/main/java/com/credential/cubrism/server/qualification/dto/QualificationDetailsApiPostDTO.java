@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class QualificationDetailsRequestDTO {
+public class QualificationDetailsApiPostDTO {
     private String code;
     private String name;
 }

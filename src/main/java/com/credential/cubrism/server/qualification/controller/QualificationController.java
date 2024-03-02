@@ -1,7 +1,7 @@
 package com.credential.cubrism.server.qualification.controller;
 
 import com.credential.cubrism.server.common.dto.ErrorDTO;
-import com.credential.cubrism.server.qualification.service.QualificationApiService;
+import com.credential.cubrism.server.qualification.service.QualificationListService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class QualificationController {
-    private final QualificationApiService qualificationApiService;
+    private final QualificationListService qualificationApiService;
 
     @GetMapping("/qualification")
     public ResponseEntity<?> getQualification(
