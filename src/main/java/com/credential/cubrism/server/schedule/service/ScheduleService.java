@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +35,15 @@ public class ScheduleService {
         schedules.setTitle(dto.getTitle());
         schedules.setContent(dto.getContent());
         scheduleRepository.save(schedules);
+    }
+
+    @Transactional
+    public void deleteSchedule(UUID scheduleId, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+
+        Schedules schedules = scheduleRepository.findByUserIdAndScheduleId(user.getUuid(), scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("일정이 존재하지 않습니다."));
+        scheduleRepository.delete(schedules);
     }
 
     public List<ScheduleListGetDTO> getScheduleList(int year, int month, Authentication authentication) {
