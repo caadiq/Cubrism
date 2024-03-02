@@ -1,11 +1,14 @@
 package com.credential.cubrism.server.qualification.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
-public class QualificationDetailsResponseDTO {
-    private String name;
+@AllArgsConstructor
+public class QualificationDetailsGetDTO {
     private String code;
     private List<Schedule> schedule;
     private Fee fee;
@@ -16,6 +19,7 @@ public class QualificationDetailsResponseDTO {
     private List<Books> books;
 
     @Getter
+    @AllArgsConstructor
     public static class Schedule {
         private String category;
         private String writtenApp;
@@ -27,32 +31,36 @@ public class QualificationDetailsResponseDTO {
     }
 
     @Getter
+    @AllArgsConstructor
     public static class Fee {
-        private int writtenFee;
-        private int practicalFee;
+        private Integer writtenFee;
+        private Integer practicalFee;
     }
 
     @Getter
+    @AllArgsConstructor
     public static class Standard {
         private String filePath;
         private String fileName;
     }
 
     @Getter
+    @AllArgsConstructor
     public static class Question {
         private String filePath;
         private String fileName;
     }
 
     @Getter
+    @AllArgsConstructor
     public static class Books {
-        private List<String> authors;
-        private String datetime;
-        private int price;
-        private String publisher;
-        private int sale_price;
-        private String thumbnail;
         private String title;
+        private String authors;
+        private String publisher;
+        private LocalDate date;
+        private Integer price;
+        private Integer sale_price;
+        private String thumbnail;
         private String url;
     }
 }

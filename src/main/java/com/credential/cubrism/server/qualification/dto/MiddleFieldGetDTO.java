@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class QualificationListApiDTO {
+public class MiddleFieldGetDTO {
     private String middleFieldName;
     private String code;
     private String name;
