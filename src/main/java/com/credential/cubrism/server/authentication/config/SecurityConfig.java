@@ -5,6 +5,7 @@ import com.credential.cubrism.server.authentication.jwt.JwtTokenFilter;
 import com.credential.cubrism.server.authentication.service.PrincipalOauth2UserService;
 import com.credential.cubrism.server.authentication.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,7 +21,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final UserService userService;
     private final PrincipalOauth2UserService principalOauth2UserService;
-    private static final String secretKey = "my-secret-key-123123";
+
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {

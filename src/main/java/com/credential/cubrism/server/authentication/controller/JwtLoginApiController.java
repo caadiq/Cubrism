@@ -5,6 +5,7 @@ import com.credential.cubrism.server.authentication.jwt.JwtTokenUtil;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -15,6 +16,9 @@ import org.springframework.web.servlet.ModelAndView;
 public class JwtLoginApiController {
 
     private final UserService userService;
+
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     @PostMapping("/login")
     public String login(@RequestBody LoginRequestDTO loginRequestDTO) {
@@ -28,7 +32,6 @@ public class JwtLoginApiController {
 
         // 로그인 성공 => Jwt Token 발급
 
-        String secretKey = "my-secret-key-123123";
         long expireTimeMs = 1000 * 60 * 600;     // Token 유효 시간 = 600분
 
         String jwtToken = JwtTokenUtil.createToken(user.getEmail(), secretKey, expireTimeMs);
