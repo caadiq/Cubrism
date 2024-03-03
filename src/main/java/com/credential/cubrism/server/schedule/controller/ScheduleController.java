@@ -2,6 +2,7 @@ package com.credential.cubrism.server.schedule.controller;
 
 import com.credential.cubrism.server.common.dto.ErrorDTO;
 import com.credential.cubrism.server.schedule.dto.ScheduleAddPostDTO;
+import com.credential.cubrism.server.schedule.dto.ScheduleUpdatePostDTO;
 import com.credential.cubrism.server.schedule.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -43,15 +44,15 @@ public class ScheduleController {
         }
     }
 
-//    @PostMapping("/update")
-//    public ResponseEntity<?> updateSchedule(@RequestBody UpdateScheduleRequestDTO dto, Authentication authentication) {
-//        try {
-//            scheduleService.updateSchedule(dto, authentication);
-//            return ResponseEntity.ok("일정 수정 성공");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-//        }
-//    }
+    @PostMapping("/update")
+    public ResponseEntity<?> updateSchedule(@RequestBody ScheduleUpdatePostDTO dto, Authentication authentication) {
+        try {
+            scheduleService.updateSchedule(dto, authentication);
+            return ResponseEntity.ok("일정 수정 성공");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
     @GetMapping("/list")
     public ResponseEntity<?> getScheduleList(

@@ -5,6 +5,7 @@ import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import com.credential.cubrism.server.schedule.dto.ScheduleAddPostDTO;
 import com.credential.cubrism.server.schedule.dto.ScheduleListGetDTO;
+import com.credential.cubrism.server.schedule.dto.ScheduleUpdatePostDTO;
 import com.credential.cubrism.server.schedule.model.Schedules;
 import com.credential.cubrism.server.schedule.repository.ScheduleRepository;
 import jakarta.transaction.Transactional;
@@ -28,12 +29,7 @@ public class ScheduleService {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
         Schedules schedules = new Schedules();
-        schedules.setUser(user);
-        schedules.setStartDate(LocalDateTime.parse(dto.getStartDate()));
-        schedules.setEndDate(dto.getEndDate() != null && !dto.getEndDate().isEmpty() ? LocalDateTime.parse(dto.getEndDate()) : null);
-        schedules.setAllDay(dto.isAllDay());
-        schedules.setTitle(dto.getTitle());
-        schedules.setContent(dto.getContent());
+        setScheduleFields(schedules, user, dto.getStartDate(), dto.getEndDate(), dto.isAllDay(), dto.getTitle(), dto.getContent());
         scheduleRepository.save(schedules);
     }
 
@@ -44,6 +40,16 @@ public class ScheduleService {
         Schedules schedules = scheduleRepository.findByUserIdAndScheduleId(user.getUuid(), scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("일정이 존재하지 않습니다."));
         scheduleRepository.delete(schedules);
+    }
+
+    @Transactional
+    public void updateSchedule(ScheduleUpdatePostDTO dto, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+
+        Schedules schedules = scheduleRepository.findByUserIdAndScheduleId(user.getUuid(), dto.getScheduleId())
+                .orElseThrow(() -> new IllegalArgumentException("일정이 존재하지 않습니다."));
+        setScheduleFields(schedules, user, dto.getStartDate(), dto.getEndDate(), dto.isAllDay(), dto.getTitle(), dto.getContent());
+        scheduleRepository.save(schedules);
     }
 
     public List<ScheduleListGetDTO> getScheduleList(int year, int month, Authentication authentication) {
@@ -61,5 +67,14 @@ public class ScheduleService {
                         schedule.getContent()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    private void setScheduleFields(Schedules schedules, Users user, String startDate, String endDate, boolean isAllDay, String title, String content) {
+        schedules.setUser(user);
+        schedules.setStartDate(LocalDateTime.parse(startDate));
+        schedules.setEndDate(endDate != null && !endDate.isEmpty() ? LocalDateTime.parse(endDate) : null);
+        schedules.setAllDay(isAllDay);
+        schedules.setTitle(title);
+        schedules.setContent(content);
     }
 }
