@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,12 +53,5 @@ public class UserController {
         }
     }
 
-    @GetMapping("/googleLoginTest")
-    public ModelAndView test() {
-        return new ModelAndView("googleLoginTest");
-    }
-    @GetMapping("/home")
-    public String home() {
-        return "home";
-    }
+
 }

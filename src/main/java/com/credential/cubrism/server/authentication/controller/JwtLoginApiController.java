@@ -7,6 +7,7 @@ import com.credential.cubrism.server.authentication.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,5 +47,10 @@ public class JwtLoginApiController {
     @GetMapping("/admin")
     public String adminPage() {
         return "관리자 페이지 접근 성공";
+    }
+
+    @GetMapping("/googleLoginTest")
+    public ModelAndView test() {
+        return new ModelAndView("googleLoginTest");
     }
 }

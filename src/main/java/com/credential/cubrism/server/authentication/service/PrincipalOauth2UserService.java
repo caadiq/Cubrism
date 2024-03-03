@@ -5,10 +5,9 @@ import com.credential.cubrism.server.authentication.oauth.KakaoUserInfo;
 import com.credential.cubrism.server.authentication.oauth.OAuth2UserInfo;
 import com.credential.cubrism.server.authentication.oauth.PrincipalDetails;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
-import com.credential.cubrism.server.authentication.jwt.GoogleUserInfo;
+import com.credential.cubrism.server.authentication.oauth.GoogleUserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -24,7 +23,6 @@ import java.util.Optional;
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder encoder;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -45,7 +43,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
         String providerId = oAuth2UserInfo.getProviderId();
         String email = oAuth2UserInfo.getEmail();
-        String loginId = provider + "_" + providerId;
         String nickname = oAuth2UserInfo.getName();
 
 
