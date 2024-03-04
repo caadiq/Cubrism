@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.authentication.controller;
 
+import com.credential.cubrism.server.authentication.dto.ProfileImageUploadResultDTO;
 import com.credential.cubrism.server.authentication.service.ProfileImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,14 +22,17 @@ public class ProfileImageController {
     }
 
     @PostMapping("/auth/profileimage")
-    public ResponseEntity<?> postMember(
+    public ResponseEntity<?> uploadProfileImage(
             @RequestParam("uuid") UUID uuid,
             @RequestParam("file") MultipartFile file
     ) {
         try {
-            return ResponseEntity.ok().body(profileImageService.uploadProfileImage(file, uuid));
+            String imageUrl = profileImageService.uploadProfileImage(file, uuid);
+            return ResponseEntity.ok().body(new ProfileImageUploadResultDTO(true, null, imageUrl));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ProfileImageUploadResultDTO(false, e.getMessage(), null));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ProfileImageUploadResultDTO(false, e.getMessage(), null));
         }
     }
 }

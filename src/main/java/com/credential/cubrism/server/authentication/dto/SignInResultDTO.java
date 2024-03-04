@@ -2,12 +2,11 @@ package com.credential.cubrism.server.authentication.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 @AllArgsConstructor
-public class EmailVerifyResponseDTO {
-    private boolean verified;
+public class SignInResultDTO {
+    private boolean success;
     private String message;
+    private String token;
 }

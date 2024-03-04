@@ -1,13 +1,14 @@
 package com.credential.cubrism.server.authentication.jwt;
 
 import com.credential.cubrism.server.authentication.model.Users;
-import com.credential.cubrism.server.authentication.service.UserService;
+import com.credential.cubrism.server.authentication.service.AuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,11 +22,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    private final UserService userService;
+    private final AuthService authService;
     private final String secretKey;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         // Header의 Authorization 값이 비어있으면 => Jwt Token을 전송하지 않음 => 로그인 하지 않음
@@ -53,7 +54,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         String loginId = JwtTokenUtil.getLoginId(token, secretKey);
 
         // 추출한 loginId로 User 찾아오기
-        Users loginUser = userService.getLoginUserByLoginId(loginId);
+        Users loginUser = authService.getUserByEmail(loginId);
 
         // loginUser 정보로 UsernamePasswordAuthenticationToken 발급
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(

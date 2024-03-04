@@ -1,15 +1,14 @@
 package com.credential.cubrism.server.authentication.dto;
 
+import com.credential.cubrism.server.common.dto.FieldErrorDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 
 @Getter
-@Setter
 @AllArgsConstructor
-public class SignUpResponseDTO {
+public class SignUpResultDTO {
     private boolean success;
     private List<FieldErrorDTO> validation;
 }

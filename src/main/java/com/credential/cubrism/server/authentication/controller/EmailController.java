@@ -1,9 +1,9 @@
 package com.credential.cubrism.server.authentication.controller;
 
-import com.credential.cubrism.server.authentication.dto.EmailDTO;
-import com.credential.cubrism.server.authentication.dto.EmailResponseDTO;
-import com.credential.cubrism.server.authentication.dto.EmailVerifyDTO;
-import com.credential.cubrism.server.authentication.dto.EmailVerifyResponseDTO;
+import com.credential.cubrism.server.authentication.dto.EmailRequestPostDTO;
+import com.credential.cubrism.server.authentication.dto.EmailRequestResultDTO;
+import com.credential.cubrism.server.authentication.dto.EmailVerifyPostDTO;
+import com.credential.cubrism.server.authentication.dto.EmailVerifyResultDTO;
 import com.credential.cubrism.server.authentication.service.EmailService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,33 +25,35 @@ class EmailController {
 
     // 이메일 인증 코드 요청
     @PostMapping("/request")
-    public ResponseEntity<?> mailSend(@RequestBody @Valid EmailDTO emailDto, BindingResult bindingResult) {
+    public ResponseEntity<?> sendCode(@RequestBody @Valid EmailRequestPostDTO dto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String error = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
-            return ResponseEntity.badRequest().body(new EmailResponseDTO(false, error));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new EmailRequestResultDTO(false, error));
         }
 
         try {
-            emailService.sendEmail(emailDto.getEmail()); // 인증 코드 이메일 전송
-            return ResponseEntity.status(HttpStatus.CREATED).body(new EmailResponseDTO(true, null));
+            emailService.sendEmail(dto.getEmail()); // 인증 코드 이메일 전송
+            return ResponseEntity.ok().body(new EmailRequestResultDTO(true, null));
         } catch (Exception e) {
-           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new EmailResponseDTO(false, null));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new EmailRequestResultDTO(false, e.getMessage()));
         }
     }
 
     // 이메일 인증 코드 확인
     @PostMapping("/verify")
-    public ResponseEntity<?> emailCheck(@RequestBody @Valid EmailVerifyDTO emailVerifyDto, BindingResult bindingResult) {
+    public ResponseEntity<?> verifyCode(@RequestBody @Valid EmailVerifyPostDTO dto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String error = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
-            return ResponseEntity.badRequest().body(new EmailVerifyResponseDTO(false, error));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new EmailVerifyResultDTO(false, error));
         }
 
         try {
-            emailService.verifyCode(emailVerifyDto.getEmail(), emailVerifyDto.getCode()); // 인증 코드 확인
-            return ResponseEntity.status(HttpStatus.CREATED).body(new EmailVerifyResponseDTO(true, null));
+            emailService.verifyCode(dto.getEmail(), dto.getCode()); // 인증 코드 확인
+            return ResponseEntity.ok().body(new EmailVerifyResultDTO(true, null));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new EmailVerifyResponseDTO(false, e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new EmailVerifyResultDTO(false, null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new EmailVerifyResultDTO(false, null));
         }
     }
 }
