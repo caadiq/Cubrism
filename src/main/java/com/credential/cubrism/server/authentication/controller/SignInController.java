@@ -32,11 +32,38 @@ public class SignInController {
             long expireTimeMs = 1000 * 60 * 600; // Token 유효 시간 = 600분
             String token = JwtTokenUtil.createToken(user.getEmail(), secretKey, expireTimeMs);
 
-            return ResponseEntity.ok().body(new SignInResultDTO(true, null, token));
+            long RefreshexpireTimeMs = 1000 * 60 * 60 * 24 * 14; // RefreshToken 유효 시간 = 14일
+            String refreshToken = JwtTokenUtil.createRefreshToken(user.getEmail(), secretKey, RefreshexpireTimeMs);
+
+            return ResponseEntity.ok().body(new SignInResultDTO(true, null, token, refreshToken));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new SignInResultDTO(false, "이메일 또는 비밀번호를 확인해 주세요.", null));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new SignInResultDTO(false, "이메일 또는 비밀번호를 확인해 주세요.", null,null));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignInResultDTO(false, e.getMessage(), null));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignInResultDTO(false, e.getMessage(), null,null));
+        }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestHeader(value = "RefreshAuthorization", required = false) String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignInResultDTO(false, "Refresh token is missing", null, null));
+        }
+
+        try {
+            // 리프레시 토큰 검증
+//            if (JwtTokenUtil.isExpired(refreshToken, secretKey)) {
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token is expired");
+//            }
+
+            String loginId = JwtTokenUtil.getLoginId(refreshToken, secretKey);
+
+            // 새로운 액세스 토큰 발급
+            long expireTimeMs = 1000 * 60 * 600; // Token 유효 시간 = 600분
+            String newAccessToken = JwtTokenUtil.createToken(loginId, secretKey, expireTimeMs);
+
+            return ResponseEntity.ok().body(new SignInResultDTO(true, null, newAccessToken, null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignInResultDTO(false, e.getMessage(), null, null));
         }
     }
 
