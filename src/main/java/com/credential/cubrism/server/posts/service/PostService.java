@@ -13,6 +13,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -35,4 +38,20 @@ public class PostService {
 
         postRepository.save(post);
     }
+
+    public List<String> getAllPostTitles() {
+        return postRepository.findAllTitles();
+    }
+
+    public List<String> getAllMyPostTitles(Authentication auth) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(auth, userRepository);
+        UUID uuid = user.getUuid();
+        return postRepository.findAllTitlesByUuid(uuid);
+    }
+
+    public Posts getPostByPostId(Long postId) {
+        return postRepository.findByPostId(postId);
+    }
+
+
 }

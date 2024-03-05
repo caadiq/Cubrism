@@ -1,15 +1,21 @@
 package com.credential.cubrism.server.posts.controller;
 
+import com.credential.cubrism.server.authentication.model.Users;
+import com.credential.cubrism.server.authentication.oauth.PrincipalDetails;
+import com.credential.cubrism.server.posts.dto.PostResponseDto;
 import com.credential.cubrism.server.posts.dto.RegisterPostRequestDTO;
+import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.posts.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,11 +33,31 @@ public class PostController {
         }
     }
 
-//    @GetMapping("/post-titles")
-//    @ResponseBody
-//    public List<String> getPostTitles() {
-//        return postService.getAllPostTitles();
-//    }
+    @GetMapping("/post-titles")
+    @ResponseBody
+    public List<String> getPostTitles() {
+        return postService.getAllPostTitles();
+    }
+
+    @GetMapping("/my-post-titles")
+    @ResponseBody
+    public List<String> getMyPostTitles(Authentication auth) {
+
+        return postService.getAllMyPostTitles(auth);
+    }
+
+    @GetMapping("/{postId}")
+    @ResponseBody
+    public Object writeBoardWithCategory(@PathVariable Long postId, Authentication auth) {
+        Posts post = postService.getPostByPostId(postId);
+
+          if (post == null) {
+              return "Post not found";
+          }
+
+        return new PostResponseDto(post);
+    }
+
 
 //    @GetMapping("/my-post-titles")
 //    @ResponseBody

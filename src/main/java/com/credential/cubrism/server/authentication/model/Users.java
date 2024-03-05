@@ -49,10 +49,10 @@ public class Users {
     @Column(name = "provider_id")
     private String providerId;
 
-    @ElementCollection //얘가 자동으로 테이블 만들어줌
-    @CollectionTable(name = "user_categories", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "category")
-    private List<String> categories;
+//    @ElementCollection //얘가 자동으로 테이블 만들어줌
+//    @CollectionTable(name = "user_categories", joinColumns = @JoinColumn(name = "user_id"))
+//    @Column(name = "category")
+//    private List<String> categories;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Posts> posts;
