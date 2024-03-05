@@ -13,6 +13,7 @@ import java.util.UUID;
 @Table(name = "RecommendBooks")
 public class RecommendBooks {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "books_id", nullable = false)
     private UUID booksId;
 
