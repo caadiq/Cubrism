@@ -12,6 +12,7 @@ import java.util.UUID;
 @Table(name = "ExamSchedules")
 public class ExamSchedules {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "schedule_id", nullable = false)
     private UUID scheduleId;
 

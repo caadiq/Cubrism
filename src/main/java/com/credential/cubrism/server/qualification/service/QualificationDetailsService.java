@@ -15,7 +15,6 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,7 +64,6 @@ public class QualificationDetailsService {
         List<ExamSchedules> examSchedulesList = Optional.ofNullable(qualificationDetailsApiResponseDTO.getSchedule()).orElse(Collections.emptyList()).stream()
                 .map(schedule -> {
                     ExamSchedules examSchedules = new ExamSchedules();
-                    examSchedules.setScheduleId(UUID.randomUUID());
                     examSchedules.setCategory(schedule.getCategory()); // 구분
                     examSchedules.setWrittenApp(schedule.getWrittenApp()); // 필기 원서 접수
                     examSchedules.setWrittenExam(schedule.getWrittenExam()); // 필기 시험
@@ -91,7 +89,6 @@ public class QualificationDetailsService {
         List<ExamStandards> examStandardsList = Optional.ofNullable(dto.getStandard()).orElse(Collections.emptyList()).stream()
                 .map(standard -> {
                     ExamStandards examStandards = new ExamStandards();
-                    examStandards.setFileId(UUID.randomUUID());
                     examStandards.setFilePath(standard.getFilePath()); // 파일 경로
                     examStandards.setFileName(standard.getFileName()); // 파일 이름
                     examStandards.setQualificationDetails(qualificationDetails);
@@ -104,7 +101,6 @@ public class QualificationDetailsService {
         List<PublicQuestions> publicQuestionsList = Optional.ofNullable(dto.getQuestion()).orElse(Collections.emptyList()).stream()
                 .map(question -> {
                     PublicQuestions publicQuestions = new PublicQuestions();
-                    publicQuestions.setFileId(UUID.randomUUID());
                     publicQuestions.setFilePath(question.getFilePath()); // 파일 경로
                     publicQuestions.setFileName(question.getFileName()); // 파일 이름
                     publicQuestions.setQualificationDetails(qualificationDetails);
@@ -117,7 +113,6 @@ public class QualificationDetailsService {
         List<RecommendBooks> recommendBooksList = Optional.ofNullable(dto.getBooks()).orElse(Collections.emptyList()).stream()
                 .map(books -> {
                     RecommendBooks recommendBooks = new RecommendBooks();
-                    recommendBooks.setBooksId(UUID.randomUUID()); // 책 ID
                     recommendBooks.setTitle(books.getTitle()); // 제목
                     recommendBooks.setAuthors(String.join(", ", books.getAuthors())); // 저자
                     recommendBooks.setPublisher(books.getPublisher()); // 출판사

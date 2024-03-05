@@ -12,6 +12,7 @@ import java.util.UUID;
 @Table(name = "PublicQuestions")
 public class PublicQuestions {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "file_id", nullable = false)
     private UUID fileId;
 
