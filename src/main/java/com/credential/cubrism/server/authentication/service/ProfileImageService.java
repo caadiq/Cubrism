@@ -4,8 +4,12 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.credential.cubrism.server.authentication.model.Users;
+import com.credential.cubrism.server.authentication.repository.UserRepository;
+import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,18 +21,22 @@ import java.util.UUID;
 public class ProfileImageService {
     private final AmazonS3 s3;
     private final String bucketName;
+    private final UserRepository userRepository;
 
     private final static long MAX_FILE_SIZE = 10 * 1024 * 1024;
     private final static String filePath = "profile_images/";
 
     @Autowired
-    public ProfileImageService(AmazonS3 s3, @Value("${cloud.aws.s3.bucket}") String bucketName) {
+    public ProfileImageService(AmazonS3 s3, @Value("${cloud.aws.s3.bucket}") String bucketName, UserRepository userRepository) {
         this.s3 = s3;
         this.bucketName = bucketName;
+        this.userRepository = userRepository;
     }
 
-    public String uploadProfileImage(MultipartFile file, UUID uuid) throws IOException {
+    public String uploadProfileImage(MultipartFile file, Authentication authentication) throws IOException {
         String fileType = file.getContentType();
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+        UUID uuid = user.getUuid();
 
         if (file.getSize() > MAX_FILE_SIZE) { // 파일의 크기를 10MB로 제한
             throw new RuntimeException("10MB 이하의 이미지만 업로드 가능합니다");
