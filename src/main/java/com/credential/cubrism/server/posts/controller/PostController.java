@@ -1,21 +1,17 @@
 package com.credential.cubrism.server.posts.controller;
 
-import com.credential.cubrism.server.authentication.model.Users;
-import com.credential.cubrism.server.authentication.oauth.PrincipalDetails;
 import com.credential.cubrism.server.posts.dto.PostResponseDto;
 import com.credential.cubrism.server.posts.dto.RegisterPostRequestDTO;
+import com.credential.cubrism.server.posts.dto.RegisterPostResultDTO;
 import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.posts.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,12 +20,14 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerPost(@RequestBody RegisterPostRequestDTO registerPostRequestDTO, Authentication authentication) {
+    public ResponseEntity<?> registerPost(@RequestBody RegisterPostRequestDTO dto, Authentication authentication) {
         try {
-            postService.registerPost(registerPostRequestDTO, authentication);
-            return ResponseEntity.ok("게시글 등록 성공");
+            postService.registerPost(dto, authentication);
+            return ResponseEntity.ok().body(new RegisterPostResultDTO(true, null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RegisterPostResultDTO(false, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new RegisterPostResultDTO(false, e.getMessage()));
         }
     }
 
