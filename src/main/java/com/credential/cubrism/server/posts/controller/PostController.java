@@ -1,9 +1,8 @@
 package com.credential.cubrism.server.posts.controller;
 
-import com.credential.cubrism.server.posts.dto.PostResponseDto;
-import com.credential.cubrism.server.posts.dto.RegisterPostRequestDTO;
-import com.credential.cubrism.server.posts.dto.RegisterPostResultDTO;
-import com.credential.cubrism.server.posts.model.Posts;
+import com.credential.cubrism.server.posts.dto.PostRegisterPostDTO;
+import com.credential.cubrism.server.posts.dto.PostResultDTO;
+import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
 import com.credential.cubrism.server.posts.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,14 +19,26 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerPost(@RequestBody RegisterPostRequestDTO dto, Authentication authentication) {
+    public ResponseEntity<?> registerPost(@RequestBody PostRegisterPostDTO dto, Authentication authentication) {
         try {
             postService.registerPost(dto, authentication);
-            return ResponseEntity.ok().body(new RegisterPostResultDTO(true, null));
+            return ResponseEntity.ok().body(new PostResultDTO(true, null));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RegisterPostResultDTO(false, e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new PostResultDTO(false, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new RegisterPostResultDTO(false, e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new PostResultDTO(false, e.getMessage()));
+        }
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<?> updatePost(@RequestBody PostUpdatePostDTO dto, Authentication authentication) {
+        try {
+            postService.updatePost(dto, authentication);
+            return ResponseEntity.ok().body(new PostResultDTO(true, null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new PostResultDTO(false, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new PostResultDTO(false, e.getMessage()));
         }
     }
 
@@ -44,17 +55,17 @@ public class PostController {
         return postService.getAllMyPostTitles(auth);
     }
 
-    @GetMapping("/{postId}")
-    @ResponseBody
-    public Object writeBoardWithCategory(@PathVariable Long postId, Authentication auth) {
-        Posts post = postService.getPostByPostId(postId);
-
-          if (post == null) {
-              return "Post not found";
-          }
-
-        return new PostResponseDto(post);
-    }
+//    @GetMapping("/{postId}")
+//    @ResponseBody
+//    public Object writeBoardWithCategory(@PathVariable Long postId, Authentication auth) {
+//        Posts post = postService.getPostByPostId(postId);
+//
+//          if (post == null) {
+//              return "Post not found";
+//          }
+//
+//        return new PostResponseDto(post);
+//    }
 
 
 //    @GetMapping("/my-post-titles")

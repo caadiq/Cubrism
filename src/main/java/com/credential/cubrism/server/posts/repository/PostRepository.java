@@ -6,10 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface PostRepository extends JpaRepository<Posts, UUID> {
+    Optional<Posts> findByPostId(Long postId);
+
     List<Posts> findAllByUserUuid(UUID userId);
 
     @Query("SELECT p.title FROM Posts p")
@@ -17,7 +20,5 @@ public interface PostRepository extends JpaRepository<Posts, UUID> {
 
     @Query("SELECT p.title FROM Posts p WHERE p.user.uuid = :uuid")
     List<String> findAllTitlesByUuid(UUID uuid);
-
-    Posts findByPostId(Long postId);
 }
 

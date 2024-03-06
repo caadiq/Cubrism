@@ -1,20 +1,15 @@
 package com.credential.cubrism.server.posts.service;
 
 
-import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.posts.dto.CommentCreateRequest;
 import com.credential.cubrism.server.posts.model.Comment;
-import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.posts.repository.CommentRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,10 +20,10 @@ public class CommentService {
     private final UserRepository userRepository;
 
     public void writeComment(Long postId, CommentCreateRequest req, String loginId) {
-        Posts post = postRepository.findByPostId(postId);
-        Users user = userRepository.findByEmail(loginId).get();
-        Comment comment =req.toEntity(post, user);
-        commentRepository.save(comment);
+//        Posts post = postRepository.findByPostId(postId);
+//        Users user = userRepository.findByEmail(loginId).get();
+//        Comment comment =req.toEntity(post, user);
+//        commentRepository.save(comment);
     }
 
     public List<Comment> findAll(Long boardId) {
