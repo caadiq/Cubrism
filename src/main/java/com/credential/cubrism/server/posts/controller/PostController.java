@@ -1,8 +1,10 @@
 package com.credential.cubrism.server.posts.controller;
 
 import com.credential.cubrism.server.posts.dto.PostRegisterPostDTO;
+import com.credential.cubrism.server.posts.dto.PostResponseDto;
 import com.credential.cubrism.server.posts.dto.PostResultDTO;
 import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
+import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.posts.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -55,17 +57,17 @@ public class PostController {
         return postService.getAllMyPostTitles(auth);
     }
 
-//    @GetMapping("/{postId}")
-//    @ResponseBody
-//    public Object writeBoardWithCategory(@PathVariable Long postId, Authentication auth) {
-//        Posts post = postService.getPostByPostId(postId);
-//
-//          if (post == null) {
-//              return "Post not found";
-//          }
-//
-//        return new PostResponseDto(post);
-//    }
+    @GetMapping("/{postId}")
+    @ResponseBody
+    public Object writeBoardWithCategory(@PathVariable Long postId, Authentication auth) {
+        Posts post = postService.getPostByPostId(postId);
+
+          if (post == null) {
+              return "Post not found";
+          }
+
+        return new PostResponseDto(post);
+    }
 
 
 //    @GetMapping("/my-post-titles")

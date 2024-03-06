@@ -47,12 +47,8 @@ public class PostService {
         Board board = boardRepository.findByBoardName(dto.getBoardName())
                 .orElseThrow(() -> new IllegalArgumentException("Board not found with name : " + dto.getBoardName()));
 
-        Posts post = postRepository.findByPostId(dto.getPostId())
+        Posts post = postRepository.findByUserIdAndPostId(user.getUuid(), dto.getPostId())
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id : " + dto.getPostId()));
-
-        if (!post.getUser().equals(user)) {
-            throw new IllegalArgumentException("작성자가 아닙니다.");
-        }
 
         post.setBoard(board);
         post.setUser(user);
@@ -72,9 +68,9 @@ public class PostService {
         return postRepository.findAllTitlesByUuid(uuid);
     }
 
-//    public Posts getPostByPostId(Long postId) {
-//        return postRepository.findByPostId(postId);
-//    }
+    public Posts getPostByPostId(Long postId) {
+        return postRepository.findByPostId(postId);
+    }
 
 
 }
