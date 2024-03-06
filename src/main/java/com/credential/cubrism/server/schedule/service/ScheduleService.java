@@ -48,6 +48,7 @@ public class ScheduleService {
 
         Schedules schedules = scheduleRepository.findByUserIdAndScheduleId(user.getUuid(), dto.getScheduleId())
                 .orElseThrow(() -> new IllegalArgumentException("일정이 존재하지 않습니다."));
+
         setScheduleFields(schedules, user, dto.getStartDate(), dto.getEndDate(), dto.isAllDay(), dto.getTitle(), dto.getContent());
         scheduleRepository.save(schedules);
     }
