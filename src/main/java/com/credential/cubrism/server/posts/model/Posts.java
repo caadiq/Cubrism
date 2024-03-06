@@ -5,12 +5,17 @@ import com.credential.cubrism.server.authentication.model.Users;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @Setter
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "Posts")
 public class Posts {
     @Id
@@ -22,9 +27,6 @@ public class Posts {
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
-    @OneToMany(mappedBy = "post", orphanRemoval = true)
-    private List<Comment> comments;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
@@ -34,4 +36,15 @@ public class Posts {
 
     @Column(name = "post_content", nullable = false)
     private String content;
+
+    @CreatedDate
+    @Column(name = "created_date", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "modified_date", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "post", orphanRemoval = true)
+    private List<Comment> comments;
 }
