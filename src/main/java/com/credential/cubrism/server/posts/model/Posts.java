@@ -45,6 +45,9 @@ public class Posts {
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<PostImages> postImages;
+
     @OneToMany(mappedBy = "post", orphanRemoval = true)
     private List<Comment> comments;
 }
