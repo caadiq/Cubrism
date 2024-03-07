@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -51,6 +52,8 @@ public class PostService {
         post.setContent(dto.getContent());
         postRepository.save(post);
 
+        List<PostImages> postImageList = new ArrayList<>();
+
         try {
             for (MultipartFile file : files) {
                 String fileType = file.getContentType();
@@ -69,10 +72,11 @@ public class PostService {
                 PostImages postImages = new PostImages();
                 postImages.setPost(post);
                 postImages.setImageUrl(s3.getUrl(bucketName, fileName).toString());
-                postImagesRepository.save(postImages);
+                postImageList.add(postImages);
             }
+            postImagesRepository.saveAll(postImageList);
         } catch (Exception e) {
-            postRepository.delete(post);
+            postRepository.delete(post); // 이미지 업로드 실패 시 게시글 삭제
             throw new IllegalArgumentException("이미지 업로드 실패");
         }
     }
