@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,9 +22,13 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerPost(@RequestBody PostRegisterPostDTO dto, Authentication authentication) {
+    public ResponseEntity<?> registerPost(
+            @RequestPart("file") List<MultipartFile> files,
+            @RequestPart("data") PostRegisterPostDTO dto,
+            Authentication authentication
+    ) {
         try {
-            postService.registerPost(dto, authentication);
+            postService.registerPost(files, dto, authentication);
             return ResponseEntity.ok().body(new PostResultDTO(true, null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new PostResultDTO(false, e.getMessage()));
@@ -33,7 +38,10 @@ public class PostController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<?> updatePost(@RequestBody PostUpdatePostDTO dto, Authentication authentication) {
+    public ResponseEntity<?> updatePost(
+            @RequestPart("post") PostUpdatePostDTO dto,
+            Authentication authentication
+    ) {
         try {
             postService.updatePost(dto, authentication);
             return ResponseEntity.ok().body(new PostResultDTO(true, null));
