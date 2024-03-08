@@ -96,6 +96,17 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("Board not found with name : " + boardName));
         Page<Posts> posts = postRepository.findAllByBoard(board, pageable);
 
+        return postListGetDTO(posts);
+    }
+
+    public PostListGetDTO myPostList(Pageable pageable, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+        Page<Posts> posts = postRepository.findAllByUserUuid(user.getUuid(), pageable);
+
+        return postListGetDTO(posts);
+    }
+
+    private PostListGetDTO postListGetDTO(Page<Posts> posts) {
         PostListGetDTO.Pageable pageableDTO = new PostListGetDTO.Pageable(
                 posts.hasPrevious() ? posts.getNumber() - 1 : null,
                 posts.getNumber(),
