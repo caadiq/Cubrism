@@ -22,4 +22,7 @@ public class PostImages {
 
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
+
+    @Column(name = "image_index", nullable = false)
+    private int imageIndex;
 }
