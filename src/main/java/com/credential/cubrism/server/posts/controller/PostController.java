@@ -78,10 +78,23 @@ public class PostController {
         }
     }
 
-//    @GetMapping("/my")
-//    public ResponseEntity<?> getMyPostList(Authentication authentication) {
-//
-//    }
+    @GetMapping("/my")
+    public ResponseEntity<?> myPostList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit,
+            Authentication authentication
+    ) {
+        try {
+            limit = Math.max(1, Math.min(limit, 50));
+            Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending());
+
+            return ResponseEntity.ok().body(postService.myPostList(pageable, authentication));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorDTO(e.getMessage()));
+        }
+    }
 
     @GetMapping("/post-titles")
     @ResponseBody

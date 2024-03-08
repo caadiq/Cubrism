@@ -20,7 +20,7 @@ public interface PostRepository extends JpaRepository<Posts, UUID> {
 
     Page<Posts> findAllByBoard(Board board, Pageable pageable);
 
-    List<Posts> findAllByUserUuid(UUID userId);
+    Page<Posts> findAllByUserUuid(UUID userId, Pageable pageable);
 
     @Query("SELECT p.title FROM Posts p")
     List<String> findAllTitles();

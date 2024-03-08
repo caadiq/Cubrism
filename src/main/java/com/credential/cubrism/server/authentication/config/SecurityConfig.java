@@ -38,7 +38,6 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/auth/signup/**").permitAll()
                         .requestMatchers("/auth/signin/**").permitAll()
-                        .requestMatchers("/auth/profileimage/**").permitAll()
                         .requestMatchers("/auth/refresh/**").permitAll()
                         .requestMatchers("/oauth2/authorization/google").permitAll()
                         .requestMatchers("/qualification/**").permitAll()
