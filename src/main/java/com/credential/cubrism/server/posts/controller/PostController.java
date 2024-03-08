@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.posts.controller;
 
+import com.credential.cubrism.server.common.dto.ErrorDTO;
 import com.credential.cubrism.server.posts.dto.PostRegisterPostDTO;
 import com.credential.cubrism.server.posts.dto.PostResponseDto;
 import com.credential.cubrism.server.posts.dto.PostResultDTO;
@@ -7,6 +8,9 @@ import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
 import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.posts.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -51,6 +55,33 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new PostResultDTO(false, e.getMessage()));
         }
     }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> postList(
+            @RequestParam(required = false) String boardName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
+        try {
+            if (boardName == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'boardName' 파라미터가 필요합니다."));
+            }
+
+            limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 게시글 수를 1~50 사이로 제한
+            Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
+
+            return ResponseEntity.ok().body(postService.postList(pageable, boardName));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorDTO(e.getMessage()));
+        }
+    }
+
+//    @GetMapping("/my")
+//    public ResponseEntity<?> getMyPostList(Authentication authentication) {
+//
+//    }
 
     @GetMapping("/post-titles")
     @ResponseBody

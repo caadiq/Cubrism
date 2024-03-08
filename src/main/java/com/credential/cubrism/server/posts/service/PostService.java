@@ -4,6 +4,7 @@ import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import com.credential.cubrism.server.common.utils.S3ImageUploadUtil;
+import com.credential.cubrism.server.posts.dto.PostListGetDTO;
 import com.credential.cubrism.server.posts.dto.PostRegisterPostDTO;
 import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
 import com.credential.cubrism.server.posts.model.Board;
@@ -13,6 +14,8 @@ import com.credential.cubrism.server.posts.repository.BoardRepository;
 import com.credential.cubrism.server.posts.repository.PostImagesRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +53,7 @@ public class PostService {
         // 이미지 업로드 후 이미지 URL 받아와서 리스트로 저장
         List<String> imageUrls;
         try {
-            imageUrls = s3ImageUploadUtil.uploadImages("post", files, 5, filePath, user.getUuid()); 
+            imageUrls = s3ImageUploadUtil.uploadImages("post", files, 5, filePath, user.getUuid());
         } catch (Exception e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -84,6 +88,30 @@ public class PostService {
         post.setContent(dto.getContent());
 
         postRepository.save(post);
+    }
+
+    public PostListGetDTO postList(Pageable pageable, String boardName) {
+        Board board = boardRepository.findByBoardName(boardName)
+                .orElseThrow(() -> new IllegalArgumentException("Board not found with name : " + boardName));
+        Page<Posts> posts = postRepository.findAllByBoard(board, pageable);
+
+        PostListGetDTO.Pageable pageableDTO = new PostListGetDTO.Pageable(
+                posts.hasPrevious() ? posts.getNumber() - 1 : null,
+                posts.getNumber(),
+                posts.hasNext() ? posts.getNumber() + 1 : null
+        );
+
+        List<PostListGetDTO.PostList> postListDTO = posts.stream().map(post ->
+                new PostListGetDTO.PostList(
+                        post.getPostId(),
+                        post.getBoard().getBoardName(),
+                        post.getUser().getNickname(),
+                        post.getTitle(),
+                        post.getContent(),
+                        post.getCreatedDate().toString()
+                )).collect(Collectors.toList());
+
+        return new PostListGetDTO(pageableDTO, postListDTO);
     }
 
     public List<String> getAllPostTitles() {

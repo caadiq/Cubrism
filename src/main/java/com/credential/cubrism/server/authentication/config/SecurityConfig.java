@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/authorization/google").permitAll()
                         .requestMatchers("/qualification/**").permitAll()
                         .requestMatchers("/auth/googleLoginTest/**").permitAll()
+                        .requestMatchers("/post/list").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2Login -> oauth2Login.defaultSuccessUrl("/googleLoginTest", true)
