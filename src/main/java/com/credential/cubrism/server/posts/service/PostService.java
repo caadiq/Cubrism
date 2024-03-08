@@ -66,6 +66,7 @@ public class PostService {
             PostImages postImages = new PostImages();
             postImages.setPost(post);
             postImages.setImageUrl(imageUrl);
+            postImages.setImageIndex(imageUrls.indexOf(imageUrl));
             postImageList.add(postImages);
         }
 
@@ -106,7 +107,11 @@ public class PostService {
                         post.getPostId(),
                         post.getBoard().getBoardName(),
                         post.getUser().getNickname(),
-                        post.getPostImages().isEmpty() ? null : post.getPostImages().get(0).getImageUrl(),
+                        post.getPostImages().stream()
+                                .filter(image -> image.getImageIndex() == 0)
+                                .findFirst()
+                                .map(PostImages::getImageUrl)
+                                .orElse(null),
                         post.getTitle(),
                         post.getContent(),
                         post.getCreatedDate().toString()
