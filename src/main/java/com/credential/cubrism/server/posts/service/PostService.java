@@ -1,10 +1,9 @@
 package com.credential.cubrism.server.posts.service;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
+import com.credential.cubrism.server.common.utils.S3ImageUploadUtil;
 import com.credential.cubrism.server.posts.dto.PostRegisterPostDTO;
 import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
 import com.credential.cubrism.server.posts.model.Board;
@@ -14,7 +13,6 @@ import com.credential.cubrism.server.posts.repository.BoardRepository;
 import com.credential.cubrism.server.posts.repository.PostImagesRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,15 +20,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
-    private final AmazonS3 s3;
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucketName;
+    private final S3ImageUploadUtil s3ImageUploadUtil;
     private final BoardRepository boardRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
@@ -50,35 +45,27 @@ public class PostService {
         post.setUser(user);
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
-        postRepository.save(post);
 
-        List<PostImages> postImageList = new ArrayList<>();
-
+        // 이미지 업로드 후 이미지 URL 받아와서 리스트로 저장
+        List<String> imageUrls;
         try {
-            for (MultipartFile file : files) {
-                String fileType = file.getContentType();
-
-                String originalFileName = file.getOriginalFilename(); // 원본 파일명
-                String extension = Objects.requireNonNull(originalFileName).substring(originalFileName.lastIndexOf(".")); // 파일 확장자
-
-                String fileName = filePath + user.getUuid() + "_" + UUID.randomUUID() + extension; // 파일 이름
-
-                ObjectMetadata metadata = new ObjectMetadata(); // 파일 메타데이터
-                metadata.setContentLength(file.getSize()); // 파일 크기
-                metadata.setContentType(fileType); // 파일 MIME 타입
-
-                s3.putObject(bucketName, fileName, file.getInputStream(), metadata); // S3 버킷에 파일 업로드
-
-                PostImages postImages = new PostImages();
-                postImages.setPost(post);
-                postImages.setImageUrl(s3.getUrl(bucketName, fileName).toString());
-                postImageList.add(postImages);
-            }
-            postImagesRepository.saveAll(postImageList);
+            imageUrls = s3ImageUploadUtil.uploadImages("post", files, 5, filePath, user.getUuid()); 
         } catch (Exception e) {
-            postRepository.delete(post); // 이미지 업로드 실패 시 게시글 삭제
-            throw new IllegalArgumentException("이미지 업로드 실패");
+            throw new IllegalArgumentException(e.getMessage());
         }
+
+        postRepository.save(post); // 이미지가 정상적으로 업로드가 되면 게시글 저장
+
+        // 이미지 URL을 PostImages에 저장
+        List<PostImages> postImageList = new ArrayList<>();
+        for (String imageUrl : imageUrls) {
+            PostImages postImages = new PostImages();
+            postImages.setPost(post);
+            postImages.setImageUrl(imageUrl);
+            postImageList.add(postImages);
+        }
+
+        postImagesRepository.saveAll(postImageList);
     }
 
     @Transactional
