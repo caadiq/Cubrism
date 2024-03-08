@@ -25,6 +25,7 @@ public class PostListGetDTO {
         private Long postId;
         private String boardName;
         private String nickname;
+        private String imageUrl;
         private String title;
         private String content;
         private String createdDate;

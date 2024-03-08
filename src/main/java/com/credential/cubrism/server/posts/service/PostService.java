@@ -106,6 +106,7 @@ public class PostService {
                         post.getPostId(),
                         post.getBoard().getBoardName(),
                         post.getUser().getNickname(),
+                        post.getPostImages().isEmpty() ? null : post.getPostImages().get(0).getImageUrl(),
                         post.getTitle(),
                         post.getContent(),
                         post.getCreatedDate().toString()
