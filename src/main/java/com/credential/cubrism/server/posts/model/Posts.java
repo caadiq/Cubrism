@@ -39,11 +39,11 @@ public class Posts {
 
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdDate;
 
     @LastModifiedDate
     @Column(name = "modified_date", nullable = false)
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedDate;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private List<PostImages> postImages;
