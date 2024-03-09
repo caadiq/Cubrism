@@ -4,6 +4,7 @@ import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import com.credential.cubrism.server.common.utils.S3ImageUploadUtil;
+import com.credential.cubrism.server.posts.dto.PostInfoGetDTO;
 import com.credential.cubrism.server.posts.dto.PostListGetDTO;
 import com.credential.cubrism.server.posts.dto.PostRegisterPostDTO;
 import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
@@ -129,6 +130,26 @@ public class PostService {
                 )).collect(Collectors.toList());
 
         return new PostListGetDTO(pageableDTO, postListDTO);
+    }
+
+    public PostInfoGetDTO post(Long postId, String boardName) {
+        Posts post = postRepository.findByPostIdAndBoardBoardName(postId, boardName)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id : " + postId));
+
+        List<PostImages> postImages = postImagesRepository.findAllByPostPostId(postId);
+        List<PostInfoGetDTO.PostImages> postImagesDTO = postImages.stream()
+                .map(image -> new PostInfoGetDTO.PostImages(image.getImageUrl()))
+                .collect(Collectors.toList());
+
+        return new PostInfoGetDTO(
+                post.getPostId(),
+                post.getBoard().getBoardName(),
+                post.getUser().getNickname(),
+                post.getTitle(),
+                post.getContent(),
+                post.getCreatedDate().toString(),
+                postImagesDTO
+        );
     }
 
     public List<String> getAllPostTitles() {

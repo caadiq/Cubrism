@@ -2,10 +2,8 @@ package com.credential.cubrism.server.posts.controller;
 
 import com.credential.cubrism.server.common.dto.ErrorDTO;
 import com.credential.cubrism.server.posts.dto.PostRegisterPostDTO;
-import com.credential.cubrism.server.posts.dto.PostResponseDto;
 import com.credential.cubrism.server.posts.dto.PostResultDTO;
 import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
-import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.posts.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -96,32 +94,54 @@ public class PostController {
         }
     }
 
-    @GetMapping("/post-titles")
-    @ResponseBody
-    public List<String> getPostTitles() {
-        return postService.getAllPostTitles();
+    @GetMapping("/view")
+    public ResponseEntity<?> post(
+            @RequestParam(required = false) Long postId,
+            @RequestParam(required = false) String boardName
+    ) {
+        try {
+            if (postId == null && boardName == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'postId', 'boardName' 파라미터가 필요합니다."));
+            } else if (postId == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'postId' 파라미터가 필요합니다."));
+            } else if (boardName == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'boardName' 파라미터가 필요합니다."));
+            } else {
+                return ResponseEntity.ok().body(postService.post(postId, boardName));
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorDTO(e.getMessage()));
+        }
     }
 
-    @GetMapping("/my-post-titles")
-    @ResponseBody
-    public List<String> getMyPostTitles(Authentication auth) {
-
-        return postService.getAllMyPostTitles(auth);
-    }
-
-    @GetMapping("/{postId}")
-    @ResponseBody
-    public Object writeBoardWithCategory(@PathVariable Long postId, Authentication auth) {
-        Posts post = postService.getPostByPostId(postId);
-
-          if (post == null) {
-              return "Post not found";
-          }
-
-        return new PostResponseDto(post);
-    }
-
-
+//    @GetMapping("/post-titles")
+//    @ResponseBody
+//    public List<String> getPostTitles() {
+//        return postService.getAllPostTitles();
+//    }
+//
+//    @GetMapping("/my-post-titles")
+//    @ResponseBody
+//    public List<String> getMyPostTitles(Authentication auth) {
+//
+//        return postService.getAllMyPostTitles(auth);
+//    }
+//
+//    @GetMapping("/{postId}")
+//    @ResponseBody
+//    public Object writeBoardWithCategory(@PathVariable Long postId, Authentication auth) {
+//        Posts post = postService.getPostByPostId(postId);
+//
+//          if (post == null) {
+//              return "Post not found";
+//          }
+//
+//        return new PostResponseDto(post);
+//    }
+//
+//
 //    @GetMapping("/my-post-titles")
 //    @ResponseBody
 //    public List<String> getMyPostTitles(Authentication auth) {
