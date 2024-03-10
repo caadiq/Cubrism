@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,12 +24,6 @@ public interface PostRepository extends JpaRepository<Posts, UUID> {
     @Query("SELECT p FROM Posts p WHERE p.postId = :postId AND p.board.boardName = :boardName")
     Optional<Posts> findByPostIdAndBoardBoardName(@Param("postId") Long postId, @Param("boardName") String boardName);
 
-    @Query("SELECT p.title FROM Posts p")
-    List<String> findAllTitles();
-
-    @Query("SELECT p.title FROM Posts p WHERE p.user.uuid = :uuid")
-    List<String> findAllTitlesByUuid(UUID uuid);
-
-    Posts findByPostId(Long postId);
+    Optional<Posts> findByPostId(Long postId);
 }
 

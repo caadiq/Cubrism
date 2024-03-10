@@ -1,11 +1,11 @@
-package com.credential.cubrism.server.posts.dto;
+package com.credential.cubrism.server.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class PostResultDTO {
+public class ResultDTO {
     private boolean success;
     private String message;
 }

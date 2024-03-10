@@ -1,48 +1,32 @@
 package com.credential.cubrism.server.posts.controller;
 
-import com.credential.cubrism.server.posts.dto.CommentCreateRequest;
-import com.credential.cubrism.server.posts.model.Posts;
+import com.credential.cubrism.server.common.dto.ResultDTO;
+import com.credential.cubrism.server.posts.dto.CommentAddPostDTO;
 import com.credential.cubrism.server.posts.service.CommentService;
-import com.credential.cubrism.server.posts.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@Controller
-@RequestMapping("/comments")
+@RestController
 @RequiredArgsConstructor
-@ResponseBody
+@RequestMapping("/comments")
 public class CommentController {
-
     private final CommentService commentService;
-    private final PostService postService;
 
-    @PostMapping("/{postId}")
-    public String addComments(@PathVariable Long postId, @RequestBody CommentCreateRequest req,
-                              Authentication auth) {
-        commentService.writeComment(postId, req, auth.getName());
-
-        return "Success";
+    @PostMapping("/add")
+    public ResponseEntity<?> addComment(
+            @RequestBody CommentAddPostDTO dto,
+            Authentication authentication
+    ) {
+        try {
+            commentService.addComment(dto, authentication);
+            return ResponseEntity.ok().body(new ResultDTO(true, null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
+        }
     }
-
-//    @GetMapping("/{category}/{postId}/comments")
-//    @ResponseBody
-//    public Object returnComments(@PathVariable String category, @PathVariable Long postId, Authentication auth) {
-//        Posts post = postService.getPostByPostId(postId);
-//        List<Comment> comments = commentService.findAll(postId);
-//
-//        if (post == null) {
-//            return "Post not found";
-//        }
-//
-//        if (!post.getCategory().equals(category)) {
-//            return "category not match";
-//        }
-//
-//        return comments;
-//    }
-
 }
