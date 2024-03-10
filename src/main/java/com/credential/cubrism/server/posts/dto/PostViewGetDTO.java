@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class PostInfoGetDTO {
+public class PostViewGetDTO {
     private Long postId;
     private String boardName;
     private String nickname;
@@ -15,10 +15,20 @@ public class PostInfoGetDTO {
     private String content;
     private String createdDate;
     private List<PostImages> postImages;
+    private List<Comments> comments;
 
     @Getter
     @AllArgsConstructor
     public static class PostImages {
         private String imageUrl;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class Comments {
+        private Long commentId;
+        private String nickname;
+        private String content;
+        private String createdDate;
     }
 }
