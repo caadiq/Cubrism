@@ -1,8 +1,8 @@
 package com.credential.cubrism.server.posts.controller;
 
 import com.credential.cubrism.server.common.dto.ErrorDTO;
+import com.credential.cubrism.server.common.dto.ResultDTO;
 import com.credential.cubrism.server.posts.dto.PostAddPostDTO;
-import com.credential.cubrism.server.posts.dto.PostResultDTO;
 import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
 import com.credential.cubrism.server.posts.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +31,11 @@ public class PostController {
     ) {
         try {
             postService.addPost(files, dto, authentication);
-            return ResponseEntity.ok().body(new PostResultDTO(true, null));
+            return ResponseEntity.ok().body(new ResultDTO(true, null));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new PostResultDTO(false, e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new PostResultDTO(false, e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
         }
     }
 
@@ -47,11 +47,11 @@ public class PostController {
     ) {
         try {
             postService.updatePost(files, dto, authentication);
-            return ResponseEntity.ok().body(new PostResultDTO(true, null));
+            return ResponseEntity.ok().body(new ResultDTO(true, null));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new PostResultDTO(false, e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new PostResultDTO(false, e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
         }
     }
 
@@ -96,20 +96,16 @@ public class PostController {
     }
 
     @GetMapping("/view")
-    public ResponseEntity<?> post(
+    public ResponseEntity<?> postView(
             @RequestParam(required = false) Long postId,
             @RequestParam(required = false) String boardName
     ) {
         try {
-            if (postId == null && boardName == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'postId', 'boardName' 파라미터가 필요합니다."));
-            } else if (postId == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'postId' 파라미터가 필요합니다."));
-            } else if (boardName == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'boardName' 파라미터가 필요합니다."));
-            } else {
-                return ResponseEntity.ok().body(postService.post(postId, boardName));
+            if (postId == null || boardName == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'postId'와 'boardName' 파라미터가 필요합니다."));
             }
+
+            return ResponseEntity.ok().body(postService.postView(postId, boardName));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO(e.getMessage()));
         } catch (Exception e) {
@@ -117,32 +113,7 @@ public class PostController {
         }
     }
 
-//    @GetMapping("/post-titles")
-//    @ResponseBody
-//    public List<String> getPostTitles() {
-//        return postService.getAllPostTitles();
-//    }
-//
-//    @GetMapping("/my-post-titles")
-//    @ResponseBody
-//    public List<String> getMyPostTitles(Authentication auth) {
-//
-//        return postService.getAllMyPostTitles(auth);
-//    }
-//
-//    @GetMapping("/{postId}")
-//    @ResponseBody
-//    public Object writeBoardWithCategory(@PathVariable Long postId, Authentication auth) {
-//        Posts post = postService.getPostByPostId(postId);
-//
-//          if (post == null) {
-//              return "Post not found";
-//          }
-//
-//        return new PostResponseDto(post);
-//    }
-//
-//
+
 //    @GetMapping("/my-post-titles")
 //    @ResponseBody
 //    public List<String> getMyPostTitles(Authentication auth) {

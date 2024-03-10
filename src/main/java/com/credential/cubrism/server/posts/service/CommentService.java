@@ -1,50 +1,37 @@
 package com.credential.cubrism.server.posts.service;
 
-
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
-import com.credential.cubrism.server.posts.dto.CommentCreateRequest;
-import com.credential.cubrism.server.posts.model.Comment;
+import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
+import com.credential.cubrism.server.posts.dto.CommentAddPostDTO;
+import com.credential.cubrism.server.posts.model.Comments;
 import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.posts.repository.CommentRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CommentService {
-
-    private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     private final UserRepository userRepository;
 
-    public void writeComment(Long postId, CommentCreateRequest req, String loginId) {
-        Posts post = postRepository.findByPostId(postId);
-        Users user = userRepository.findByEmail(loginId).get();
-        Comment comment =req.toEntity(post, user);
+    @Transactional
+    public void addComment(CommentAddPostDTO dto, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+
+        Posts post = postRepository.findByPostId(dto.getPostId())
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id : " + dto.getPostId()));
+
+        Comments comment = new Comments();
+        comment.setPost(post);
+        comment.setUser(user);
+        comment.setContent(dto.getContent());
         commentRepository.save(comment);
     }
-
-    public List<Comment> findAll(Long boardId) {
-        return commentRepository.findAllByPost_PostId(boardId);
-    }
-
-//    @Transactional
-//    public Long editComment(Long commentId, String newBody, String loginId) {
-//        Optional<Comment> optComment = commentRepository.findById(commentId);
-//        Optional<Users> optUser = userRepository.findByEmail(loginId);
-//        if (optComment.isEmpty() || optUser.isEmpty() || !optComment.get().getUser().equals(optUser.get())) {
-//            return null;
-//        }
-//
-//        Comment comment = optComment.get();
-//        comment.update(newBody);
-//
-//        return comment.getPost().getPostId();
-//    }
-
 }
 
