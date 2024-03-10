@@ -3,6 +3,7 @@ package com.credential.cubrism.server.posts.controller;
 import com.credential.cubrism.server.common.dto.ErrorDTO;
 import com.credential.cubrism.server.common.dto.ResultDTO;
 import com.credential.cubrism.server.posts.dto.PostAddPostDTO;
+import com.credential.cubrism.server.posts.dto.PostDeletePostDTO;
 import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
 import com.credential.cubrism.server.posts.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,21 @@ public class PostController {
     ) {
         try {
             postService.addPost(files, dto, authentication);
+            return ResponseEntity.ok().body(new ResultDTO(true, null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
+        }
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<?> deletePost(
+            @RequestBody PostDeletePostDTO dto,
+            Authentication authentication
+    ) {
+        try {
+            postService.deletePost(dto, authentication);
             return ResponseEntity.ok().body(new ResultDTO(true, null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));

@@ -4,10 +4,7 @@ import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import com.credential.cubrism.server.common.utils.PostImageUploadUtil;
-import com.credential.cubrism.server.posts.dto.PostAddPostDTO;
-import com.credential.cubrism.server.posts.dto.PostViewGetDTO;
-import com.credential.cubrism.server.posts.dto.PostListGetDTO;
-import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
+import com.credential.cubrism.server.posts.dto.*;
 import com.credential.cubrism.server.posts.model.Board;
 import com.credential.cubrism.server.posts.model.PostImages;
 import com.credential.cubrism.server.posts.model.Posts;
@@ -40,7 +37,7 @@ public class PostService {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
         Board board = boardRepository.findByBoardName(dto.getBoardName())
-                .orElseThrow(() -> new IllegalArgumentException("Board not found with name : " + dto.getBoardName()));
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시판이 존재하지 않습니다"));
 
         Posts post = new Posts();
         post.setBoard(board);
@@ -72,6 +69,20 @@ public class PostService {
     }
 
     @Transactional
+    public void deletePost(PostDeletePostDTO dto, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+
+        Posts post = postRepository.findByPostIdAndBoardName(dto.getPostId(), dto.getBoardName())
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다"));
+
+        if (!post.getUser().getUuid().equals(user.getUuid())) {
+            throw new IllegalArgumentException("본인만 삭제할 수 있습니다");
+        }
+
+        postRepository.delete(post);
+    }
+
+    @Transactional
     public void updatePost(PostUpdatePostDTO dto, Authentication authentication) {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
@@ -93,7 +104,7 @@ public class PostService {
 
     public PostListGetDTO postList(Pageable pageable, String boardName) {
         Board board = boardRepository.findByBoardName(boardName)
-                .orElseThrow(() -> new IllegalArgumentException("Board not found with name : " + boardName));
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시판이 존재하지 않습니다"));
         Page<Posts> posts = postRepository.findAllByBoard(board, pageable);
 
         return getPostList(posts);
@@ -133,8 +144,8 @@ public class PostService {
     }
 
     public PostViewGetDTO postView(Long postId, String boardName) {
-        Posts post = postRepository.findByPostIdAndBoardBoardName(postId, boardName)
-                .orElseThrow(() -> new IllegalArgumentException("Post not found with id : " + postId));
+        Posts post = postRepository.findByPostIdAndBoardName(postId, boardName)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다"));
 
         List<PostImages> postImages = postImagesRepository.findAllByPostPostId(postId);
         List<PostViewGetDTO.Images> postImagesDTO = postImages.stream()

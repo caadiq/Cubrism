@@ -19,7 +19,7 @@ public interface PostRepository extends JpaRepository<Posts, UUID> {
     Page<Posts> findAllByUserUuid(UUID userId, Pageable pageable);
 
     @Query("SELECT p FROM Posts p WHERE p.postId = :postId AND p.board.boardName = :boardName")
-    Optional<Posts> findByPostIdAndBoardBoardName(@Param("postId") Long postId, @Param("boardName") String boardName);
+    Optional<Posts> findByPostIdAndBoardName(@Param("postId") Long postId, @Param("boardName") String boardName);
 
     Optional<Posts> findByPostId(Long postId);
 }

@@ -2,6 +2,7 @@ package com.credential.cubrism.server.posts.controller;
 
 import com.credential.cubrism.server.common.dto.ResultDTO;
 import com.credential.cubrism.server.posts.dto.CommentAddPostDTO;
+import com.credential.cubrism.server.posts.dto.CommentDeletePostDTO;
 import com.credential.cubrism.server.posts.dto.CommentUpdatePostDTO;
 import com.credential.cubrism.server.posts.service.CommentService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,21 @@ public class CommentController {
     ) {
         try {
             commentService.addComment(dto, authentication);
+            return ResponseEntity.ok().body(new ResultDTO(true, null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
+        }
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteComment(
+            @RequestBody CommentDeletePostDTO dto,
+            Authentication authentication
+    ) {
+        try {
+            commentService.deleteComment(dto, authentication);
             return ResponseEntity.ok().body(new ResultDTO(true, null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));

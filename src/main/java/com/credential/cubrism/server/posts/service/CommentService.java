@@ -4,6 +4,7 @@ import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import com.credential.cubrism.server.posts.dto.CommentAddPostDTO;
+import com.credential.cubrism.server.posts.dto.CommentDeletePostDTO;
 import com.credential.cubrism.server.posts.dto.CommentUpdatePostDTO;
 import com.credential.cubrism.server.posts.model.Comments;
 import com.credential.cubrism.server.posts.model.Posts;
@@ -33,6 +34,20 @@ public class CommentService {
         comment.setUser(user);
         comment.setContent(dto.getContent());
         commentRepository.save(comment);
+    }
+
+    @Transactional
+    public void deleteComment(CommentDeletePostDTO dto, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+
+        Comments comment = commentRepository.findByPostIdAndCommentId(dto.getPostId(), dto.getCommentId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다."));
+
+        if (!comment.getUser().getUuid().equals(user.getUuid())) {
+            throw new IllegalArgumentException("본인만 삭제할 수 있습니다.");
+        }
+
+        commentRepository.delete(comment);
     }
 
     @Transactional
