@@ -144,6 +144,7 @@ public class PostService {
                 .map(comment -> new PostViewGetDTO.Comments(
                         comment.getCommentId(),
                         comment.getUser().getNickname(),
+                        comment.getUser().getEmail(),
                         comment.getContent(),
                         comment.getCreatedDate().toString()
                 ))
@@ -153,6 +154,7 @@ public class PostService {
                 post.getPostId(),
                 post.getBoard().getBoardName(),
                 post.getUser().getNickname(),
+                post.getUser().getEmail(),
                 post.getTitle(),
                 post.getContent(),
                 post.getCreatedDate().toString(),
