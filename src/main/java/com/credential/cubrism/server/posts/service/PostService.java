@@ -3,10 +3,10 @@ package com.credential.cubrism.server.posts.service;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
-import com.credential.cubrism.server.common.utils.S3ImageUploadUtil;
+import com.credential.cubrism.server.common.utils.PostImageUploadUtil;
 import com.credential.cubrism.server.posts.dto.PostInfoGetDTO;
 import com.credential.cubrism.server.posts.dto.PostListGetDTO;
-import com.credential.cubrism.server.posts.dto.PostRegisterPostDTO;
+import com.credential.cubrism.server.posts.dto.PostAddPostDTO;
 import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
 import com.credential.cubrism.server.posts.model.Board;
 import com.credential.cubrism.server.posts.model.PostImages;
@@ -30,16 +30,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PostService {
-    private final S3ImageUploadUtil s3ImageUploadUtil;
+    private final PostImageUploadUtil postImageUploadUtil;
     private final BoardRepository boardRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final PostImagesRepository postImagesRepository;
 
-    private final static String filePath = "post_images/";
-
     @Transactional
-    public void registerPost(List<MultipartFile> files, PostRegisterPostDTO dto, Authentication authentication) {
+    public void addPost(List<MultipartFile> files, PostAddPostDTO dto, Authentication authentication) {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
         Board board = boardRepository.findByBoardName(dto.getBoardName())
@@ -50,16 +48,16 @@ public class PostService {
         post.setUser(user);
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
+        postRepository.save(post);
 
         // 이미지 업로드 후 이미지 URL 받아와서 리스트로 저장
         List<String> imageUrls;
         try {
-            imageUrls = s3ImageUploadUtil.uploadImages("post", files, 5, filePath, user.getUuid());
+            imageUrls = postImageUploadUtil.uploadImages(files, post.getPostId());
         } catch (Exception e) {
+            postRepository.delete(post);
             throw new IllegalArgumentException(e.getMessage());
         }
-
-        postRepository.save(post); // 이미지가 정상적으로 업로드가 되면 게시글 저장
 
         // 이미지 URL을 PostImages에 저장
         List<PostImages> postImageList = new ArrayList<>();
@@ -75,7 +73,7 @@ public class PostService {
     }
 
     @Transactional
-    public void updatePost(PostUpdatePostDTO dto, Authentication authentication) {
+    public void updatePost(List<MultipartFile> files, PostUpdatePostDTO dto, Authentication authentication) {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
         Board board = boardRepository.findByBoardName(dto.getBoardName())
@@ -90,6 +88,8 @@ public class PostService {
         post.setContent(dto.getContent());
 
         postRepository.save(post);
+
+
     }
 
     public PostListGetDTO postList(Pageable pageable, String boardName) {
