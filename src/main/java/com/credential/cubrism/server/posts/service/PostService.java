@@ -5,7 +5,7 @@ import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import com.credential.cubrism.server.common.utils.PostImageUploadUtil;
 import com.credential.cubrism.server.posts.dto.PostAddPostDTO;
-import com.credential.cubrism.server.posts.dto.PostInfoGetDTO;
+import com.credential.cubrism.server.posts.dto.PostViewGetDTO;
 import com.credential.cubrism.server.posts.dto.PostListGetDTO;
 import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
 import com.credential.cubrism.server.posts.model.Board;
@@ -72,7 +72,7 @@ public class PostService {
     }
 
     @Transactional
-    public void updatePost(List<MultipartFile> files, PostUpdatePostDTO dto, Authentication authentication) {
+    public void updatePost(PostUpdatePostDTO dto, Authentication authentication) {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
         Posts post = postRepository.findByPostId(dto.getPostId())
@@ -131,23 +131,32 @@ public class PostService {
         return new PostListGetDTO(pageableDTO, postListDTO);
     }
 
-    public PostInfoGetDTO postView(Long postId, String boardName) {
+    public PostViewGetDTO postView(Long postId, String boardName) {
         Posts post = postRepository.findByPostIdAndBoardBoardName(postId, boardName)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id : " + postId));
 
         List<PostImages> postImages = postImagesRepository.findAllByPostPostId(postId);
-        List<PostInfoGetDTO.PostImages> postImagesDTO = postImages.stream()
-                .map(image -> new PostInfoGetDTO.PostImages(image.getImageUrl()))
+        List<PostViewGetDTO.PostImages> postImagesDTO = postImages.stream()
+                .map(image -> new PostViewGetDTO.PostImages(image.getImageUrl()))
+                .collect(Collectors.toList());
+        List<PostViewGetDTO.Comments> commentsDTO = post.getComments().stream()
+                .map(comment -> new PostViewGetDTO.Comments(
+                        comment.getCommentId(),
+                        comment.getUser().getNickname(),
+                        comment.getContent(),
+                        comment.getCreatedDate().toString()
+                ))
                 .collect(Collectors.toList());
 
-        return new PostInfoGetDTO(
+        return new PostViewGetDTO(
                 post.getPostId(),
                 post.getBoard().getBoardName(),
                 post.getUser().getNickname(),
                 post.getTitle(),
                 post.getContent(),
                 post.getCreatedDate().toString(),
-                postImagesDTO
+                postImagesDTO,
+                commentsDTO
         );
     }
 }
