@@ -125,7 +125,8 @@ public class PostService {
                                 .orElse(null),
                         post.getTitle(),
                         post.getContent(),
-                        post.getCreatedDate().toString()
+                        post.getCreatedDate().toString(),
+                        post.getComments().size()
                 )).collect(Collectors.toList());
 
         return new PostListGetDTO(pageableDTO, postListDTO);
@@ -136,8 +137,8 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id : " + postId));
 
         List<PostImages> postImages = postImagesRepository.findAllByPostPostId(postId);
-        List<PostViewGetDTO.PostImages> postImagesDTO = postImages.stream()
-                .map(image -> new PostViewGetDTO.PostImages(image.getImageUrl()))
+        List<PostViewGetDTO.Images> postImagesDTO = postImages.stream()
+                .map(image -> new PostViewGetDTO.Images(image.getImageUrl()))
                 .collect(Collectors.toList());
         List<PostViewGetDTO.Comments> commentsDTO = post.getComments().stream()
                 .map(comment -> new PostViewGetDTO.Comments(
