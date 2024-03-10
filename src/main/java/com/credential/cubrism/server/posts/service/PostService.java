@@ -85,10 +85,7 @@ public class PostService {
         post.setUser(user);
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
-
         postRepository.save(post);
-
-
     }
 
     public PostListGetDTO postList(Pageable pageable, String boardName) {

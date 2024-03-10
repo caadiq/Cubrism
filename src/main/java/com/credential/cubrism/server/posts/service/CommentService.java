@@ -4,6 +4,7 @@ import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import com.credential.cubrism.server.posts.dto.CommentAddPostDTO;
+import com.credential.cubrism.server.posts.dto.CommentUpdatePostDTO;
 import com.credential.cubrism.server.posts.model.Comments;
 import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.posts.repository.CommentRepository;
@@ -33,5 +34,20 @@ public class CommentService {
         comment.setContent(dto.getContent());
         commentRepository.save(comment);
     }
-}
 
+    @Transactional
+    public void updateComment(CommentUpdatePostDTO dto, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+
+        Posts post = postRepository.findByPostId(dto.getPostId())
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id : " + dto.getPostId()));
+
+        Comments comment = commentRepository.findByUserIdAndCommentId(user.getUuid(), dto.getCommentId())
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found with id : " + dto.getCommentId()));
+
+        comment.setPost(post);
+        comment.setUser(user);
+        comment.setContent(dto.getContent());
+        commentRepository.save(comment);
+    }
+}
