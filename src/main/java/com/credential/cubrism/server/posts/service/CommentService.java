@@ -26,7 +26,7 @@ public class CommentService {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
         Posts post = postRepository.findByPostId(dto.getPostId())
-                .orElseThrow(() -> new IllegalArgumentException("Post not found with id : " + dto.getPostId()));
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
 
         Comments comment = new Comments();
         comment.setPost(post);
@@ -39,14 +39,17 @@ public class CommentService {
     public void updateComment(CommentUpdatePostDTO dto, Authentication authentication) {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
-        Posts post = postRepository.findByPostId(dto.getPostId())
-                .orElseThrow(() -> new IllegalArgumentException("Post not found with id : " + dto.getPostId()));
+        Comments comment = commentRepository.findByCommentId(dto.getCommentId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다."));
 
-        Comments comment = commentRepository.findByUserIdAndCommentId(user.getUuid(), dto.getCommentId())
-                .orElseThrow(() -> new IllegalArgumentException("Comment not found with id : " + dto.getCommentId()));
+        if (!comment.getUser().getUuid().equals(user.getUuid())) {
+            throw new IllegalArgumentException("본인만 수정할 수 있습니다.");
+        }
 
-        comment.setPost(post);
-        comment.setUser(user);
+        if (!comment.getPost().getPostId().equals(dto.getPostId())) {
+            throw new IllegalArgumentException("게시글과 댓글이 일치하지 않습니다.");
+        }
+
         comment.setContent(dto.getContent());
         commentRepository.save(comment);
     }
