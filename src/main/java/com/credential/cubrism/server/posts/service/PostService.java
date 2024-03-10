@@ -75,14 +75,17 @@ public class PostService {
     public void updatePost(List<MultipartFile> files, PostUpdatePostDTO dto, Authentication authentication) {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
-        Board board = boardRepository.findByBoardName(dto.getBoardName())
-                .orElseThrow(() -> new IllegalArgumentException("Board not found with name : " + dto.getBoardName()));
+        Posts post = postRepository.findByPostId(dto.getPostId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다"));
 
-        Posts post = postRepository.findByUserIdAndPostId(user.getUuid(), dto.getPostId())
-                .orElseThrow(() -> new IllegalArgumentException("Post not found with id : " + dto.getPostId()));
+        if (!post.getUser().getUuid().equals(user.getUuid())) {
+            throw new IllegalArgumentException("본인만 수정할 수 있습니다");
+        }
 
-        post.setBoard(board);
-        post.setUser(user);
+        if (!post.getBoard().getBoardName().equals(dto.getBoardName())) {
+            throw new IllegalArgumentException("게시판과 게시글이 일치하지 않습니다");
+        }
+
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
         postRepository.save(post);

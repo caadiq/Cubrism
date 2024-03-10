@@ -14,9 +14,6 @@ import java.util.UUID;
 
 @Repository
 public interface PostRepository extends JpaRepository<Posts, UUID> {
-    @Query("SELECT p FROM Posts p WHERE p.user.uuid = :userId AND p.postId = :postId")
-    Optional<Posts> findByUserIdAndPostId(@Param("userId") UUID userId, @Param("postId") Long postId);
-
     Page<Posts> findAllByBoard(Board board, Pageable pageable);
 
     Page<Posts> findAllByUserUuid(UUID userId, Pageable pageable);

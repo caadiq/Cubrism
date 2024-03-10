@@ -22,11 +22,11 @@ public class Comments {
     private Long commentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_Id", nullable = false)
+    @JoinColumn(name = "post_id", nullable = false)
     private Posts post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_Id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
     @Column(name = "content", nullable = false)
