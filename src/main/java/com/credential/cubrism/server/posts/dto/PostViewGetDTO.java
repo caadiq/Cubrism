@@ -14,12 +14,12 @@ public class PostViewGetDTO {
     private String title;
     private String content;
     private String createdDate;
-    private List<PostImages> postImages;
+    private List<Images> images;
     private List<Comments> comments;
 
     @Getter
     @AllArgsConstructor
-    public static class PostImages {
+    public static class Images {
         private String imageUrl;
     }
 
