@@ -19,38 +19,42 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class S3ImageUploadUtil {
+public class PostImageUploadUtil {
     private final AmazonS3 s3;
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    public List<String> uploadImages(String type, List<MultipartFile> files, long maxImageSize, String filePath, UUID userId) {
+    private final static long MAX_FILE_SIZE = 5;
+    private final static String filePath = "post_images/";
+
+    public List<String> uploadImages(List<MultipartFile> files, Long postId) {
         // 파일 유효성 검사
         for (MultipartFile file : files) {
-            validateFile(file, maxImageSize);
+            validateFile(file);
         }
 
         // 파일 업로드
         List<String> urls = new ArrayList<>();
         for (MultipartFile file : files) {
-            String url = uploadFileToS3(type, file, filePath, userId);
+            String url = uploadImageToS3(file, postId);
             urls.add(url);
         }
 
         return urls;
     }
 
-    private void validateFile(MultipartFile file, long maxImageSize) {
+    private void validateFile(MultipartFile file) {
         String originalFileName = file.getOriginalFilename();
         String fileType;
+
         try {
             fileType = Files.probeContentType(Paths.get(Objects.requireNonNull(originalFileName)));
         } catch (IOException e) {
             throw new IllegalArgumentException("MIME 타입을 확인할 수 없습니다");
         }
 
-        if (file.getSize() > maxImageSize * 1024 * 1024) {
-            throw new IllegalArgumentException(maxImageSize + "MB 이하의 이미지만 업로드 가능합니다");
+        if (file.getSize() > MAX_FILE_SIZE * 1024 * 1024) {
+            throw new IllegalArgumentException(MAX_FILE_SIZE + "MB 이하의 이미지만 업로드 가능합니다");
         }
 
         if (!Objects.requireNonNull(fileType).startsWith("image")) {
@@ -58,34 +62,39 @@ public class S3ImageUploadUtil {
         }
     }
 
-    private String uploadFileToS3(String type, MultipartFile file, String filePath, UUID userId) {
-        String originalFileName = file.getOriginalFilename(); // 원본 파일명
-        String extension = Objects.requireNonNull(originalFileName).substring(originalFileName.lastIndexOf(".")); // 파일 확장자
-        String fileName;
+    private String uploadImageToS3(MultipartFile file, Long postId) {
+        String fileName = getImageName(file, postId);
+        removePreviousImage(fileName, postId);
+        uploadImage(file, fileName);
+        return s3.getUrl(bucketName, fileName).toString();
+    }
 
-        if (type.equals("profile")) { // 프로필 이미지
-            // S3 버킷에 유저id로 저장된 파일이 있으면 삭제
-            ObjectListing objectListing = s3.listObjects(bucketName, filePath + userId.toString());
-            for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
+    private String getImageName(MultipartFile file, Long postId) {
+        String originalFileName = Objects.requireNonNull(file.getOriginalFilename()).replace("{", "").replace("}", "");
+        String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        return filePath + postId + "_" + UUID.randomUUID() + "_{" + originalFileName + "}" + extension;
+    }
+
+    private void removePreviousImage(String fileName, Long postId) {
+        String targetKey = postId + "_.*_\\{" + fileName + "\\}";
+        ObjectListing objectListing = s3.listObjects(bucketName, filePath);
+
+        for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
+            if (objectSummary.getKey().contains(targetKey)) {
                 s3.deleteObject(bucketName, objectSummary.getKey());
             }
-            fileName = filePath + userId + extension;
-        } else if (type.equals("post")) { // 게시글 이미지
-            fileName = filePath + userId + "_" + UUID.randomUUID() + extension;
-        } else {
-            throw new IllegalArgumentException("지원하지 않는 타입입니다");
         }
+    }
 
-        ObjectMetadata metadata = new ObjectMetadata(); // 파일 메타데이터
-        metadata.setContentLength(file.getSize()); // 파일 크기
-        metadata.setContentType(file.getContentType()); // 파일 MIME 타입
+    private void uploadImage(MultipartFile file, String fileName) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(file.getSize());
+        metadata.setContentType(file.getContentType());
 
         try {
             s3.putObject(bucketName, fileName, file.getInputStream(), metadata);
         } catch (IOException e) {
             throw new IllegalArgumentException("이미지 업로드에 실패했습니다");
         }
-
-        return s3.getUrl(bucketName, fileName).toString();
     }
 }

@@ -1,7 +1,7 @@
 package com.credential.cubrism.server.posts.controller;
 
 import com.credential.cubrism.server.common.dto.ErrorDTO;
-import com.credential.cubrism.server.posts.dto.PostRegisterPostDTO;
+import com.credential.cubrism.server.posts.dto.PostAddPostDTO;
 import com.credential.cubrism.server.posts.dto.PostResultDTO;
 import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
 import com.credential.cubrism.server.posts.service.PostService;
@@ -23,14 +23,14 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerPost(
+    @PostMapping("/add")
+    public ResponseEntity<?> addPost(
             @RequestPart("file") List<MultipartFile> files,
-            @RequestPart("data") PostRegisterPostDTO dto,
+            @RequestPart("data") PostAddPostDTO dto,
             Authentication authentication
     ) {
         try {
-            postService.registerPost(files, dto, authentication);
+            postService.addPost(files, dto, authentication);
             return ResponseEntity.ok().body(new PostResultDTO(true, null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new PostResultDTO(false, e.getMessage()));
@@ -41,11 +41,12 @@ public class PostController {
 
     @PostMapping("/update")
     public ResponseEntity<?> updatePost(
-            @RequestPart("post") PostUpdatePostDTO dto,
+            @RequestPart("file") List<MultipartFile> files,
+            @RequestPart("data") PostUpdatePostDTO dto,
             Authentication authentication
     ) {
         try {
-            postService.updatePost(dto, authentication);
+            postService.updatePost(files, dto, authentication);
             return ResponseEntity.ok().body(new PostResultDTO(true, null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new PostResultDTO(false, e.getMessage()));

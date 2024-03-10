@@ -43,7 +43,7 @@ public class Posts {
 
     @LastModifiedDate
     @Column(name = "modified_date", nullable = false)
-    private LocalDateTime updatedDate;
+    private LocalDateTime modifiedDate;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private List<PostImages> postImages;
