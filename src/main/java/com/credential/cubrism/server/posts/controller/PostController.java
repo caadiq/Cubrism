@@ -41,12 +41,11 @@ public class PostController {
 
     @PostMapping("/update")
     public ResponseEntity<?> updatePost(
-            @RequestPart("file") List<MultipartFile> files,
             @RequestPart("data") PostUpdatePostDTO dto,
             Authentication authentication
     ) {
         try {
-            postService.updatePost(files, dto, authentication);
+            postService.updatePost(dto, authentication);
             return ResponseEntity.ok().body(new ResultDTO(true, null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
