@@ -11,6 +11,7 @@ public class PostViewGetDTO {
     private Long postId;
     private String boardName;
     private String nickname;
+    private String email;
     private String title;
     private String content;
     private String createdDate;
@@ -28,6 +29,7 @@ public class PostViewGetDTO {
     public static class Comments {
         private Long commentId;
         private String nickname;
+        private String email;
         private String content;
         private String createdDate;
     }
