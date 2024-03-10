@@ -29,5 +29,6 @@ public class PostListGetDTO {
         private String title;
         private String content;
         private String createdDate;
+        private int commentCount;
     }
 }
