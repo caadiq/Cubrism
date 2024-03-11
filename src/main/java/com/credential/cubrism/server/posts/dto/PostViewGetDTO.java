@@ -30,6 +30,7 @@ public class PostViewGetDTO {
         private Long commentId;
         private String nickname;
         private String email;
+        private String profileImageUrl;
         private String content;
         private String createdDate;
     }
