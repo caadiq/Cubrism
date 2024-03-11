@@ -35,6 +35,9 @@ public class Users {
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
