@@ -24,11 +24,11 @@ public class JwtTokenUtil {
     }
 
     public static String createRefreshToken(String loginId, String key, long expireTimeMs) {
-        Claims claims = Jwts.claims();
-        claims.put("loginId", loginId);
+//        Claims claims = Jwts.claims();
+//        claims.put("loginId", loginId);
 
         return Jwts.builder()
-                .setClaims(claims)
+//                .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expireTimeMs))
                 .signWith(SignatureAlgorithm.HS256, key)

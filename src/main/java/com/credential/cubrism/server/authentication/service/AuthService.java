@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -66,6 +67,13 @@ public class AuthService {
         if (email == null) return null;
 
         Optional<Users> optionalUser = userRepository.findByEmail(email);
+        return optionalUser.orElse(null);
+    }
+
+    public Users getUserByUuid(UUID uuid) {
+        if (uuid == null) return null;
+
+        Optional<Users> optionalUser = userRepository.findByUuid(uuid);
         return optionalUser.orElse(null);
     }
 }
