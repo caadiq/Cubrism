@@ -59,4 +59,11 @@ public class S3Service {
         String fileId = UUID.randomUUID().toString();
         return String.format("%s/%s_%s", filePath, fileId, fileName);
     }
+
+
+    public void deleteFileFromS3(String fileUrl) {
+        String bucketName = fileUrl.split(".s3.amazonaws.com")[0].replace("https://", "");
+        String keyName = fileUrl.split(".s3.amazonaws.com/")[1];
+        amazonS3.deleteObject(bucketName, keyName);
+    }
 }

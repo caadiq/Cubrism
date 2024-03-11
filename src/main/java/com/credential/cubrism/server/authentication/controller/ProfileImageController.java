@@ -1,15 +1,15 @@
 package com.credential.cubrism.server.authentication.controller;
 
-import com.credential.cubrism.server.authentication.dto.ProfileImageUploadResultDTO;
+import com.credential.cubrism.server.authentication.dto.ProfileImageChangePostDTO;
 import com.credential.cubrism.server.authentication.service.ProfileImageService;
+import com.credential.cubrism.server.common.dto.ResultDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 public class ProfileImageController {
@@ -22,16 +22,16 @@ public class ProfileImageController {
 
     @PostMapping("/auth/profileimage")
     public ResponseEntity<?> uploadProfileImage(
-            @RequestParam("file") MultipartFile file,
+            @RequestBody ProfileImageChangePostDTO dto,
             Authentication authentication
     ) {
         try {
-            String imageUrl = profileImageService.uploadProfileImage(file, authentication);
-            return ResponseEntity.ok().body(new ProfileImageUploadResultDTO(true, null, imageUrl));
+            profileImageService.changeProfileImage(dto, authentication);
+            return ResponseEntity.ok().body(new ResultDTO(true, null));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ProfileImageUploadResultDTO(false, e.getMessage(), null));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ProfileImageUploadResultDTO(false, e.getMessage(), null));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
         }
     }
 }
