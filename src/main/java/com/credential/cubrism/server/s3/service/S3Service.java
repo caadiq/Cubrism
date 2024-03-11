@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -21,16 +23,20 @@ public class S3Service {
     private String bucket;
     private final AmazonS3 amazonS3;
 
-    public PresignedUrlResultDTO getPreSignedUrl(PresignedUrlGetDTO dto) {
-        try {
-            String fileName = createPath(dto.getFilePath(), dto.getFileName());
-            GeneratePresignedUrlRequest generatePresignedUrlRequest = generatePreSignedUrlRequest(bucket, fileName);
-            String presignedUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
-            String fileUrl = String.format("https://%s.s3.amazonaws.com/%s", bucket, fileName);
-            return new PresignedUrlResultDTO(presignedUrl, fileUrl);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Presigned URL 생성에 실패했습니다");
+    public List<PresignedUrlResultDTO> getPreSignedUrl(PresignedUrlGetDTO dto) {
+        List<PresignedUrlResultDTO> results = new ArrayList<>();
+        for (PresignedUrlGetDTO.Files file : dto.getFiles()) {
+            try {
+                String fileName = createPath(file.getFilePath(), file.getFileName());
+                GeneratePresignedUrlRequest generatePresignedUrlRequest = generatePreSignedUrlRequest(bucket, fileName);
+                String presignedUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
+                String fileUrl = String.format("https://%s.s3.amazonaws.com/%s", bucket, fileName);
+                results.add(new PresignedUrlResultDTO(file.getFileName(), presignedUrl, fileUrl));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Presigned URL 생성에 실패했습니다");
+            }
         }
+        return results;
     }
 
     // presigned url 생성
@@ -60,7 +66,7 @@ public class S3Service {
         return String.format("%s/%s_%s", filePath, fileId, fileName);
     }
 
-
+    // 파일 삭제
     public void deleteFileFromS3(String fileUrl) {
         String bucketName = fileUrl.split(".s3.amazonaws.com")[0].replace("https://", "");
         String keyName = fileUrl.split(".s3.amazonaws.com/")[1];
