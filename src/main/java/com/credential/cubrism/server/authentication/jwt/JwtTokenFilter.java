@@ -51,7 +51,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         // 전송받은 Jwt Token이 만료되었으면 => 다음 필터 진행(인증 X)
         try {
             Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
-        } catch (ExpiredJwtException | MalformedJwtException e) {
+        } catch (ExpiredJwtException e) {
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getOutputStream().println("{ \"error\": \"The token is expired\" }");
+            return;
+        } catch (MalformedJwtException e) {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getOutputStream().println("{ \"error\": \"The token is invalid\" }");
