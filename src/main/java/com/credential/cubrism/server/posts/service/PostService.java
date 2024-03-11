@@ -156,6 +156,7 @@ public class PostService {
                         comment.getCommentId(),
                         comment.getUser().getNickname(),
                         comment.getUser().getEmail(),
+                        comment.getUser().getImageUrl(),
                         comment.getContent(),
                         comment.getCreatedDate().toString()
                 ))
