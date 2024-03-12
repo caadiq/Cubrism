@@ -156,6 +156,7 @@ public class PostService {
                 post.getTitle(),
                 post.getContent(),
                 post.getCreatedDate().toString(),
+                post.getModifiedDate().toString(),
                 postImagesDTO,
                 commentsDTO
         );

@@ -53,7 +53,7 @@ public class PostController {
 
     @PostMapping("/update")
     public ResponseEntity<?> updatePost(
-            @RequestPart("data") PostUpdatePostDTO dto,
+            @RequestBody PostUpdatePostDTO dto,
             Authentication authentication
     ) {
         try {
