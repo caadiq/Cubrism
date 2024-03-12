@@ -15,6 +15,7 @@ public class PostViewGetDTO {
     private String title;
     private String content;
     private String createdDate;
+    private String modifiedDate;
     private List<Images> images;
     private List<Comments> comments;
 
