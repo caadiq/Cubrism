@@ -3,12 +3,14 @@ package com.credential.cubrism.server.qualification.service;
 import com.credential.cubrism.server.qualification.dto.MajorFieldGetDTO;
 import com.credential.cubrism.server.qualification.dto.MiddleFieldGetDTO;
 import com.credential.cubrism.server.qualification.dto.QualificationDetailsGetDTO;
+import com.credential.cubrism.server.qualification.model.ExamSchedules;
 import com.credential.cubrism.server.qualification.repository.QualificationDetailsRepository;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +49,7 @@ public class QualificationService {
                         qualificationDetails.getCode(),
                         qualificationDetails.getQualificationList().getName(),
                         qualificationDetails.getExamSchedules().stream()
+                                .sorted(Comparator.comparing(ExamSchedules::getCategory))
                                 .map(schedule -> new QualificationDetailsGetDTO.Schedule(
                                         schedule.getCategory(),
                                         schedule.getWrittenApp(),
