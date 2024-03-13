@@ -1,97 +1,49 @@
 package com.credential.cubrism.server.qualification.service;
 
-import com.credential.cubrism.server.qualification.dto.MajorFieldGetDTO;
-import com.credential.cubrism.server.qualification.dto.QualificationDetailsGetDTO;
-import com.credential.cubrism.server.qualification.dto.MiddleFieldGetDTO;
-import com.credential.cubrism.server.qualification.repository.QualificationDetailsRepository;
+import com.credential.cubrism.server.qualification.dto.QualificationListApiGetDTO;
+import com.credential.cubrism.server.qualification.model.QualificationList;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class QualificationListService {
+    @Value("${open.api.key:}")
+    private String apiKey;
+
     private final QualificationListRepository qualificationListRepository;
-    private final QualificationDetailsRepository qualificationDetailsRepository;
+    private final WebClient webClient;
 
-    @Value("${cloud.aws.s3.bucket.qualificationIcon.url}")
-    private String qualificationIconUrl;
+    public void getQualificationList() {
+        String url = "http://openapi.q-net.or.kr/api/service/rest/InquiryListNationalQualifcationSVC/getList?_type=json&serviceKey=" + apiKey;
 
-    @Autowired
-    public QualificationListService(QualificationListRepository qualificationListRepository, QualificationDetailsRepository qualificationDetailsRepository) {
-        this.qualificationListRepository = qualificationListRepository;
-        this.qualificationDetailsRepository = qualificationDetailsRepository;
+        webClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(QualificationListApiGetDTO.class)
+                .subscribe(this::saveQualificationList);
     }
 
-    public List<MajorFieldGetDTO> majorFieldListApi() {
-        return qualificationListRepository.findDistinctMajorFieldNames().stream()
-                .sorted()
-                .map(majorFieldName -> {
-                    String imageUrl = qualificationIconUrl + majorFieldName.replace(".", "_") + ".webp";
-                    return new MajorFieldGetDTO(majorFieldName, imageUrl);
+    private void saveQualificationList(QualificationListApiGetDTO dto) {
+        List<QualificationList> qualificationLists = dto.getResponse().getBody().getItems().getItem().stream()
+                .filter(item -> "국가기술자격".equals(item.getQualgbnm()))
+                .map(item -> {
+                    QualificationList qualificationList = new QualificationList();
+                    qualificationList.setCode(item.getJmcd());
+                    qualificationList.setName(item.getJmfldnm());
+                    qualificationList.setMiddleFieldName(item.getMdobligfldnm());
+                    qualificationList.setMajorFieldName(item.getObligfldnm());
+                    qualificationList.setQualName(item.getQualgbnm());
+                    qualificationList.setSeriesName(item.getSeriesnm());
+                    return qualificationList;
                 })
                 .collect(Collectors.toList());
-    }
-
-    public List<MiddleFieldGetDTO> qualificationListApi(String field) {
-        return qualificationListRepository.findByMajorFieldName(field).stream()
-                .map(qualificationList -> new MiddleFieldGetDTO(
-                        qualificationList.getMiddleFieldName(),
-                        qualificationList.getCode(),
-                        qualificationList.getName()
-                ))
-                .collect(Collectors.toList());
-    }
-
-    public QualificationDetailsGetDTO qualificationDetailsApi(String code) {
-        return qualificationDetailsRepository.findById(code)
-                .map(qualificationDetails -> new QualificationDetailsGetDTO(
-                        qualificationDetails.getCode(),
-                        qualificationDetails.getExamSchedules().stream()
-                                .map(schedule -> new QualificationDetailsGetDTO.Schedule(
-                                        schedule.getCategory(),
-                                        schedule.getWrittenApp(),
-                                        schedule.getWrittenExam(),
-                                        schedule.getWrittenExamResult(),
-                                        schedule.getPracticalApp(),
-                                        schedule.getPracticalExam(),
-                                        schedule.getPracticalExamResult()
-                                ))
-                                .collect(Collectors.toList()),
-                        new QualificationDetailsGetDTO.Fee(
-                                qualificationDetails.getExamFees().getWrittenFee(),
-                                qualificationDetails.getExamFees().getPracticalFee()
-                        ),
-                        qualificationDetails.getTendency(),
-                        qualificationDetails.getExamStandards().stream()
-                                .map(standard -> new QualificationDetailsGetDTO.Standard(
-                                        standard.getFilePath(),
-                                        standard.getFileName()
-                                ))
-                                .collect(Collectors.toList()),
-                        qualificationDetails.getPublicQuestions().stream()
-                                .map(question -> new QualificationDetailsGetDTO.Question(
-                                        question.getFilePath(),
-                                        question.getFileName()
-                                ))
-                                .collect(Collectors.toList()),
-                        qualificationDetails.getAcquisition(),
-                        qualificationDetails.getRecommendBooks().stream()
-                                .map(book -> new QualificationDetailsGetDTO.Books(
-                                        book.getTitle(),
-                                        book.getAuthors(),
-                                        book.getPublisher(),
-                                        book.getDate(),
-                                        book.getPrice(),
-                                        book.getSalePrice(),
-                                        book.getThumbnail(),
-                                        book.getUrl()
-                                ))
-                                .collect(Collectors.toList())
-                ))
-                .orElseThrow(() -> new RuntimeException("'" + code + "' code에 해당하는 자격증이 없습니다."));
+        qualificationListRepository.saveAll(qualificationLists);
     }
 }
