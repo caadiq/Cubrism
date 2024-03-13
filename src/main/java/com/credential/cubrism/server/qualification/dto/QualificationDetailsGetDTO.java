@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 public class QualificationDetailsGetDTO {
     private String code;
+    private String name;
     private List<Schedule> schedule;
     private Fee fee;
     private String tendency;
