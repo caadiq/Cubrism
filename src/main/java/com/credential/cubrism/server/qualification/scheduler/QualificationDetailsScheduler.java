@@ -14,7 +14,7 @@ public class QualificationDetailsScheduler {
         this.qualificationDetailsService = QualificationDetailsService;
     }
 
-    @Scheduled(cron = "0 5 0 * * *")
+    @Scheduled(cron = "30 7 * * * *")
     public void saveQualificationDetailsData() {
         qualificationDetailsService.getQualificationDetails();
     }
