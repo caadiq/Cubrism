@@ -10,6 +10,7 @@ import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.posts.repository.BoardRepository;
 import com.credential.cubrism.server.posts.repository.PostImagesRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
+import com.credential.cubrism.server.s3.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final PostImagesRepository postImagesRepository;
+    private final S3Service s3Service;
 
     @Transactional
     public void addPost(PostAddPostDTO dto, Authentication authentication) {
@@ -83,8 +85,25 @@ public class PostService {
             throw new IllegalArgumentException("게시판과 게시글이 일치하지 않습니다");
         }
 
+        if (dto.getRemovedImages() != null) {
+            for (PostUpdatePostDTO.RemovedImages removedImage : dto.getRemovedImages()) {
+                s3Service.deleteFileFromS3(removedImage.getImageUrl());
+                postImagesRepository.deleteByImageUrl(removedImage.getImageUrl());
+            }
+        }
+
+        List<PostImages> postImagesList = new ArrayList<>();
+        for (PostUpdatePostDTO.Images image : dto.getImages()) {
+            PostImages postImage = new PostImages();
+            postImage.setPost(post);
+            postImage.setImageUrl(image.getImageUrl());
+            postImage.setImageIndex(dto.getImages().indexOf(image));
+            postImagesList.add(postImage);
+        }
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
+        post.setPostImages(postImagesList);
+
         postRepository.save(post);
     }
 
@@ -133,7 +152,7 @@ public class PostService {
         Posts post = postRepository.findByPostIdAndBoardName(postId, boardName)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다"));
 
-        List<PostImages> postImages = postImagesRepository.findAllByPostPostId(postId);
+        List<PostImages> postImages = postImagesRepository.findAllByPostId(postId);
         List<PostViewGetDTO.Images> postImagesDTO = postImages.stream()
                 .map(image -> new PostViewGetDTO.Images(image.getImageUrl()))
                 .collect(Collectors.toList());
