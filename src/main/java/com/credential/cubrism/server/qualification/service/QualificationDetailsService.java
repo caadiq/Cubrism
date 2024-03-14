@@ -6,6 +6,7 @@ import com.credential.cubrism.server.qualification.model.*;
 import com.credential.cubrism.server.qualification.repository.QualificationDetailsRepository;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.util.retry.Retry;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QualificationDetailsService {
@@ -36,19 +38,13 @@ public class QualificationDetailsService {
                 .retrieve()
                 .bodyToFlux(QualificationDetailsApiGetDTO.class)
                 .retryWhen(Retry.backoff(5, Duration.ofMinutes(1)).maxBackoff(Duration.ofMinutes(2)))
-                .collectList()
                 .subscribe(this::saveQualificationDetails);
     }
 
-    private void saveQualificationDetails(List<QualificationDetailsApiGetDTO> dtoList) {
-        dtoList.forEach(dto -> qualificationDetailsRepository.deleteByCode(dto.getCode()));
-
-        List<QualificationDetails> allQualificationDetails = dtoList.stream()
-                .flatMap(dto -> qualificationListRepository.findById(dto.getCode()).stream()
-                        .map(qualificationList -> setQualificationDetails(dto)))
-                .collect(Collectors.toList());
-
-        qualificationDetailsRepository.saveAll(allQualificationDetails);
+    private void saveQualificationDetails(QualificationDetailsApiGetDTO dto) {
+        qualificationDetailsRepository.deleteByCode(dto.getCode());
+        QualificationDetails qualificationDetails = setQualificationDetails(dto);
+        qualificationDetailsRepository.save(qualificationDetails);
     }
 
     private QualificationDetails setQualificationDetails(QualificationDetailsApiGetDTO dto) {
