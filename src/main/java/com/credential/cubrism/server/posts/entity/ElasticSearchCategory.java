@@ -1,6 +1,7 @@
-package com.credential.cubrism.server.elasticsearch.domain;
+package com.credential.cubrism.server.posts.entity;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -15,5 +16,5 @@ public class ElasticSearchCategory {
     private String code;
 
     @Field(type = FieldType.Text)
-    private String name;
+    private String category;
 }

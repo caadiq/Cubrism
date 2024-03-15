@@ -1,7 +1,7 @@
 package com.credential.cubrism.server.posts.repository;
 
-import com.credential.cubrism.server.posts.model.Board;
-import com.credential.cubrism.server.posts.model.Posts;
+import com.credential.cubrism.server.posts.entity.Board;
+import com.credential.cubrism.server.posts.entity.Posts;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

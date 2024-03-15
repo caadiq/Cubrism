@@ -1,11 +1,13 @@
 package com.credential.cubrism.server.qualification.service;
 
+import com.credential.cubrism.server.posts.service.CategoryService;
 import com.credential.cubrism.server.qualification.dto.QualificationListApiGetDTO;
 import com.credential.cubrism.server.qualification.model.QualificationList;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
@@ -18,8 +20,10 @@ public class QualificationListService {
     private String apiKey;
 
     private final QualificationListRepository qualificationListRepository;
+    private final CategoryService categoryService;
     private final WebClient webClient;
 
+    @Transactional
     public void getQualificationList() {
         String url = "http://openapi.q-net.or.kr/api/service/rest/InquiryListNationalQualifcationSVC/getList?_type=json&serviceKey=" + apiKey;
 
@@ -45,5 +49,6 @@ public class QualificationListService {
                 })
                 .collect(Collectors.toList());
         qualificationListRepository.saveAll(qualificationLists);
+        categoryService.saveCategory();
     }
 }

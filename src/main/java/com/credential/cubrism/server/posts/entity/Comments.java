@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.posts.model;
+package com.credential.cubrism.server.posts.entity;
 
 import com.credential.cubrism.server.authentication.model.Users;
 import jakarta.persistence.*;

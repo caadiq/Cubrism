@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.posts.model;
+package com.credential.cubrism.server.posts.entity;
 
 import com.credential.cubrism.server.authentication.model.Users;
 import jakarta.persistence.*;
@@ -29,6 +29,10 @@ public class Posts {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category", nullable = false)
+    private Category category;
 
     @Column(name = "post_title", nullable = false)
     private String title;

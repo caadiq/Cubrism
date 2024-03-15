@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.qualification.model;
 
+import com.credential.cubrism.server.posts.entity.Category;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,4 +31,7 @@ public class QualificationList {
 
     @OneToOne(mappedBy = "qualificationList", cascade = CascadeType.ALL)
     private QualificationDetails qualificationDetails;
+
+    @OneToOne(mappedBy = "qualificationList", cascade = CascadeType.ALL)
+    private Category category;
 }

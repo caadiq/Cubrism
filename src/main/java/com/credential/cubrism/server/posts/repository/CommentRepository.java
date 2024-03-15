@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.posts.repository;
 
-import com.credential.cubrism.server.posts.model.Comments;
+import com.credential.cubrism.server.posts.entity.Comments;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
