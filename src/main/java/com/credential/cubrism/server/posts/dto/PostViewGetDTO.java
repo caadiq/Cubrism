@@ -15,6 +15,7 @@ public class PostViewGetDTO {
     private String title;
     private String content;
     private String createdDate;
+    private String modifiedDate;
     private List<Images> images;
     private List<Comments> comments;
 
@@ -30,6 +31,7 @@ public class PostViewGetDTO {
         private Long commentId;
         private String nickname;
         private String email;
+        private String profileImageUrl;
         private String content;
         private String createdDate;
     }

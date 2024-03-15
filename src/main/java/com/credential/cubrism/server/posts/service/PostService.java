@@ -3,7 +3,6 @@ package com.credential.cubrism.server.posts.service;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
-import com.credential.cubrism.server.common.utils.PostImageUploadUtil;
 import com.credential.cubrism.server.posts.dto.*;
 import com.credential.cubrism.server.posts.model.Board;
 import com.credential.cubrism.server.posts.model.PostImages;
@@ -11,13 +10,13 @@ import com.credential.cubrism.server.posts.model.Posts;
 import com.credential.cubrism.server.posts.repository.BoardRepository;
 import com.credential.cubrism.server.posts.repository.PostImagesRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
+import com.credential.cubrism.server.s3.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +29,10 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final PostImagesRepository postImagesRepository;
-    private final PostImageUploadUtil postImageUploadUtil;
+    private final S3Service s3Service;
 
     @Transactional
-    public void addPost(List<MultipartFile> files, PostAddPostDTO dto, Authentication authentication) {
+    public void addPost(PostAddPostDTO dto, Authentication authentication) {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
         Board board = boardRepository.findByBoardName(dto.getBoardName())
@@ -44,28 +43,17 @@ public class PostService {
         post.setUser(user);
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
+
+        List<PostImages> postImagesList = new ArrayList<>();
+        for (PostAddPostDTO.Images image : dto.getImages()) {
+            PostImages postImage = new PostImages();
+            postImage.setPost(post);
+            postImage.setImageUrl(image.getImageUrl());
+            postImage.setImageIndex(dto.getImages().indexOf(image));
+            postImagesList.add(postImage);
+        }
+        post.setPostImages(postImagesList);
         postRepository.save(post);
-
-        // 이미지 업로드 후 이미지 URL 받아와서 리스트로 저장
-        List<String> imageUrls;
-        try {
-            imageUrls = postImageUploadUtil.uploadImages(files, post.getPostId());
-        } catch (Exception e) {
-            postRepository.delete(post);
-            throw new IllegalArgumentException(e.getMessage());
-        }
-
-        // 이미지 URL을 PostImages에 저장
-        List<PostImages> postImageList = new ArrayList<>();
-        for (String imageUrl : imageUrls) {
-            PostImages postImages = new PostImages();
-            postImages.setPost(post);
-            postImages.setImageUrl(imageUrl);
-            postImages.setImageIndex(imageUrls.indexOf(imageUrl));
-            postImageList.add(postImages);
-        }
-
-        postImagesRepository.saveAll(postImageList);
     }
 
     @Transactional
@@ -97,8 +85,25 @@ public class PostService {
             throw new IllegalArgumentException("게시판과 게시글이 일치하지 않습니다");
         }
 
+        if (dto.getRemovedImages() != null) {
+            for (PostUpdatePostDTO.RemovedImages removedImage : dto.getRemovedImages()) {
+                s3Service.deleteFileFromS3(removedImage.getImageUrl());
+                postImagesRepository.deleteByImageUrl(removedImage.getImageUrl());
+            }
+        }
+
+        List<PostImages> postImagesList = new ArrayList<>();
+        for (PostUpdatePostDTO.Images image : dto.getImages()) {
+            PostImages postImage = new PostImages();
+            postImage.setPost(post);
+            postImage.setImageUrl(image.getImageUrl());
+            postImage.setImageIndex(dto.getImages().indexOf(image));
+            postImagesList.add(postImage);
+        }
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
+        post.setPostImages(postImagesList);
+
         postRepository.save(post);
     }
 
@@ -147,7 +152,7 @@ public class PostService {
         Posts post = postRepository.findByPostIdAndBoardName(postId, boardName)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다"));
 
-        List<PostImages> postImages = postImagesRepository.findAllByPostPostId(postId);
+        List<PostImages> postImages = postImagesRepository.findAllByPostId(postId);
         List<PostViewGetDTO.Images> postImagesDTO = postImages.stream()
                 .map(image -> new PostViewGetDTO.Images(image.getImageUrl()))
                 .collect(Collectors.toList());
@@ -156,6 +161,7 @@ public class PostService {
                         comment.getCommentId(),
                         comment.getUser().getNickname(),
                         comment.getUser().getEmail(),
+                        comment.getUser().getImageUrl(),
                         comment.getContent(),
                         comment.getCreatedDate().toString()
                 ))
@@ -169,6 +175,7 @@ public class PostService {
                 post.getTitle(),
                 post.getContent(),
                 post.getCreatedDate().toString(),
+                post.getModifiedDate().toString(),
                 postImagesDTO,
                 commentsDTO
         );

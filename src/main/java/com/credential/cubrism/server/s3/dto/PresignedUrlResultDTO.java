@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class PresignedUrlResultDTO {
+    private String fileName;
     private String presignedUrl;
     private String fileUrl;
 }

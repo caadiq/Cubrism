@@ -11,6 +11,8 @@ import java.util.UUID;
 
 @Repository
 public interface PostImagesRepository extends JpaRepository<PostImages, UUID> {
-    @Query("SELECT pi FROM PostImages pi WHERE pi.post.postId = :postId")
-    List<PostImages> findAllByPostPostId(@Param("postId") Long postId);
+    @Query("SELECT pi FROM PostImages pi WHERE pi.post.postId = :postId ORDER BY pi.imageIndex")
+    List<PostImages> findAllByPostId(@Param("postId") Long postId);
+
+    void deleteByImageUrl(String imageUrl);
 }

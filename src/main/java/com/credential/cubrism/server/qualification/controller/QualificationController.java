@@ -1,7 +1,7 @@
 package com.credential.cubrism.server.qualification.controller;
 
 import com.credential.cubrism.server.common.dto.ErrorDTO;
-import com.credential.cubrism.server.qualification.service.QualificationListService;
+import com.credential.cubrism.server.qualification.service.QualificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class QualificationController {
-    private final QualificationListService qualificationApiService;
+    private final QualificationService qualificationApiService;
 
     @GetMapping("/qualification")
-    public ResponseEntity<?> getQualification(
+    public ResponseEntity<?> qualification(
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String field,
             @RequestParam(required = false) String code
@@ -28,16 +28,16 @@ public class QualificationController {
             return switch (type) {
                 case "list" -> {
                     if (field == null || field.isEmpty()) {
-                        yield ResponseEntity.ok(qualificationApiService.majorFieldListApi());
+                        yield ResponseEntity.ok().body(qualificationApiService.majorFieldList());
                     } else {
-                        yield ResponseEntity.ok(qualificationApiService.qualificationListApi(field));
+                        yield ResponseEntity.ok().body(qualificationApiService.qualificationList(field));
                     }
                 }
                 case "details" -> {
                     if (code == null || code.isEmpty()) {
                         yield ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'code' 파라미터가 필요합니다."));
                     }
-                    yield ResponseEntity.ok(qualificationApiService.qualificationDetailsApi(code));
+                    yield ResponseEntity.ok().body(qualificationApiService.qualificationDetails(code));
                 }
                 default -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'type' 파라미터가 잘못되었습니다."));
             };
