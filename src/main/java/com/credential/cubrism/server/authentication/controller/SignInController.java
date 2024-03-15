@@ -7,12 +7,18 @@ import com.credential.cubrism.server.authentication.model.RefreshToken;
 import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.service.AuthService;
 import com.credential.cubrism.server.authentication.service.RefreshTokenService;
+import com.credential.cubrism.server.common.dto.ErrorDTO;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -43,8 +49,7 @@ public class SignInController {
             long RefreshexpireTimeMs = 1000 * 60 * 60 * 24 * 14; // RefreshToken 유효 시간 = 14일
             String refreshToken = JwtTokenUtil.createRefreshToken(user.getEmail(), secretKey, RefreshexpireTimeMs);
 
-            refreshTokenService.deleteToken(user.getUuid());
-            refreshTokenService.saveToken(refreshToken, user.getUuid());
+            refreshTokenService.saveToken(refreshToken, user);
 
             return ResponseEntity.ok().body(new SignInResultDTO(true, null, token, refreshToken));
         } catch (IllegalArgumentException e) {
@@ -79,29 +84,47 @@ public class SignInController {
 //    }
 
         @GetMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestHeader(value = "RefreshAuthorization", required = false) String refreshToken) {
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignInResultDTO(false, "Refresh token is missing", null, null));
-        }
-
-        try {
-            // 리프레시 토큰 검증
-            RefreshToken savedToken = refreshTokenService.matches(refreshToken);
-            if(savedToken == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignInResultDTO(false, "Refresh token is invalid", null, null));
+    public ResponseEntity<?> refresh(@RequestHeader(value = "RefreshAuthorization", required = false) String refreshToken,@RequestHeader(value = "Authorization", required = false) String accessToken) {
+            if (refreshToken == null || refreshToken.isEmpty() || accessToken == null || accessToken.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignInResultDTO(false, "Refresh token or Access token is missing", null, null));
             }
 
-            Users user = authService.getUserByUuid(savedToken.getUserId());
-            String loginId = user.getEmail();
+            // Header의 Authorization 값이 'Bearer '로 시작하지 않으면 => 잘못된 토큰
+//            if(!authorizationHeader.startsWith("Bearer ")) {
+//                return ResponseEntity.ok().body(new ErrorDTO("wrong access token"));
+//            }
 
-            // 새로운 액세스 토큰 발급
-            long expireTimeMs = 1000 * 60 * 60; // Token 유효 시간 = 60분
-            String newAccessToken = JwtTokenUtil.createToken(loginId, secretKey, expireTimeMs);
+            try {
+                // Extract user info from access token
+                String token = accessToken.split(" ")[1];
+                String accessUserId;
+                try {
+                    accessUserId = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().get("loginId").toString();
+                } catch (ExpiredJwtException e) {
+                    accessUserId = e.getClaims().get("loginId").toString();
+                }
 
-            return ResponseEntity.ok().body(new SignInResultDTO(true, null, newAccessToken, null));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignInResultDTO(false, e.getMessage(), null, null));
-        }
+                // Validate refresh token and extract user info
+                RefreshToken savedToken = refreshTokenService.matches(refreshToken);
+                if(savedToken == null) {
+                    return ResponseEntity.ok().body(new ErrorDTO("Refresh token is invalid"));
+                }
+                Users user = authService.getUserByUuid(savedToken.getUserId());
+                String refreshUserId = user.getEmail();
+
+                // Check if user info from access token and refresh token match
+                if(!accessUserId.equals(refreshUserId)){
+                    return ResponseEntity.ok().body(new ErrorDTO("User info does not match"));
+                }
+
+                // Issue new access token
+                long expireTimeMs = 1000 * 60 * 60; // Token 유효 시간 = 60분
+                String newAccessToken = JwtTokenUtil.createToken(accessUserId, secretKey, expireTimeMs);
+
+                return ResponseEntity.ok().body(new SignInResultDTO(true, null, newAccessToken, null));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SignInResultDTO(false, e.getMessage(), null, null));
+            }
     }
 
     @GetMapping("/info")
