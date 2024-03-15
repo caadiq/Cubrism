@@ -4,10 +4,12 @@ import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import com.credential.cubrism.server.posts.dto.*;
-import com.credential.cubrism.server.posts.model.Board;
-import com.credential.cubrism.server.posts.model.PostImages;
-import com.credential.cubrism.server.posts.model.Posts;
+import com.credential.cubrism.server.posts.entity.Board;
+import com.credential.cubrism.server.posts.entity.Category;
+import com.credential.cubrism.server.posts.entity.PostImages;
+import com.credential.cubrism.server.posts.entity.Posts;
 import com.credential.cubrism.server.posts.repository.BoardRepository;
+import com.credential.cubrism.server.posts.repository.CategoryRepository;
 import com.credential.cubrism.server.posts.repository.PostImagesRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
 import com.credential.cubrism.server.s3.service.S3Service;
@@ -28,6 +30,7 @@ public class PostService {
     private final BoardRepository boardRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
     private final PostImagesRepository postImagesRepository;
     private final S3Service s3Service;
 
@@ -38,9 +41,13 @@ public class PostService {
         Board board = boardRepository.findByBoardName(dto.getBoardName())
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시판이 존재하지 않습니다"));
 
+        Category category = categoryRepository.findByCategory(dto.getCategory())
+                .orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 존재하지 않습니다"));
+
         Posts post = new Posts();
         post.setBoard(board);
         post.setUser(user);
+        post.setCategory(category);
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
 
@@ -133,6 +140,7 @@ public class PostService {
                 new PostListGetDTO.PostList(
                         post.getPostId(),
                         post.getBoard().getBoardName(),
+                        post.getCategory().getCategory(),
                         post.getUser().getNickname(),
                         post.getPostImages().stream()
                                 .filter(image -> image.getImageIndex() == 0)

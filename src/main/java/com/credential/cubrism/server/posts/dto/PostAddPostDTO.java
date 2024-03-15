@@ -9,6 +9,7 @@ public class PostAddPostDTO {
     private String boardName;
     private String title;
     private String content;
+    private String category;
     private List<Images> images;
 
     @Getter

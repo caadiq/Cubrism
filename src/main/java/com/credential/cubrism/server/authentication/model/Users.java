@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.authentication.model;
 
-import com.credential.cubrism.server.posts.model.Posts;
+import com.credential.cubrism.server.posts.entity.Posts;
 import com.credential.cubrism.server.schedule.model.Schedules;
 import jakarta.persistence.*;
 import lombok.*;
