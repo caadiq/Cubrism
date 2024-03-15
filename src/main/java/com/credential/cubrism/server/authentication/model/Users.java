@@ -62,4 +62,7 @@ public class Users {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Schedules> schedules;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RefreshToken> refreshTokens;
 }

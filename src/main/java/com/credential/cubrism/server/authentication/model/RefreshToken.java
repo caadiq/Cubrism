@@ -1,13 +1,9 @@
 package com.credential.cubrism.server.authentication.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
 import java.util.UUID;
 
 @Entity
@@ -16,21 +12,22 @@ import java.util.UUID;
 public class RefreshToken {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "refresh_token_id")
-    private Long id;
-
-    @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "token")
+    @Column(name = "refresh_token")
     private String token;
+
+    @MapsId
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", foreignKey = @ForeignKey(name = "FK_RefreshToken_userId", value = ConstraintMode.CONSTRAINT))
+    private Users user;
 
     protected RefreshToken() {
     }
 
-    public RefreshToken(UUID userId, String token) {
-        this.userId = userId;
+    public RefreshToken(Users user, String token) {
+        this.user = user;
+        this.userId = user.getUuid();
         this.token = token;
     }
 

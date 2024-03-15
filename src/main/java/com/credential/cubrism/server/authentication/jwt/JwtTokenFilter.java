@@ -32,6 +32,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String refreshToken = request.getHeader("RefreshAuthorization");
+
+        if(refreshToken != null){
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // Header의 Authorization 값이 비어있으면 => Jwt Token을 전송하지 않음 => 로그인 하지 않음
         if(authorizationHeader == null) {
