@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/googleLoginTest/**").permitAll()
                         .requestMatchers("/post/list").permitAll()
                         .requestMatchers("/post/view").permitAll()
+                        .requestMatchers("/studygroup/list").permitAll()
                         .requestMatchers("/test/**").permitAll()
                         .anyRequest().authenticated()
                 )
