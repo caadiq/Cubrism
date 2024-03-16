@@ -43,4 +43,9 @@ public class RefreshTokenService {
 
         return savedToken;
     }
+    @Transactional
+    public void deleteToken(UUID userId) {
+        refreshTokenRepository.deleteByUserId(userId);
+    }
+
 }

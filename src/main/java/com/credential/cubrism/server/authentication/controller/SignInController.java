@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.authentication.controller;
 
+import com.credential.cubrism.server.authentication.dto.LogoutDTO;
 import com.credential.cubrism.server.authentication.dto.SignInPostDTO;
 import com.credential.cubrism.server.authentication.dto.SignInResultDTO;
 import com.credential.cubrism.server.authentication.jwt.JwtTokenUtil;
@@ -132,6 +133,14 @@ public class SignInController {
         Users loginUser = authService.getUserByEmail(auth.getName());
 
         return String.format("loginId : %s\nnickname : %s", loginUser.getEmail(), loginUser.getNickname());
+    }
+
+
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout(Authentication auth){
+        Users loginUser = authService.getUserByEmail(auth.getName());
+        refreshTokenService.deleteToken(loginUser.getUuid());
+        return ResponseEntity.ok().body(new LogoutDTO("Logout success"));
     }
 
     @GetMapping("/admin")
