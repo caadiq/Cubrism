@@ -103,4 +103,19 @@ public class StudyGroupService {
         groupMembers.setAdmin(false);
         groupMembersRepository.save(groupMembers);
     }
+
+    public void leaveStudyGroup(Long groupId, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Study group not found"));
+
+        GroupMembers groupMembers = groupMembersRepository.findByUserAndStudyGroup(user, studyGroup)
+                .orElseThrow(() -> new IllegalArgumentException("You are not a member of this study group"));
+
+        if (groupMembers.isAdmin()) {
+            throw new IllegalArgumentException("You are the admin of this study group");
+        }
+
+        groupMembersRepository.delete(groupMembers);
+    }
 }

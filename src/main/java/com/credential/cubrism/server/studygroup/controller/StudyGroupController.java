@@ -61,4 +61,16 @@ public class StudyGroupController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
         }
     }
+
+    @GetMapping("/leave")
+    public ResponseEntity<?> leaveStudyGroup(@RequestParam Long studyGroupId, Authentication authentication) {
+        try {
+            studyGroupService.leaveStudyGroup(studyGroupId, authentication);
+            return ResponseEntity.ok().body(new ResultDTO(true, null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
+        }
+    }
 }
