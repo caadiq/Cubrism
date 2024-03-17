@@ -127,7 +127,7 @@ public class PostController {
     }
 
     @GetMapping("/category")
-    public ResponseEntity<?> category() {
+    public ResponseEntity<?> category2() {
         try {
             return ResponseEntity.ok().body(categoryService.categoryList());
         } catch (IllegalArgumentException e) {
