@@ -118,4 +118,50 @@ public class StudyGroupService {
 
         groupMembersRepository.delete(groupMembers);
     }
+
+    public void deleteStudyGroup(Long groupId, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Study group not found"));
+
+        GroupMembers groupMembers = groupMembersRepository.findByUserAndStudyGroup(user, studyGroup)
+                .orElseThrow(() -> new IllegalArgumentException("You are not a member of this study group"));
+
+        if (!groupMembers.isAdmin()) {
+            throw new IllegalArgumentException("You are not the admin of this study group");
+        }
+
+        studyGroupRepository.delete(studyGroup);
+    }
+
+    public StudyGroupListGetDTO myStudyGroupList(Authentication authentication, Pageable pageable) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+
+        Page<StudyGroup> studyGroup = studyGroupRepository.findMyStudyGroups(user.getUuid(), pageable);
+
+        StudyGroupListGetDTO.Pageable pageableDTO = new StudyGroupListGetDTO.Pageable(
+                studyGroup.hasPrevious() ? pageable.getPageNumber() - 1 : null,
+                pageable.getPageNumber(),
+                studyGroup.hasNext() ? pageable.getPageNumber() + 1 : null
+        );
+
+        List<StudyGroupListGetDTO.StudyGroupList> studyGroupListDTO = studyGroup.stream()
+                .map(group -> {
+                    boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers(); // 모집중 여부
+                    return new StudyGroupListGetDTO.StudyGroupList(
+                            group.getGroupId(),
+                            group.getGroupName(),
+                            group.getGroupDescription(),
+                            group.getGroupMembers().size(),
+                            group.getMaxMembers(),
+                            isRecruiting,
+                            group.getGroupTags().stream()
+                                    .map(GroupTags::getTagName)
+                                    .toList()
+                    );
+                }).toList();
+
+        return new StudyGroupListGetDTO(pageableDTO, studyGroupListDTO);
+    }
+
 }
