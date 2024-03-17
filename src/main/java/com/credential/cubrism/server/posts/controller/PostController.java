@@ -127,9 +127,11 @@ public class PostController {
     }
 
     @GetMapping("/category")
-    public ResponseEntity<?> category2() {
+    public ResponseEntity<?> category(
+            @RequestParam(required = false) String search
+    ) {
         try {
-            return ResponseEntity.ok().body(categoryService.categoryList());
+            return ResponseEntity.ok().body(categoryService.categoryList(search));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO(e.getMessage()));
         } catch (Exception e) {

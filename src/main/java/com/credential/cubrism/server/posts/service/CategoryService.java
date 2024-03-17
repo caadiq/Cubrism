@@ -37,9 +37,20 @@ public class CategoryService {
     }
 
     @Cacheable("categoryList")
-    public List<CategoryListGetDTO> categoryList() {
-        List<Category> categoryList = categoryRepository.findAll();
-        return categoryList.stream()
+    public List<CategoryListGetDTO> categoryList(String search) {
+        List<Category> categories;
+
+        if (search == null || search.isEmpty()) {
+            categories = categoryRepository.findAll();
+        } else {
+            categories = categoryRepository.findByCategoryName(search.replaceAll("\\s", ""));
+        }
+
+        if (categories.isEmpty()) {
+            throw new IllegalArgumentException("해당 카테고리가 없습니다.");
+        }
+
+        return categories.stream()
                 .map(category -> new CategoryListGetDTO(category.getCode(), category.getCategory()))
                 .collect(Collectors.toList());
     }
