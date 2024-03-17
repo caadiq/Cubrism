@@ -4,6 +4,7 @@ import com.credential.cubrism.server.authentication.model.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import com.credential.cubrism.server.studygroup.dto.StudyGroupCreatePostDTO;
+import com.credential.cubrism.server.studygroup.dto.StudyGroupListGetDTO;
 import com.credential.cubrism.server.studygroup.entity.GroupMembers;
 import com.credential.cubrism.server.studygroup.entity.GroupTags;
 import com.credential.cubrism.server.studygroup.entity.StudyGroup;
@@ -11,8 +12,11 @@ import com.credential.cubrism.server.studygroup.repository.GroupMembersRepositor
 import com.credential.cubrism.server.studygroup.repository.GroupTagsRepository;
 import com.credential.cubrism.server.studygroup.repository.StudyGroupRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +29,7 @@ public class StudyGroupService {
     private final GroupTagsRepository groupTagsRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public void createStudyGroup(StudyGroupCreatePostDTO dto, Authentication authentication) {
         Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
 
@@ -49,5 +54,33 @@ public class StudyGroupService {
         studyGroup.setGroupMembers(List.of(groupMembers));
 
         studyGroupRepository.save(studyGroup);
+    }
+
+    public StudyGroupListGetDTO studyGroupList(Pageable pageable) {
+        Page<StudyGroup> studyGroup = studyGroupRepository.findAll(pageable);
+
+        StudyGroupListGetDTO.Pageable pageableDTO = new StudyGroupListGetDTO.Pageable(
+                studyGroup.hasPrevious() ? pageable.getPageNumber() - 1 : null,
+                pageable.getPageNumber(),
+                studyGroup.hasNext() ? pageable.getPageNumber() + 1 : null
+        );
+
+        List<StudyGroupListGetDTO.StudyGroupList> studyGroupListDTO = studyGroup.stream()
+                .map(group -> {
+                    boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers(); // 모집중 여부
+                    return new StudyGroupListGetDTO.StudyGroupList(
+                            group.getGroupId(),
+                            group.getGroupName(),
+                            group.getGroupDescription(),
+                            group.getGroupMembers().size(),
+                            group.getMaxMembers(),
+                            isRecruiting,
+                            group.getGroupTags().stream()
+                                    .map(GroupTags::getTagName)
+                                    .toList()
+                    );
+                }).toList();
+
+        return new StudyGroupListGetDTO(pageableDTO, studyGroupListDTO);
     }
 }
