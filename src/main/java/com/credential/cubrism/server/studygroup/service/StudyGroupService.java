@@ -83,4 +83,24 @@ public class StudyGroupService {
 
         return new StudyGroupListGetDTO(pageableDTO, studyGroupListDTO);
     }
+
+    public void joinStudyGroup(Long groupId, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Study group not found"));
+
+        if (studyGroup.getGroupMembers().size() >= studyGroup.getMaxMembers()) {
+            throw new IllegalArgumentException("Study group is full");
+        }
+
+        if(studyGroup.getGroupMembers().stream().anyMatch(groupMembers -> groupMembers.getUser().getUuid().equals(user.getUuid()))) {
+            throw new IllegalArgumentException("You are already a member of this study group");
+        }
+
+        GroupMembers groupMembers = new GroupMembers();
+        groupMembers.setUser(user);
+        groupMembers.setStudyGroup(studyGroup);
+        groupMembers.setAdmin(false);
+        groupMembersRepository.save(groupMembers);
+    }
 }

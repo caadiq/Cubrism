@@ -49,4 +49,16 @@ public class StudyGroupController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
         }
     }
+
+    @GetMapping("/join")
+    public  ResponseEntity<?> joinStudyGroup(@RequestParam Long studyGroupId, Authentication authentication) {
+        try {
+            studyGroupService.joinStudyGroup(studyGroupId, authentication);
+            return ResponseEntity.ok().body(new ResultDTO(true, null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
+        }
+    }
 }
