@@ -6,10 +6,13 @@ import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
 import com.credential.cubrism.server.posts.dto.CommentAddPostDTO;
 import com.credential.cubrism.server.posts.dto.CommentDeletePostDTO;
 import com.credential.cubrism.server.posts.dto.CommentUpdatePostDTO;
+import com.credential.cubrism.server.posts.dto.ReplyAddPostDTO;
 import com.credential.cubrism.server.posts.entity.Comments;
 import com.credential.cubrism.server.posts.entity.Posts;
+import com.credential.cubrism.server.posts.entity.Replies;
 import com.credential.cubrism.server.posts.repository.CommentRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
+import com.credential.cubrism.server.posts.repository.ReplyRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -21,6 +24,7 @@ public class CommentService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final ReplyRepository replyRepository;
 
     @Transactional
     public void addComment(CommentAddPostDTO dto, Authentication authentication) {
@@ -67,5 +71,19 @@ public class CommentService {
 
         comment.setContent(dto.getContent());
         commentRepository.save(comment);
+    }
+
+    @Transactional
+    public void addReply(ReplyAddPostDTO dto, Authentication authentication) {
+        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+
+        Comments comment = commentRepository.findByCommentId(dto.getCommentId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다."));
+
+        Replies reply = new Replies();
+        reply.setComment(comment);
+        reply.setUser(user);
+        reply.setContent(dto.getContent());
+        replyRepository.save(reply);
     }
 }

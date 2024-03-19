@@ -4,6 +4,7 @@ import com.credential.cubrism.server.common.dto.ResultDTO;
 import com.credential.cubrism.server.posts.dto.CommentAddPostDTO;
 import com.credential.cubrism.server.posts.dto.CommentDeletePostDTO;
 import com.credential.cubrism.server.posts.dto.CommentUpdatePostDTO;
+import com.credential.cubrism.server.posts.dto.ReplyAddPostDTO;
 import com.credential.cubrism.server.posts.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -61,4 +62,20 @@ public class CommentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
         }
     }
+
+    @PostMapping("/reply/add")
+    public ResponseEntity<?> addReply(
+            @RequestBody ReplyAddPostDTO dto,
+            Authentication authentication
+    ) {
+        try {
+            commentService.addReply(dto, authentication);
+            return ResponseEntity.ok().body(new ResultDTO(true, null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
+        }
+    }
+
 }

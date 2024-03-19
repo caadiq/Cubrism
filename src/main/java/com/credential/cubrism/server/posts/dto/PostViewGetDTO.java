@@ -17,7 +17,7 @@ public class PostViewGetDTO {
     private String createdDate;
     private String modifiedDate;
     private List<Images> images;
-    private List<Comments> comments;
+    private List<Item> Items;
 
     @Getter
     @AllArgsConstructor
@@ -27,12 +27,25 @@ public class PostViewGetDTO {
 
     @Getter
     @AllArgsConstructor
-    public static class Comments {
-        private Long commentId;
+    public static class Item {
+        private Long id;
+        private Long parentId;
         private String nickname;
         private String email;
-        private String profileImageUrl;
         private String content;
         private String createdDate;
+        private String profileImageUrl;
+        private String type;
     }
+
+//    @Getter
+//    @AllArgsConstructor
+//    public static class Comments {
+//        private Long commentId;
+//        private String nickname;
+//        private String email;
+//        private String profileImageUrl;
+//        private String content;
+//        private String createdDate;
+//    }
 }
