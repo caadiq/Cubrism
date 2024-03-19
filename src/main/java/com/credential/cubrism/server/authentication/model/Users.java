@@ -1,6 +1,7 @@
 package com.credential.cubrism.server.authentication.model;
 
 import com.credential.cubrism.server.posts.entity.Posts;
+import com.credential.cubrism.server.posts.entity.Replies;
 import com.credential.cubrism.server.schedule.model.Schedules;
 import jakarta.persistence.*;
 import lombok.*;
@@ -65,4 +66,7 @@ public class Users {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RefreshToken> refreshTokens;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Replies> replies;
 }

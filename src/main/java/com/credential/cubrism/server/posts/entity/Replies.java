@@ -9,25 +9,24 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
-@Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "Comments")
-public class Comments {
+@Entity
+@Table(name = "Replies")
+public class Replies {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "comment_id", nullable = false)
-    private Long commentId;
+    @Column(name = "reply_id", nullable = false)
+    private Long replyId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
-    private Posts post;
+    @ManyToOne
+    @JoinColumn(name="comment_id", nullable=false)
+    private Comments comment;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name="user_id", nullable=false)
     private Users user;
 
     @Column(name = "content", nullable = false)
@@ -40,7 +39,4 @@ public class Comments {
     @LastModifiedDate
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
-
-    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)
-    private List<Replies> replies;
 }

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -164,16 +165,37 @@ public class PostService {
         List<PostViewGetDTO.Images> postImagesDTO = postImages.stream()
                 .map(image -> new PostViewGetDTO.Images(image.getImageUrl()))
                 .collect(Collectors.toList());
-        List<PostViewGetDTO.Comments> commentsDTO = post.getComments().stream()
-                .map(comment -> new PostViewGetDTO.Comments(
+
+        List<PostViewGetDTO.Item> itemsDTO = new ArrayList<>();
+
+        post.getComments().forEach(comment -> {
+            itemsDTO.add(new PostViewGetDTO.Item(
+                    comment.getCommentId(),
+                    null,
+                    comment.getUser().getNickname(),
+                    comment.getUser().getEmail(),
+                    comment.getContent(),
+                    comment.getCreatedDate().toString(),
+                    comment.getUser().getImageUrl(),
+                    "Comment"
+            ));
+
+            comment.getReplies().forEach(reply -> {
+                itemsDTO.add(new PostViewGetDTO.Item(
+                        reply.getReplyId(),
                         comment.getCommentId(),
-                        comment.getUser().getNickname(),
-                        comment.getUser().getEmail(),
-                        comment.getUser().getImageUrl(),
-                        comment.getContent(),
-                        comment.getCreatedDate().toString()
-                ))
-                .collect(Collectors.toList());
+                        reply.getUser().getNickname(),
+                        reply.getUser().getEmail(),
+                        reply.getContent(),
+                        reply.getCreatedDate().toString(),
+                        reply.getUser().getImageUrl(),
+                        "Reply"
+                ));
+            });
+        });
+
+        // Sort the items by createdDate
+        itemsDTO.sort(Comparator.comparing(PostViewGetDTO.Item::getCreatedDate));
 
         return new PostViewGetDTO(
                 post.getPostId(),
@@ -185,7 +207,7 @@ public class PostService {
                 post.getCreatedDate().toString(),
                 post.getModifiedDate().toString(),
                 postImagesDTO,
-                commentsDTO
+                itemsDTO
         );
     }
 }
