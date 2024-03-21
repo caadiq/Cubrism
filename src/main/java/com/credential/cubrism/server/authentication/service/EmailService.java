@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.authentication.service;
 
+import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.EmailUtil;
 import com.credential.cubrism.server.authentication.utils.RedisUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
+    private final UserRepository userRepository;
+
     private final RedisUtil redisUtil;
     private final EmailUtil emailUtil;
 
@@ -20,6 +23,10 @@ public class EmailService {
 
     // 인증번호 이메일 전송
     public ResponseEntity<MessageDto> sendEmail(String receiver) {
+        if (userRepository.existsByEmail(receiver)) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        }
+
         try {
             // 인증번호 이메일 전송 후 Redis에 인증번호 5분 동안 저장
             redisUtil.setData(receiver + EMAIL_VERIFICATION_SUFFIX, Integer.toString(emailUtil.sendEmail(receiver)), 300);
