@@ -1,109 +1,52 @@
 package com.credential.cubrism.server.authentication.service;
 
+import com.credential.cubrism.server.authentication.utils.EmailUtil;
 import com.credential.cubrism.server.authentication.utils.RedisUtil;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import com.credential.cubrism.server.common.dto.MessageDto;
+import com.credential.cubrism.server.common.exception.CustomException;
+import com.credential.cubrism.server.common.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.Random;
-
 @Service
+@RequiredArgsConstructor
 public class EmailService {
     private final RedisUtil redisUtil;
+    private final EmailUtil emailUtil;
 
-    private final JavaMailSender mailSender;
-    private int verificationCode;
+    private static final String EMAIL_VERIFICATION_SUFFIX = "(emailVerification)"; // Redis Key 중복 방지를 위한 접미사
 
-    @Autowired
-    public EmailService(JavaMailSender mailSender, RedisUtil redisUtil) {
-        this.mailSender = mailSender;
-        this.redisUtil = redisUtil;
-    }
-
-    public void createVerificationCode() {
-        Random random = new Random();
-        verificationCode = random.nextInt(900000) + 100000;
-    }
-
-    // MimeMessage 생성
-    public MimeMessage createEmail(String receiver) throws Exception {
-        createVerificationCode();
-
-        // 메일 제목
-        String title = "[Cubrism] 이메일 인증 코드";
-        // 메일 내용 (html 형식)
-        String content =
-                "<!DOCTYPE html>" +
-                        "<html>" +
-                        "<head>" +
-                        "<style>" +
-                        "  .email-container {" +
-                        "    font-family: 'Arial', sans-serif;" +
-                        "    text-align: center;" +
-                        "    padding: 50px;" +
-                        "  }" +
-                        "  h1 {" +
-                        "    color: #7796E8;" +
-                        "  }" +
-                        "  p {" +
-                        "    color: #808080;" +
-                        "  }" +
-                        "  .verification-code {" +
-                        "    font-size: 24px;" +
-                        "    color: #000000;" +
-                        "    border: 1px solid #808080;" +
-                        "    border-radius: 5px;" +
-                        "    display: inline-block;" +
-                        "    padding: 10px 20px;" +
-                        "    font-weight: bold;" +
-                        "    margin-top: 20px;" +
-                        "  }" +
-                        "</style>" +
-                        "</head>" +
-                        "<body>" +
-                        "<div class='email-container'>" +
-                        "  <h1>Cubrism에 오신 것을 환영합니다!</h1>" +
-                        "  <p>아래 인증 번호를 입력하여 회원가입을 진행해 주세요.</p>" +
-                        "  <div class='verification-code'>" + verificationCode + "</div>" +
-                        "  <p>인증번호는 5분간 유효합니다.</p>" +
-                        "</div>" +
-                        "</body>" +
-                        "</html>";
-
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "utf-8");
-        helper.setTo(receiver);
-        helper.setSubject(title);
-        helper.setText(content, true);
-        return message;
-    }
-
-    // 인증 코드 이메일 전송
-    public void sendEmail(String receiver) throws Exception {
-        MimeMessage message = createEmail(receiver);
+    // 인증번호 이메일 전송
+    public ResponseEntity<MessageDto> sendEmail(String receiver) {
         try {
-            // 이메일 전송 전 redis에 해당 이메일로 저장된 인증 코드가 있는지 확인 후 있다면 삭제
-            if (redisUtil.getData(receiver) != null) {
-                redisUtil.deleteData(receiver);
-            }
-
-            mailSender.send(message); // 이메일 전송
-            redisUtil.setDataExpire(receiver, Integer.toString(verificationCode), 300); // redis(로컬)에 이메일을 키로 갖는 인증 코드 5분 동안 저장
-        } catch (MailException e) {
-            throw new IllegalArgumentException("이메일 전송에 실패했습니다.");
+            // 인증번호 이메일 전송 후 Redis에 인증번호 5분 동안 저장
+            redisUtil.setData(receiver + EMAIL_VERIFICATION_SUFFIX, Integer.toString(emailUtil.sendEmail(receiver)), 300);
+            return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("이메일 전송 완료"));
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.EMAIL_SEND_FAILURE);
         }
     }
 
-    // 인증 코드 확인
-    public void verifyCode(String email, String authNum) {
-        String storedAuthNum = redisUtil.getData(email);
-        if (storedAuthNum == null || !storedAuthNum.equals(authNum)) {
-            throw new IllegalArgumentException("인증번호가 일치하지 않습니다.");
-        } else {
-            redisUtil.deleteData(email);
+    // 인증번호 확인
+    public ResponseEntity<MessageDto> verifyCode(String email, String verifyCode) {
+        // Redis에서 인증번호 가져오기
+        String storedVerifyCode = redisUtil.getData(email + EMAIL_VERIFICATION_SUFFIX);
+
+        // 인증번호 만료
+        if (storedVerifyCode == null) {
+            throw new CustomException(ErrorCode.VERIFY_CODE_EXPIRED);
         }
+
+        // 인증번호 불일치
+        if (!storedVerifyCode.equals(verifyCode)) {
+            throw new CustomException(ErrorCode.INVALID_VERIFY_CODE);
+        }
+
+        // 인증 완료 후 Redis에서 인증번호 삭제
+        redisUtil.deleteData(email + EMAIL_VERIFICATION_SUFFIX);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("이메일 인증 완료"));
     }
 }

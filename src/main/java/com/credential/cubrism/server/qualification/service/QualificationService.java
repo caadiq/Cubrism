@@ -1,18 +1,21 @@
 package com.credential.cubrism.server.qualification.service;
 
-import com.credential.cubrism.server.qualification.dto.MajorFieldGetDTO;
-import com.credential.cubrism.server.qualification.dto.MiddleFieldGetDTO;
-import com.credential.cubrism.server.qualification.dto.QualificationDetailsGetDTO;
-import com.credential.cubrism.server.qualification.model.ExamSchedules;
+import com.credential.cubrism.server.common.exception.CustomException;
+import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.qualification.dto.MajorFieldDto;
+import com.credential.cubrism.server.qualification.dto.MiddleFieldDto;
+import com.credential.cubrism.server.qualification.dto.QualificationDetailsDto;
+import com.credential.cubrism.server.qualification.entity.ExamSchedules;
 import com.credential.cubrism.server.qualification.repository.QualificationDetailsRepository;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,34 +26,39 @@ public class QualificationService {
     private final QualificationListRepository qualificationListRepository;
     private final QualificationDetailsRepository qualificationDetailsRepository;
 
-    public List<MajorFieldGetDTO> majorFieldList() {
-        return qualificationListRepository.findDistinctMajorFieldNames().stream()
+    // 대직무분야명 목록
+    public ResponseEntity<List<MajorFieldDto>> majorFieldList() {
+        List<MajorFieldDto> majorFieldList = qualificationListRepository.findDistinctMajorFieldNames().stream()
                 .sorted()
                 .map(majorFieldName -> {
                     String imageUrl = qualificationIconUrl + majorFieldName.replace(".", "_") + ".webp";
-                    return new MajorFieldGetDTO(majorFieldName, imageUrl);
-                })
-                .collect(Collectors.toList());
+                    return new MajorFieldDto(majorFieldName, imageUrl);
+                }).toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(majorFieldList);
     }
 
-    public List<MiddleFieldGetDTO> qualificationList(String field) {
-        return qualificationListRepository.findByMajorFieldName(field).stream()
-                .map(qualificationList -> new MiddleFieldGetDTO(
+    // 중직무분야명 목록
+    public ResponseEntity<List<MiddleFieldDto>> middleFieldList(String field) {
+        List<MiddleFieldDto> middleFieldList = qualificationListRepository.findByMajorFieldName(field).stream()
+                .map(qualificationList -> new MiddleFieldDto(
                         qualificationList.getMiddleFieldName(),
                         qualificationList.getCode(),
                         qualificationList.getName()
-                ))
-                .collect(Collectors.toList());
+                )).toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(middleFieldList);
     }
 
-    public QualificationDetailsGetDTO qualificationDetails(String code) {
-        return qualificationDetailsRepository.findById(code)
-                .map(qualificationDetails -> new QualificationDetailsGetDTO(
+    // 자격증 세부정보
+    public ResponseEntity<QualificationDetailsDto> qualificationDetails(String code) {
+        QualificationDetailsDto dto = qualificationDetailsRepository.findById(code)
+                .map(qualificationDetails -> new QualificationDetailsDto(
                         qualificationDetails.getCode(),
                         qualificationDetails.getQualificationList().getName(),
                         qualificationDetails.getExamSchedules().stream()
                                 .sorted(Comparator.comparing(ExamSchedules::getCategory))
-                                .map(schedule -> new QualificationDetailsGetDTO.Schedule(
+                                .map(schedule -> new QualificationDetailsDto.Schedule(
                                         schedule.getCategory(),
                                         schedule.getWrittenApp(),
                                         schedule.getWrittenExam(),
@@ -58,28 +66,25 @@ public class QualificationService {
                                         schedule.getPracticalApp(),
                                         schedule.getPracticalExam(),
                                         schedule.getPracticalExamResult()
-                                ))
-                                .collect(Collectors.toList()),
-                        new QualificationDetailsGetDTO.Fee(
+                                )).toList(),
+                        new QualificationDetailsDto.Fee(
                                 qualificationDetails.getExamFees().getWrittenFee(),
                                 qualificationDetails.getExamFees().getPracticalFee()
                         ),
                         qualificationDetails.getTendency(),
                         qualificationDetails.getExamStandards().stream()
-                                .map(standard -> new QualificationDetailsGetDTO.Standard(
+                                .map(standard -> new QualificationDetailsDto.Standard(
                                         standard.getFilePath(),
                                         standard.getFileName()
-                                ))
-                                .collect(Collectors.toList()),
+                                )).toList(),
                         qualificationDetails.getPublicQuestions().stream()
-                                .map(question -> new QualificationDetailsGetDTO.Question(
+                                .map(question -> new QualificationDetailsDto.Question(
                                         question.getFilePath(),
                                         question.getFileName()
-                                ))
-                                .collect(Collectors.toList()),
+                                )).toList(),
                         qualificationDetails.getAcquisition(),
                         qualificationDetails.getRecommendBooks().stream()
-                                .map(book -> new QualificationDetailsGetDTO.Books(
+                                .map(book -> new QualificationDetailsDto.Books(
                                         book.getTitle(),
                                         book.getAuthors(),
                                         book.getPublisher(),
@@ -88,9 +93,10 @@ public class QualificationService {
                                         book.getSalePrice(),
                                         book.getThumbnail(),
                                         book.getUrl()
-                                ))
-                                .collect(Collectors.toList())
+                                )).toList()
                 ))
-                .orElseThrow(() -> new RuntimeException("'" + code + "' code에 해당하는 자격증이 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.QUALIFICATION_NOT_FOUND));
+
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 }

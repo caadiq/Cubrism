@@ -11,8 +11,6 @@ import java.util.UUID;
 
 @Repository
 public interface StudyGroupRepository extends JpaRepository<StudyGroup, Long> {
-
-    @Query("SELECT gm.studyGroup FROM GroupMembers gm WHERE gm.user.uuid = :userId")
-    Page<StudyGroup> findMyStudyGroups(UUID userId, Pageable pageable);
-
+    @Query("SELECT sg FROM StudyGroup sg JOIN sg.groupMembers gm WHERE gm.user.uuid = :userId")
+    Page<StudyGroup> findByUserId(UUID userId, Pageable pageable);
 }

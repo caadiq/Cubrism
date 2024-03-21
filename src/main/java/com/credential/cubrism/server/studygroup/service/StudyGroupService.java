@@ -1,24 +1,25 @@
 package com.credential.cubrism.server.studygroup.service;
 
-import com.credential.cubrism.server.authentication.model.Users;
-import com.credential.cubrism.server.authentication.repository.UserRepository;
-import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
-import com.credential.cubrism.server.studygroup.dto.StudyGroupCreatePostDTO;
-import com.credential.cubrism.server.studygroup.dto.StudyGroupListGetDTO;
+import com.credential.cubrism.server.authentication.entity.Users;
+import com.credential.cubrism.server.authentication.utils.SecurityUtil;
+import com.credential.cubrism.server.common.dto.MessageDto;
+import com.credential.cubrism.server.common.exception.CustomException;
+import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.studygroup.dto.StudyGroupCreateDto;
+import com.credential.cubrism.server.studygroup.dto.StudyGroupListDto;
 import com.credential.cubrism.server.studygroup.entity.GroupMembers;
 import com.credential.cubrism.server.studygroup.entity.GroupTags;
 import com.credential.cubrism.server.studygroup.entity.StudyGroup;
 import com.credential.cubrism.server.studygroup.repository.GroupMembersRepository;
-import com.credential.cubrism.server.studygroup.repository.GroupTagsRepository;
 import com.credential.cubrism.server.studygroup.repository.StudyGroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -26,142 +27,136 @@ import java.util.List;
 public class StudyGroupService {
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMembersRepository groupMembersRepository;
-    private final GroupTagsRepository groupTagsRepository;
-    private final UserRepository userRepository;
 
+    private final SecurityUtil securityUtil;
+
+    // 스터디 그룹 생성
     @Transactional
-    public void createStudyGroup(StudyGroupCreatePostDTO dto, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+    public ResponseEntity<MessageDto> createStudyGroup(StudyGroupCreateDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
 
         StudyGroup studyGroup = new StudyGroup();
         studyGroup.setGroupName(dto.getGroupName());
         studyGroup.setGroupDescription(dto.getGroupDescription());
         studyGroup.setMaxMembers(dto.getMaxMembers());
 
-        List<GroupTags> groupTagsList = new ArrayList<>();
-        for (StudyGroupCreatePostDTO.Tags tag : dto.getTags()) {
-            GroupTags groupTags = new GroupTags();
-            groupTags.setStudyGroup(studyGroup);
-            groupTags.setTagName(tag.getTagName());
-            groupTagsList.add(groupTags);
-        }
+        List<GroupTags> groupTagsList = dto.getTags().stream()
+                .map(tag -> {
+                    GroupTags groupTags = new GroupTags();
+                    groupTags.setStudyGroup(studyGroup);
+                    groupTags.setTagName(tag);
+                    return groupTags;
+                }).toList();
         studyGroup.setGroupTags(groupTagsList);
 
         GroupMembers groupMembers = new GroupMembers();
-        groupMembers.setUser(user);
+        groupMembers.setUser(currentUser);
         groupMembers.setStudyGroup(studyGroup);
         groupMembers.setAdmin(true);
         studyGroup.setGroupMembers(List.of(groupMembers));
 
         studyGroupRepository.save(studyGroup);
+
+        return ResponseEntity.ok().body(new MessageDto("스터디 그룹을 생성했습니다."));
     }
 
-    public StudyGroupListGetDTO studyGroupList(Pageable pageable) {
-        Page<StudyGroup> studyGroup = studyGroupRepository.findAll(pageable);
+    // 스터디 그룹 가입
+    // TODO : 가입 신청으로 바꿔야됨
+    public ResponseEntity<MessageDto> joinStudyGroup(Long groupId) {
+        Users currentUser = securityUtil.getCurrentUser();
 
-        StudyGroupListGetDTO.Pageable pageableDTO = new StudyGroupListGetDTO.Pageable(
-                studyGroup.hasPrevious() ? pageable.getPageNumber() - 1 : null,
-                pageable.getPageNumber(),
-                studyGroup.hasNext() ? pageable.getPageNumber() + 1 : null
-        );
-
-        List<StudyGroupListGetDTO.StudyGroupList> studyGroupListDTO = studyGroup.stream()
-                .map(group -> {
-                    boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers(); // 모집중 여부
-                    return new StudyGroupListGetDTO.StudyGroupList(
-                            group.getGroupId(),
-                            group.getGroupName(),
-                            group.getGroupDescription(),
-                            group.getGroupMembers().size(),
-                            group.getMaxMembers(),
-                            isRecruiting,
-                            group.getGroupTags().stream()
-                                    .map(GroupTags::getTagName)
-                                    .toList()
-                    );
-                }).toList();
-
-        return new StudyGroupListGetDTO(pageableDTO, studyGroupListDTO);
-    }
-
-    public void joinStudyGroup(Long groupId, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("Study group not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
 
         if (studyGroup.getGroupMembers().size() >= studyGroup.getMaxMembers()) {
-            throw new IllegalArgumentException("Study group is full");
+            throw new CustomException(ErrorCode.STUDY_GROUP_FULL);
         }
 
-        if(studyGroup.getGroupMembers().stream().anyMatch(groupMembers -> groupMembers.getUser().getUuid().equals(user.getUuid()))) {
-            throw new IllegalArgumentException("You are already a member of this study group");
+        if (studyGroup.getGroupMembers().stream().anyMatch(groupMembers -> groupMembers.getUser().getUuid().equals(currentUser.getUuid()))) {
+            throw new CustomException(ErrorCode.STUDY_GROUP_ALREADY_JOINED);
         }
 
         GroupMembers groupMembers = new GroupMembers();
-        groupMembers.setUser(user);
+        groupMembers.setUser(currentUser);
         groupMembers.setStudyGroup(studyGroup);
         groupMembers.setAdmin(false);
         groupMembersRepository.save(groupMembers);
+
+        return ResponseEntity.ok().body(new MessageDto("스터디 그룹에 가입했습니다."));
     }
 
-    public void leaveStudyGroup(Long groupId, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
-        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("Study group not found"));
+    // 스터디 그룹 탈퇴
+    public ResponseEntity<MessageDto> leaveStudyGroup(Long groupId) {
+        Users currentUser = securityUtil.getCurrentUser();
 
-        GroupMembers groupMembers = groupMembersRepository.findByUserAndStudyGroup(user, studyGroup)
-                .orElseThrow(() -> new IllegalArgumentException("You are not a member of this study group"));
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        GroupMembers groupMembers = groupMembersRepository.findByUserAndStudyGroup(currentUser, studyGroup)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_MEMBER));
 
         if (groupMembers.isAdmin()) {
-            throw new IllegalArgumentException("You are the admin of this study group");
+            throw new CustomException(ErrorCode.STUDY_GROUP_ADMIN_LEAVE);
         }
 
         groupMembersRepository.delete(groupMembers);
+
+        return ResponseEntity.ok().body(new MessageDto("스터디 그룹을 탈퇴했습니다."));
     }
 
-    public void deleteStudyGroup(Long groupId, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
-        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("Study group not found"));
+    // 스터디 그룹 삭제
+    public ResponseEntity<MessageDto> deleteStudyGroup(Long groupId) {
+        Users currentUser = securityUtil.getCurrentUser();
 
-        GroupMembers groupMembers = groupMembersRepository.findByUserAndStudyGroup(user, studyGroup)
-                .orElseThrow(() -> new IllegalArgumentException("You are not a member of this study group"));
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        GroupMembers groupMembers = groupMembersRepository.findByUserAndStudyGroup(currentUser, studyGroup)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_MEMBER));
 
         if (!groupMembers.isAdmin()) {
-            throw new IllegalArgumentException("You are not the admin of this study group");
+            throw new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN);
         }
 
         studyGroupRepository.delete(studyGroup);
+
+        return ResponseEntity.ok().body(new MessageDto("스터디 그룹을 삭제했습니다."));
     }
 
-    public StudyGroupListGetDTO myStudyGroupList(Authentication authentication, Pageable pageable) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
-
-        Page<StudyGroup> studyGroup = studyGroupRepository.findMyStudyGroups(user.getUuid(), pageable);
-
-        StudyGroupListGetDTO.Pageable pageableDTO = new StudyGroupListGetDTO.Pageable(
-                studyGroup.hasPrevious() ? pageable.getPageNumber() - 1 : null,
-                pageable.getPageNumber(),
-                studyGroup.hasNext() ? pageable.getPageNumber() + 1 : null
-        );
-
-        List<StudyGroupListGetDTO.StudyGroupList> studyGroupListDTO = studyGroup.stream()
-                .map(group -> {
-                    boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers(); // 모집중 여부
-                    return new StudyGroupListGetDTO.StudyGroupList(
-                            group.getGroupId(),
-                            group.getGroupName(),
-                            group.getGroupDescription(),
-                            group.getGroupMembers().size(),
-                            group.getMaxMembers(),
-                            isRecruiting,
-                            group.getGroupTags().stream()
-                                    .map(GroupTags::getTagName)
-                                    .toList()
-                    );
-                }).toList();
-
-        return new StudyGroupListGetDTO(pageableDTO, studyGroupListDTO);
+    // 스터디 그룹 목록
+    public ResponseEntity<StudyGroupListDto> studyGroupList(Pageable pageable) {
+        Page<StudyGroup> studyGroup = studyGroupRepository.findAll(pageable);
+        return ResponseEntity.status(HttpStatus.OK).body(getStudyGroupList(studyGroup, pageable));
     }
 
+    // 내 스터디 그룹 목록
+    public ResponseEntity<StudyGroupListDto> myStudyGroupList(Pageable pageable) {
+        Users currentUser = securityUtil.getCurrentUser();
+        Page<StudyGroup> studyGroup = studyGroupRepository.findByUserId(currentUser.getUuid(), pageable);
+        return ResponseEntity.status(HttpStatus.OK).body(getStudyGroupList(studyGroup, pageable));
+    }
+
+    private StudyGroupListDto getStudyGroupList(Page<StudyGroup> studyGroup, Pageable pageable) {
+        return new StudyGroupListDto(
+                new StudyGroupListDto.Pageable(
+                        studyGroup.hasPrevious() ? pageable.getPageNumber() - 1 : null,
+                        pageable.getPageNumber(),
+                        studyGroup.hasNext() ? pageable.getPageNumber() + 1 : null
+                ),
+                studyGroup.stream()
+                        .map(group -> {
+                            boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers(); // 모집중 여부
+                            return new StudyGroupListDto.StudyGroupList(
+                                    group.getGroupId(),
+                                    group.getGroupName(),
+                                    group.getGroupDescription(),
+                                    group.getGroupMembers().size(),
+                                    group.getMaxMembers(),
+                                    isRecruiting,
+                                    group.getGroupTags().stream()
+                                            .map(GroupTags::getTagName)
+                                            .toList()
+                            );
+                        }).toList());
+    }
 }
