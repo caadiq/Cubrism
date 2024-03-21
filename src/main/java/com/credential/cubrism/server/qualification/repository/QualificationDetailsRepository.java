@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.qualification.repository;
 
-import com.credential.cubrism.server.qualification.model.QualificationDetails;
+import com.credential.cubrism.server.qualification.entity.QualificationDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

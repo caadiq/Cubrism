@@ -1,15 +1,12 @@
 package com.credential.cubrism.server.studygroup.controller;
 
-import com.credential.cubrism.server.common.dto.ResultDTO;
-import com.credential.cubrism.server.studygroup.dto.StudyGroupCreatePostDTO;
+import com.credential.cubrism.server.studygroup.dto.StudyGroupCreateDto;
 import com.credential.cubrism.server.studygroup.service.StudyGroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,89 +15,45 @@ import org.springframework.web.bind.annotation.*;
 public class StudyGroupController {
     private final StudyGroupService studyGroupService;
 
-    @PostMapping("/create")
-    public ResponseEntity<?> createStudyGroup(
-            @RequestBody StudyGroupCreatePostDTO dto,
-            Authentication authentication
-    ) {
-        try {
-            studyGroupService.createStudyGroup(dto, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
+    @PostMapping("/create") // 스터디 그룹 생성
+    public ResponseEntity<?> createStudyGroup(@RequestBody StudyGroupCreateDto dto) {
+        return studyGroupService.createStudyGroup(dto);
     }
 
-    @GetMapping("/list")
+    @GetMapping("/join") // 스터디 그룹 가입
+    public ResponseEntity<?> joinStudyGroup(@RequestParam Long studyGroupId) {
+        return studyGroupService.joinStudyGroup(studyGroupId);
+    }
+
+    @GetMapping("/leave") // 스터디 그룹 탈퇴
+    public ResponseEntity<?> leaveStudyGroup(@RequestParam Long studyGroupId) {
+        return studyGroupService.leaveStudyGroup(studyGroupId);
+    }
+
+    @GetMapping("/delete") // 스터디 그룹 삭제
+    public ResponseEntity<?> deleteStudyGroup(@RequestParam Long studyGroupId) {
+        return studyGroupService.deleteStudyGroup(studyGroupId);
+    }
+
+    @GetMapping("/list") // 스터디 그룹 목록
     public ResponseEntity<?> studyGroupList(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit
     ) {
-        try {
-            limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 스터디 그룹 수를 1~50 사이로 제한
-            Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
+        limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 스터디 그룹 수를 1~50 사이로 제한
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
 
-            return ResponseEntity.ok().body(studyGroupService.studyGroupList(pageable));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
+        return studyGroupService.studyGroupList(pageable);
     }
 
-    @GetMapping("/join")
-    public  ResponseEntity<?> joinStudyGroup(@RequestParam Long studyGroupId, Authentication authentication) {
-        try {
-            studyGroupService.joinStudyGroup(studyGroupId, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
-    }
-
-    @GetMapping("/leave")
-    public ResponseEntity<?> leaveStudyGroup(@RequestParam Long studyGroupId, Authentication authentication) {
-        try {
-            studyGroupService.leaveStudyGroup(studyGroupId, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
-    }
-
-    @GetMapping("/delete")
-    public ResponseEntity<?> deleteStudyGroup(@RequestParam Long studyGroupId, Authentication authentication) {
-        try {
-            studyGroupService.deleteStudyGroup(studyGroupId, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
-    }
-
-    @GetMapping("/mylist")
+    @GetMapping("/my") // 내 스터디 그룹 목록
     public ResponseEntity<?> myStudyGroupList(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int limit,
-            Authentication authentication
+            @RequestParam(defaultValue = "20") int limit
     ) {
-        try {
-            limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 스터디 그룹 수를 1~50 사이로 제한
-            Pageable pageable = PageRequest.of(page, limit);
+        limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 스터디 그룹 수를 1~50 사이로 제한
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
 
-            return ResponseEntity.ok().body(studyGroupService.myStudyGroupList(authentication, pageable));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
+        return studyGroupService.myStudyGroupList(pageable);
     }
 }

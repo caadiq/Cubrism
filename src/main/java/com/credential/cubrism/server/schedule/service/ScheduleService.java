@@ -1,73 +1,85 @@
 package com.credential.cubrism.server.schedule.service;
 
-import com.credential.cubrism.server.authentication.model.Users;
-import com.credential.cubrism.server.authentication.repository.UserRepository;
-import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
-import com.credential.cubrism.server.schedule.dto.ScheduleAddPostDTO;
-import com.credential.cubrism.server.schedule.dto.ScheduleListGetDTO;
-import com.credential.cubrism.server.schedule.dto.ScheduleUpdatePostDTO;
-import com.credential.cubrism.server.schedule.model.Schedules;
+import com.credential.cubrism.server.authentication.entity.Users;
+import com.credential.cubrism.server.authentication.utils.SecurityUtil;
+import com.credential.cubrism.server.common.dto.MessageDto;
+import com.credential.cubrism.server.common.exception.CustomException;
+import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.schedule.dto.ScheduleAddDto;
+import com.credential.cubrism.server.schedule.dto.ScheduleListDto;
+import com.credential.cubrism.server.schedule.dto.ScheduleUpdateDto;
+import com.credential.cubrism.server.schedule.entity.Schedules;
 import com.credential.cubrism.server.schedule.repository.ScheduleRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
-    private final UserRepository userRepository;
 
+    private final SecurityUtil securityUtil;
+
+    // 일정 추가
     @Transactional
-    public void addSchedule(ScheduleAddPostDTO dto, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+    public ResponseEntity<MessageDto> addSchedule(ScheduleAddDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
 
         Schedules schedules = new Schedules();
-        setScheduleFields(schedules, user, dto.getStartDate(), dto.getEndDate(), dto.isAllDay(), dto.getTitle(), dto.getContent());
+        setScheduleFields(schedules, currentUser, dto.getStartDate(), dto.getEndDate(), dto.isAllDay(), dto.getTitle(), dto.getContent());
         scheduleRepository.save(schedules);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("일정이 추가되었습니다."));
     }
 
+    // 일정 삭제
     @Transactional
-    public void deleteSchedule(UUID scheduleId, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+    public ResponseEntity<MessageDto> deleteSchedule(Long scheduleId) {
+        Users currentUser = securityUtil.getCurrentUser();
 
-        Schedules schedules = scheduleRepository.findByUserIdAndScheduleId(user.getUuid(), scheduleId)
-                .orElseThrow(() -> new IllegalArgumentException("일정이 존재하지 않습니다."));
+        Schedules schedules = scheduleRepository.findByUserIdAndScheduleId(currentUser.getUuid(), scheduleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
+
         scheduleRepository.delete(schedules);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("일정을 삭제했습니다."));
     }
 
+    // 일정 수정
     @Transactional
-    public void updateSchedule(ScheduleUpdatePostDTO dto, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+    public ResponseEntity<MessageDto> updateSchedule(ScheduleUpdateDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
 
-        Schedules schedules = scheduleRepository.findByUserIdAndScheduleId(user.getUuid(), dto.getScheduleId())
-                .orElseThrow(() -> new IllegalArgumentException("일정이 존재하지 않습니다."));
+        Schedules schedules = scheduleRepository.findByUserIdAndScheduleId(currentUser.getUuid(), dto.getScheduleId())
+                .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
 
-        setScheduleFields(schedules, user, dto.getStartDate(), dto.getEndDate(), dto.isAllDay(), dto.getTitle(), dto.getContent());
+        setScheduleFields(schedules, currentUser, dto.getStartDate(), dto.getEndDate(), dto.isAllDay(), dto.getTitle(), dto.getContent());
         scheduleRepository.save(schedules);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("일정을 수정했습니다."));
     }
 
-    public List<ScheduleListGetDTO> getScheduleList(int year, int month, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+    // 일정 목록
+    public ResponseEntity<List<ScheduleListDto>> scheduleList(int year, int month) {
+        Users currentUser = securityUtil.getCurrentUser();
 
-        List<Schedules> schedules = scheduleRepository.getScheduleByYearAndMonth(user.getUuid(), year, month);
-
-        return schedules.stream()
-                .map(schedule -> new ScheduleListGetDTO(
+        List<ScheduleListDto> scheduleList = scheduleRepository.findByUserIdAndYearAndMonth(currentUser.getUuid(), year, month).stream()
+                .map(schedule -> new ScheduleListDto(
                         schedule.getScheduleId(),
                         schedule.getStartDate().toString(),
                         schedule.getEndDate() != null ? schedule.getEndDate().toString() : null,
                         schedule.isAllDay(),
                         schedule.getTitle(),
                         schedule.getContent()
-                ))
-                .collect(Collectors.toList());
+                )).toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleList);
     }
 
     private void setScheduleFields(Schedules schedules, Users user, String startDate, String endDate, boolean isAllDay, String title, String content) {

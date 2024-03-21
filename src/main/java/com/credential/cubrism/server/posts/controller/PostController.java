@@ -1,11 +1,7 @@
 package com.credential.cubrism.server.posts.controller;
 
-import com.credential.cubrism.server.common.dto.ErrorDTO;
-import com.credential.cubrism.server.common.dto.ResultDTO;
-import com.credential.cubrism.server.posts.dto.PostAddPostDTO;
-import com.credential.cubrism.server.posts.dto.PostDeletePostDTO;
-import com.credential.cubrism.server.posts.dto.PostUpdatePostDTO;
-import com.credential.cubrism.server.posts.service.CategoryService;
+import com.credential.cubrism.server.common.dto.MessageDto;
+import com.credential.cubrism.server.posts.dto.*;
 import com.credential.cubrism.server.posts.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -13,129 +9,65 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/post")
 public class PostController {
     private final PostService postService;
-    private final CategoryService categoryService;
 
-    @PostMapping("/add")
-    public ResponseEntity<?> addPost(
-            @RequestBody PostAddPostDTO dto,
-            Authentication authentication
-    ) {
-        try {
-            postService.addPost(dto, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
+    @PostMapping("/add") // 게시글 작성
+    public ResponseEntity<MessageDto> addPost(@RequestBody PostAddDto dto) {
+        return postService.addPost(dto);
     }
 
-    @PostMapping("/delete")
-    public ResponseEntity<?> deletePost(
-            @RequestBody PostDeletePostDTO dto,
-            Authentication authentication
-    ) {
-        try {
-            postService.deletePost(dto, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
+    @PostMapping("/delete") // 게시글 삭제
+    public ResponseEntity<MessageDto> deletePost(@RequestBody PostDeleteDto dto) {
+        return postService.deletePost(dto);
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<?> updatePost(
-            @RequestBody PostUpdatePostDTO dto,
-            Authentication authentication
-    ) {
-        try {
-            postService.updatePost(dto, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
+    @PostMapping("/update") // 게시글 수정
+    public ResponseEntity<MessageDto> updatePost(@RequestBody PostUpdateDto dto) {
+        return postService.updatePost(dto);
     }
 
-    @GetMapping("/list")
-    public ResponseEntity<?> postList(
-            @RequestParam(required = false) String boardName,
+    @GetMapping("/list") // 게시글 목록
+    public ResponseEntity<PostListDto> postList(
+            @RequestParam String boardName,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit
     ) {
-        try {
-            if (boardName == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'boardName' 파라미터가 필요합니다."));
-            }
+        limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 게시글 수를 1~50 사이로 제한
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
 
-            limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 게시글 수를 1~50 사이로 제한
-            Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
-
-            return ResponseEntity.ok().body(postService.postList(pageable, boardName));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorDTO(e.getMessage()));
-        }
+        return postService.postList(pageable, boardName);
     }
 
-    @GetMapping("/my")
-    public ResponseEntity<?> myPostList(
+    @GetMapping("/my") // 내 게시글 목록
+    public ResponseEntity<PostListDto> myPostList(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int limit,
-            Authentication authentication
+            @RequestParam(defaultValue = "20") int limit
     ) {
-        try {
-            limit = Math.max(1, Math.min(limit, 50));
-            Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending());
+        limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 게시글 수를 1~50 사이로 제한
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
 
-            return ResponseEntity.ok().body(postService.myPostList(pageable, authentication));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorDTO(e.getMessage()));
-        }
+        return postService.myPostList(pageable);
     }
 
-    @GetMapping("/view")
-    public ResponseEntity<?> postView(
-            @RequestParam(required = false) Long postId,
-            @RequestParam(required = false) String boardName
+    @GetMapping("/view") // 게시글 보기
+    public ResponseEntity<PostViewDto> postView(
+            @RequestParam Long postId,
+            @RequestParam String boardName
     ) {
-        try {
-            if (postId == null || boardName == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO("'postId'와 'boardName' 파라미터가 필요합니다."));
-            }
-
-            return ResponseEntity.ok().body(postService.postView(postId, boardName));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorDTO(e.getMessage()));
-        }
+        return postService.postView(postId, boardName);
     }
 
-    @GetMapping("/category")
-    public ResponseEntity<?> category(
-            @RequestParam(required = false) String search
-    ) {
-        try {
-            return ResponseEntity.ok().body(categoryService.categoryList(search));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDTO(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorDTO(e.getMessage()));
-        }
+    @GetMapping("/category") // 카테고리
+    public ResponseEntity<List<CategoryListDto>> getCategoryList() {
+        List<CategoryListDto> categoryList = postService.categoryList();
+        return ResponseEntity.status(HttpStatus.OK).body(categoryList);
     }
 }

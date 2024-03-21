@@ -1,17 +1,15 @@
 package com.credential.cubrism.server.authentication.config;
 
-import com.credential.cubrism.server.authentication.jwt.CustomAuthenticationEntryPoint;
-import com.credential.cubrism.server.authentication.jwt.JwtTokenFilter;
-import com.credential.cubrism.server.authentication.service.PrincipalOauth2UserService;
-import com.credential.cubrism.server.authentication.service.AuthService;
+import com.credential.cubrism.server.authentication.jwt.*;
+import com.credential.cubrism.server.authentication.oauth.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -19,44 +17,58 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final AuthService authService;
-    private final PrincipalOauth2UserService principalOauth2UserService;
-
-    @Value("${jwt.secret}")
-    private String secretKey;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final JwtExceptionFilter jwtExceptionFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .exceptionHandling(exceptionHandlingConfigurer -> exceptionHandlingConfigurer.authenticationEntryPoint(new CustomAuthenticationEntryPoint())) // 인증되지 않은 사용자가 리소스에 액세스 할 때 호출되는 커스텀 AuthenticationEntryPoint(나중에 지워도 됨)
+                // HTTP 기본 인증 사용하지 않음
                 .httpBasic(AbstractHttpConfigurer::disable)
+
+                // CSRF 사용하지 않음
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(sessionManagementConfigurer -> { // 세션 사용 안함(jwt 사용시 세션 사용 안함)
-                    sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-                })
+
+                // 세션 사용하지 않음
+                .sessionManagement(sessionManagementConfigurer -> sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 예외 처리
+                .exceptionHandling(exceptionHandlingConfigurer -> exceptionHandlingConfigurer
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 인증 실패
+                        .accessDeniedHandler(jwtAccessDeniedHandler)) // 권한 없음
+
+                // 권한 설정
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/auth/signup/**").permitAll()
                         .requestMatchers("/auth/signin/**").permitAll()
-                        .requestMatchers("/auth/refresh/**").permitAll()
-                        .requestMatchers("/oauth2/authorization/google").permitAll()
+                        .requestMatchers("/auth/reissue").permitAll()
+                        .requestMatchers("/auth/social/**").permitAll()
                         .requestMatchers("/qualification/**").permitAll()
-                        .requestMatchers("/auth/googleLoginTest/**").permitAll()
                         .requestMatchers("/post/list").permitAll()
                         .requestMatchers("/post/view").permitAll()
                         .requestMatchers("/studygroup/list").permitAll()
                         .requestMatchers("/test/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth2Login -> oauth2Login.defaultSuccessUrl("/googleLoginTest", true)
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(principalOauth2UserService)
-                        )
-                )
-                .logout(logout -> logout.logoutSuccessUrl("/").invalidateHttpSession(true).deleteCookies("JSESSIONID"))
-                .addFilterBefore(new JwtTokenFilter(authService, secretKey), UsernamePasswordAuthenticationFilter.class);
 
+                .oauth2Login(oauth2Login -> oauth2Login.defaultSuccessUrl("/auth/social", true)
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                )
+
+                // JWT 인증 필터
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+                // JWT 예외 처리 필터
+                .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
         return httpSecurity.build();
+    }
+
+    @Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
 }

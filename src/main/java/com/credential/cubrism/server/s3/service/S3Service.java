@@ -1,75 +1,51 @@
 package com.credential.cubrism.server.s3.service;
 
-import com.amazonaws.HttpMethod;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.Headers;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.credential.cubrism.server.s3.dto.PresignedUrlGetDTO;
-import com.credential.cubrism.server.s3.dto.PresignedUrlResultDTO;
+import com.credential.cubrism.server.common.exception.CustomException;
+import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.s3.dto.PresignedUrlDto;
+import com.credential.cubrism.server.s3.utils.S3Util;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
 public class S3Service {
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
-    private final AmazonS3 amazonS3;
+    private final S3Util s3Util;
 
-    public List<PresignedUrlResultDTO> getPreSignedUrl(PresignedUrlGetDTO dto) {
-        List<PresignedUrlResultDTO> results = new ArrayList<>();
-        for (PresignedUrlGetDTO.Files file : dto.getFiles()) {
-            try {
-                String fileName = createPath(file.getFilePath(), file.getFileName());
-                GeneratePresignedUrlRequest generatePresignedUrlRequest = generatePreSignedUrlRequest(bucket, fileName);
-                String presignedUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
-                String fileUrl = String.format("https://%s.s3.amazonaws.com/%s", bucket, fileName);
-                results.add(new PresignedUrlResultDTO(file.getFileName(), presignedUrl, fileUrl));
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Presigned URL 생성에 실패했습니다");
-            }
+    // Pre-Signed URL 생성
+    public ResponseEntity<List<PresignedUrlDto>> presignedUrl(List<String> filePathList, List<String> fileNameList) {
+        // filePath 배열과 fileName 배열의 크기가 일치하는지 확인
+        if (filePathList.size() != fileNameList.size()) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
-        return results;
-    }
 
-    // presigned url 생성
-    private GeneratePresignedUrlRequest generatePreSignedUrlRequest(String bucket, String fileName) {
-        GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                new GeneratePresignedUrlRequest(bucket, fileName)
-                        .withMethod(HttpMethod.PUT)
-                        .withExpiration(preSignedUrlExpiration());
-        generatePresignedUrlRequest.addRequestParameter(
-                Headers.S3_CANNED_ACL,
-                CannedAccessControlList.PublicRead.toString());
-        return generatePresignedUrlRequest;
-    }
+        List<PresignedUrlDto> results = IntStream.range(0, filePathList.size())
+                .mapToObj(i -> {
+                    String filePath = filePathList.get(i);
+                    String fileName = fileNameList.get(i);
 
-    // presigned url 유효 기간 설정
-    private Date preSignedUrlExpiration() {
-        Date expiration = new Date();
-        long expTimeMillis = expiration.getTime();
-        expTimeMillis += 1000 * 60 * 2; // 2분
-        expiration.setTime(expTimeMillis);
-        return expiration;
-    }
+                    // filePath 또는 fileName이 비어있는지 확인
+                    if (filePath.isEmpty() || fileName.isEmpty()) {
+                        throw new CustomException(ErrorCode.INVALID_REQUEST);
+                    }
 
-    // 파일 경로 생성
-    private String createPath(String filePath, String fileName) {
-        String fileId = UUID.randomUUID().toString();
-        return String.format("%s/%s_%s", filePath, fileId, fileName);
-    }
+                    try {
+                        String fullPath = s3Util.createPath(filePath, fileName); // 파일 경로 생성
+                        GeneratePresignedUrlRequest request = s3Util.generatePreSignedUrlRequest(fullPath); // Pre-Signed URL 요청 생성
+                        String presignedUrl = s3Util.generatePresignedUrl(request); // Pre-Signed URL 생성
+                        String fileUrl = s3Util.fileUrl(fullPath); // 파일 URL 생성
+                        return new PresignedUrlDto(fileName, presignedUrl, fileUrl);
+                    } catch (Exception e) {
+                        throw new CustomException(ErrorCode.S3_PRE_SIGNED_URL_FAILURE);
+                    }
+                }).toList();
 
-    // 파일 삭제
-    public void deleteFileFromS3(String fileUrl) {
-        String bucketName = fileUrl.split(".s3.amazonaws.com")[0].replace("https://", "");
-        String keyName = fileUrl.split(".s3.amazonaws.com/")[1];
-        amazonS3.deleteObject(bucketName, keyName);
+        return ResponseEntity.status(HttpStatus.OK).body(results);
     }
 }

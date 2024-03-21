@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.studygroup.repository;
 
-import com.credential.cubrism.server.authentication.model.Users;
+import com.credential.cubrism.server.authentication.entity.Users;
 import com.credential.cubrism.server.studygroup.entity.GroupMembers;
 import com.credential.cubrism.server.studygroup.entity.StudyGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +11,5 @@ import java.util.UUID;
 
 @Repository
 public interface GroupMembersRepository extends JpaRepository<GroupMembers, UUID> {
-
     Optional<GroupMembers> findByUserAndStudyGroup(Users user, StudyGroup studyGroup);
 }

@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.posts.entity;
 
-import com.credential.cubrism.server.authentication.model.Users;
+import com.credential.cubrism.server.authentication.entity.Users;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

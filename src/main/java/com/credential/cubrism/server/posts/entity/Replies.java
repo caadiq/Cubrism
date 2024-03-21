@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.posts.entity;
 
-import com.credential.cubrism.server.authentication.model.Users;
+import com.credential.cubrism.server.authentication.entity.Users;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@EntityListeners(AuditingEntityListener.class)
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "Replies")
 public class Replies {
     @Id
@@ -21,12 +21,12 @@ public class Replies {
     @Column(name = "reply_id", nullable = false)
     private Long replyId;
 
-    @ManyToOne
-    @JoinColumn(name="comment_id", nullable=false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comment_id", nullable = false)
     private Comments comment;
 
-    @ManyToOne
-    @JoinColumn(name="user_id", nullable=false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
     @Column(name = "content", nullable = false)

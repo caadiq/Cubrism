@@ -1,21 +1,20 @@
 package com.credential.cubrism.server.posts.service;
 
-import com.credential.cubrism.server.authentication.model.Users;
-import com.credential.cubrism.server.authentication.repository.UserRepository;
-import com.credential.cubrism.server.authentication.utils.AuthenticationUtil;
-import com.credential.cubrism.server.posts.dto.CommentAddPostDTO;
-import com.credential.cubrism.server.posts.dto.CommentDeletePostDTO;
-import com.credential.cubrism.server.posts.dto.CommentUpdatePostDTO;
-import com.credential.cubrism.server.posts.dto.ReplyAddPostDTO;
+import com.credential.cubrism.server.authentication.entity.Users;
+import com.credential.cubrism.server.authentication.utils.SecurityUtil;
+import com.credential.cubrism.server.common.dto.MessageDto;
+import com.credential.cubrism.server.common.exception.CustomException;
+import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.posts.dto.CommentAddDto;
+import com.credential.cubrism.server.posts.dto.CommentDeleteDto;
+import com.credential.cubrism.server.posts.dto.CommentUpdateDto;
 import com.credential.cubrism.server.posts.entity.Comments;
 import com.credential.cubrism.server.posts.entity.Posts;
-import com.credential.cubrism.server.posts.entity.Replies;
 import com.credential.cubrism.server.posts.repository.CommentRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
-import com.credential.cubrism.server.posts.repository.ReplyRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,67 +22,62 @@ import org.springframework.stereotype.Service;
 public class CommentService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository;
-    private final ReplyRepository replyRepository;
 
+    private final SecurityUtil securityUtil;
+
+    // 댓글 추가
     @Transactional
-    public void addComment(CommentAddPostDTO dto, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+    public ResponseEntity<MessageDto> addComment(CommentAddDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
 
         Posts post = postRepository.findByPostId(dto.getPostId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         Comments comment = new Comments();
         comment.setPost(post);
-        comment.setUser(user);
+        comment.setUser(currentUser);
         comment.setContent(dto.getContent());
         commentRepository.save(comment);
+        
+        return ResponseEntity.ok().body(new MessageDto("댓글을 추가했습니다."));
     }
 
+    // 댓글 삭제
     @Transactional
-    public void deleteComment(CommentDeletePostDTO dto, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+    public ResponseEntity<MessageDto> deleteComment(CommentDeleteDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
 
         Comments comment = commentRepository.findByPostIdAndCommentId(dto.getPostId(), dto.getCommentId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getUser().getUuid().equals(user.getUuid())) {
-            throw new IllegalArgumentException("본인만 삭제할 수 있습니다.");
+        if (!comment.getUser().getUuid().equals(currentUser.getUuid())) {
+            throw new CustomException(ErrorCode.DELETE_DENIED);
         }
 
         commentRepository.delete(comment);
+
+        return ResponseEntity.ok().body(new MessageDto("댓글을 삭제했습니다."));
     }
 
+    // 댓글 수정
     @Transactional
-    public void updateComment(CommentUpdatePostDTO dto, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
+    public ResponseEntity<MessageDto> updateComment(CommentUpdateDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
 
         Comments comment = commentRepository.findByCommentId(dto.getCommentId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getUser().getUuid().equals(user.getUuid())) {
-            throw new IllegalArgumentException("본인만 수정할 수 있습니다.");
+        if (!comment.getUser().getUuid().equals(currentUser.getUuid())) {
+            throw new CustomException(ErrorCode.UPDATE_DENIED);
         }
 
         if (!comment.getPost().getPostId().equals(dto.getPostId())) {
-            throw new IllegalArgumentException("게시글과 댓글이 일치하지 않습니다.");
+            throw new CustomException(ErrorCode.INVALID_POST_AND_COMMENT);
         }
 
         comment.setContent(dto.getContent());
         commentRepository.save(comment);
-    }
 
-    @Transactional
-    public void addReply(ReplyAddPostDTO dto, Authentication authentication) {
-        Users user = AuthenticationUtil.getUserFromAuthentication(authentication, userRepository);
-
-        Comments comment = commentRepository.findByCommentId(dto.getCommentId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다."));
-
-        Replies reply = new Replies();
-        reply.setComment(comment);
-        reply.setUser(user);
-        reply.setContent(dto.getContent());
-        replyRepository.save(reply);
+        return ResponseEntity.ok().body(new MessageDto("댓글을 수정했습니다."));
     }
 }

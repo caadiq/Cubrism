@@ -1,6 +1,7 @@
 package com.credential.cubrism.server.posts.entity;
 
-import com.credential.cubrism.server.authentication.model.Users;
+import com.credential.cubrism.server.authentication.entity.Users;
+import com.credential.cubrism.server.qualification.entity.QualificationList;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +33,7 @@ public class Posts {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category", nullable = false)
-    private Category category;
+    private QualificationList qualificationList;
 
     @Column(name = "post_title", nullable = false)
     private String title;

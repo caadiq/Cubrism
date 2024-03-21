@@ -1,81 +1,34 @@
 package com.credential.cubrism.server.posts.controller;
 
-import com.credential.cubrism.server.common.dto.ResultDTO;
-import com.credential.cubrism.server.posts.dto.CommentAddPostDTO;
-import com.credential.cubrism.server.posts.dto.CommentDeletePostDTO;
-import com.credential.cubrism.server.posts.dto.CommentUpdatePostDTO;
-import com.credential.cubrism.server.posts.dto.ReplyAddPostDTO;
+import com.credential.cubrism.server.posts.dto.CommentAddDto;
+import com.credential.cubrism.server.posts.dto.CommentDeleteDto;
+import com.credential.cubrism.server.posts.dto.CommentUpdateDto;
 import com.credential.cubrism.server.posts.service.CommentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/comments")
+@RequestMapping("/comment")
 public class CommentController {
     private final CommentService commentService;
 
-    @PostMapping("/add")
-    public ResponseEntity<?> addComment(
-            @RequestBody CommentAddPostDTO dto,
-            Authentication authentication
-    ) {
-        try {
-            commentService.addComment(dto, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
+    @PostMapping("/add") // 댓글 추가
+    public ResponseEntity<?> addComment(@RequestBody CommentAddDto dto) {
+        return commentService.addComment(dto);
     }
 
-    @PostMapping("/delete")
-    public ResponseEntity<?> deleteComment(
-            @RequestBody CommentDeletePostDTO dto,
-            Authentication authentication
-    ) {
-        try {
-            commentService.deleteComment(dto, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
+    @PostMapping("/delete") // 댓글 삭제
+    public ResponseEntity<?> deleteComment(@RequestBody CommentDeleteDto dto) {
+        return commentService.deleteComment(dto);
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<?> updateComment(
-            @RequestBody CommentUpdatePostDTO dto,
-            Authentication authentication
-    ) {
-        try {
-            commentService.updateComment(dto, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
+    @PostMapping("/update") // 댓글 수정
+    public ResponseEntity<?> updateComment(@RequestBody CommentUpdateDto dto) {
+        return commentService.updateComment(dto);
     }
-
-    @PostMapping("/reply/add")
-    public ResponseEntity<?> addReply(
-            @RequestBody ReplyAddPostDTO dto,
-            Authentication authentication
-    ) {
-        try {
-            commentService.addReply(dto, authentication);
-            return ResponseEntity.ok().body(new ResultDTO(true, null));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultDTO(false, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultDTO(false, e.getMessage()));
-        }
-    }
-
 }
