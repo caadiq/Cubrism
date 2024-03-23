@@ -70,6 +70,7 @@ public enum ErrorCode {
     STUDY_GROUP_FULL(HttpStatus.CONFLICT, "스터디 그룹이 가득 찼습니다."),
     STUDY_GROUP_ALREADY_JOINED(HttpStatus.CONFLICT, "이미 가입한 스터디 그룹입니다."),
     STUDY_GROUP_ADMIN_LEAVE(HttpStatus.CONFLICT, "스터디 그룹의 관리자는 탈퇴할 수 없습니다."),
+    SOCIAL_LOGIN_USER(HttpStatus.CONFLICT, "소셜 로그인을 통해 가입한 사용자입니다. 소셜 로그인을 이용해주세요."),
 
 
     /**
