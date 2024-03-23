@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
 @RestController
 @RequiredArgsConstructor
@@ -63,8 +62,13 @@ public class AuthController {
         return authService.changeProfileImage(dto.getImageUrl());
     }
 
-    @GetMapping("/social")
-    public ModelAndView socialTest() {
-        return new ModelAndView("socialLoginTest");
+    @PostMapping("/social/login/google")
+    public ResponseEntity<TokenDto> googleLogIn(@RequestParam String serverAuthCode) {
+        return authService.googleLogIn(serverAuthCode);
+    }
+
+    @PostMapping("/social/login/kakao")
+    public ResponseEntity<TokenDto> kakaoLogIn(@RequestParam String accessToken) {
+        return authService.kakaoLogIn(accessToken);
     }
 }

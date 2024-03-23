@@ -78,7 +78,8 @@ public enum ErrorCode {
      * ex) 서버에서 처리되지 않은 예외가 발생했을 때
      */
     EMAIL_SEND_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송에 실패했습니다."),
-    S3_PRE_SIGNED_URL_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "Pre-Signed URL 생성에 실패했습니다.");
+    S3_PRE_SIGNED_URL_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "Pre-Signed URL 생성에 실패했습니다."),
+    SIGNIN_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "로그인에 실패했습니다.");
 
 
     private final HttpStatus httpStatus;

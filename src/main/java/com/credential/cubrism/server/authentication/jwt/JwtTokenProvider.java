@@ -67,6 +67,17 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+
+    public String generateAccessTokenForSocial(String email, String authorities) {
+        return Jwts.builder()
+                .setSubject(email)
+                .claim(AUTHORITIES_KEY, authorities)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
+    }
+
     // 토큰에서 인증 정보 가져오기
     public Authentication getAuthentication(String accessToken) {
         // 토큰에서 Claims 가져오기

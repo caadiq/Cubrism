@@ -11,8 +11,15 @@ import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
 import com.credential.cubrism.server.s3.utils.S3Util;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,28 +29,44 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
     @Value("${jwt.token.refresh-expiration-time}")
     private long refreshTokenExpiration;
 
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String googleClientSecret;
+
     private final UserRepository userRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final WebClient webClient;
 
     private final SecurityUtil securityUtil;
     private final RedisUtil redisUtil;
     private final S3Util s3Util;
 
+    private final HttpTransport transport = new NetHttpTransport();
+    private final GsonFactory gsonFactory = new GsonFactory();
+
     private static final String AUTHORITIES_KEY = "auth";
     private static final String REFRESH_TOKEN_SUFFIX = "(refreshToken)"; // Redis Key 중복 방지를 위한 접미사
+    private static final String GOOGLE_TOKEN_SERVER_ENCODED_URL = "https://oauth2.googleapis.com/token";
+    private static final String GOOGLE_REDIRECT_URI = "http://localhost:8080/login/oauth2/code/google";
+    private static final String KAKAO_REQUEST_URL = "https://kapi.kakao.com/v2/user/me";
 
     // 회원가입
     @Transactional
@@ -190,12 +213,84 @@ public class AuthService {
         Users currentUser = securityUtil.getCurrentUser();
 
         // 기존 프로필 이미지 삭제
-        Optional.ofNullable(currentUser.getImageUrl())
-                .ifPresent(s3Util::deleteFile);
+        Optional.ofNullable(currentUser.getImageUrl()).ifPresent(s3Util::deleteFile);
 
         currentUser.setImageUrl(imageUrl);
         userRepository.save(currentUser);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("프로필 이미지 변경 완료"));
+    }
+
+    // 구글 로그인
+    @Transactional
+    public ResponseEntity<TokenDto> googleLogIn(String serverAuthCode) {
+        try {
+            GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
+                    transport,
+                    gsonFactory,
+                    GOOGLE_TOKEN_SERVER_ENCODED_URL,
+                    googleClientId,
+                    googleClientSecret,
+                    serverAuthCode,
+                    GOOGLE_REDIRECT_URI
+            ).execute();
+
+            GoogleIdToken idToken = tokenResponse.parseIdToken();
+            GoogleIdToken.Payload payload = idToken.getPayload();
+
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String pictureUrl = (String) payload.get("picture");
+
+            return updateUserAndGenerateTokens(email, name, pictureUrl, "google");
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.SIGNIN_FAILURE);
+        }
+    }
+
+    // 카카오 로그인
+    @Transactional
+    public ResponseEntity<TokenDto> kakaoLogIn(String token) {
+        ResponseEntity<KakaoUserDto> responseEntity = webClient.post()
+                .uri(KAKAO_REQUEST_URL)
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .toEntity(KakaoUserDto.class)
+                .block();
+
+        if (responseEntity != null && responseEntity.getBody() != null) {
+            KakaoUserDto kakaoUserDto = responseEntity.getBody();
+            String email = kakaoUserDto.getKakao_account().getEmail();
+            String nickname = kakaoUserDto.getKakao_account().getProfile().getNickname();
+            String profileImageUrl = kakaoUserDto.getKakao_account().getProfile().getProfile_image_url();
+
+            return updateUserAndGenerateTokens(email, nickname, profileImageUrl, "kakao");
+        } else {
+            throw new CustomException(ErrorCode.SIGNIN_FAILURE);
+        }
+    }
+
+
+    // 소셜 로그인 유저 정보 업데이트 및 토큰 발급
+    private ResponseEntity<TokenDto> updateUserAndGenerateTokens(String email, String name, String pictureUrl, String provider) {
+        Users user = userRepository.findByEmail(email).orElseGet(() -> {
+            Authority authority = new Authority();
+            authority.setAuthorityName("ROLE_USER");
+
+            Users newUser = new Users();
+            newUser.setEmail(email);
+            newUser.setAuthorities(Collections.singleton(authority));
+            return newUser;
+        });
+
+        user.setNickname(name);
+        user.setImageUrl(pictureUrl);
+        user.setProvider(provider);
+        userRepository.save(user);
+
+        Set<Authority> authorities = user.getAuthorities();
+        String accessToken = jwtTokenProvider.generateAccessTokenForSocial(email, authorities.toString());
+        String refreshToken = jwtTokenProvider.generateRefreshToken();
+        return ResponseEntity.status(HttpStatus.OK).body(new TokenDto(accessToken, refreshToken));
     }
 }
