@@ -92,6 +92,11 @@ public class AuthService {
 
     // 로그인 (이메일, 비밀번호)
     public ResponseEntity<TokenDto> signIn(SignInDto dto) {
+        // 소셜 로그인 유저인지 확인
+        userRepository.findByEmail(dto.getEmail()).filter(user -> user.getProvider() != null).ifPresent(user -> {
+            throw new CustomException(ErrorCode.SOCIAL_LOGIN_USER);
+        });
+
         try {
             // 이메일과 비밀번호를 통해 인증 토큰 (JWT 아님) 생성
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword());
@@ -251,7 +256,7 @@ public class AuthService {
     // 카카오 로그인
     @Transactional
     public ResponseEntity<TokenDto> kakaoLogIn(String token) {
-        ResponseEntity<KakaoUserDto> responseEntity = webClient.post()
+        ResponseEntity<KakaoUserDto> responseEntity = webClient.get()
                 .uri(KAKAO_REQUEST_URL)
                 .header("Authorization", "Bearer " + token)
                 .retrieve()
@@ -269,7 +274,6 @@ public class AuthService {
             throw new CustomException(ErrorCode.SIGNIN_FAILURE);
         }
     }
-
 
     // 소셜 로그인 유저 정보 업데이트 및 토큰 발급
     private ResponseEntity<TokenDto> updateUserAndGenerateTokens(String email, String name, String pictureUrl, String provider) {
@@ -289,7 +293,7 @@ public class AuthService {
         userRepository.save(user);
 
         Set<Authority> authorities = user.getAuthorities();
-        String accessToken = jwtTokenProvider.generateAccessTokenForSocial(email, authorities.toString());
+        String accessToken = jwtTokenProvider.reissueAccessToken(email, authorities.toString());
         String refreshToken = jwtTokenProvider.generateRefreshToken();
         return ResponseEntity.status(HttpStatus.OK).body(new TokenDto(accessToken, refreshToken));
     }
