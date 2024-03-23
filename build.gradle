@@ -33,6 +33,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+    implementation 'com.google.api-client:google-api-client:2.4.0'
+
     implementation 'javax.persistence:javax.persistence-api:2.2'
     implementation 'javax.servlet:javax.servlet-api:4.0.1'
 
