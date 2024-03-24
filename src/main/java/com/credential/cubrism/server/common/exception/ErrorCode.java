@@ -42,6 +42,7 @@ public enum ErrorCode {
     UPDATE_DENIED(HttpStatus.FORBIDDEN, "작성자 본인만 수정할 수 있습니다."),
     STUDY_GROUP_NOT_MEMBER(HttpStatus.FORBIDDEN, "스터디 그룹의 멤버가 아닙니다."),
     STUDY_GROUP_NOT_ADMIN(HttpStatus.FORBIDDEN, "스터디 그룹의 관리자가 아닙니다."),
+    PENDING_MEMBER_NOT_FOUND(HttpStatus.FORBIDDEN, "가입 대기 중인 스터디 그룹 멤버가 아닙니다."),
 
 
     /**
@@ -59,6 +60,7 @@ public enum ErrorCode {
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글이 존재하지 않습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
     STUDY_GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹이 존재하지 않습니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자를 찾을 수 없습니다."),
 
 
     /**

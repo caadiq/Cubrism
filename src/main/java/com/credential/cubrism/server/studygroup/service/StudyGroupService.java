@@ -5,28 +5,36 @@ import com.credential.cubrism.server.authentication.utils.SecurityUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.studygroup.dto.JoinRequestDto;
 import com.credential.cubrism.server.studygroup.dto.StudyGroupCreateDto;
 import com.credential.cubrism.server.studygroup.dto.StudyGroupListDto;
 import com.credential.cubrism.server.studygroup.entity.GroupMembers;
 import com.credential.cubrism.server.studygroup.entity.GroupTags;
+import com.credential.cubrism.server.studygroup.entity.PendingMembers;
 import com.credential.cubrism.server.studygroup.entity.StudyGroup;
 import com.credential.cubrism.server.studygroup.repository.GroupMembersRepository;
+import com.credential.cubrism.server.studygroup.repository.PendingMembersRepository;
 import com.credential.cubrism.server.studygroup.repository.StudyGroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class StudyGroupService {
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMembersRepository groupMembersRepository;
+    private final PendingMembersRepository pendingMembersRepository;
 
     private final SecurityUtil securityUtil;
 
@@ -61,29 +69,84 @@ public class StudyGroupService {
     }
 
     // 스터디 그룹 가입
-    // TODO : 가입 신청으로 바꿔야됨
+    // 스터디 그룹 가입 요청
     public ResponseEntity<MessageDto> joinStudyGroup(Long groupId) {
         Users currentUser = securityUtil.getCurrentUser();
 
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
 
-        if (studyGroup.getGroupMembers().size() >= studyGroup.getMaxMembers()) {
-            throw new CustomException(ErrorCode.STUDY_GROUP_FULL);
-        }
-
         if (studyGroup.getGroupMembers().stream().anyMatch(groupMembers -> groupMembers.getUser().getUuid().equals(currentUser.getUuid()))) {
             throw new CustomException(ErrorCode.STUDY_GROUP_ALREADY_JOINED);
         }
 
-        GroupMembers groupMembers = new GroupMembers();
-        groupMembers.setUser(currentUser);
-        groupMembers.setStudyGroup(studyGroup);
-        groupMembers.setAdmin(false);
-        groupMembersRepository.save(groupMembers);
+        PendingMembers pendingMembers = new PendingMembers();
+        pendingMembers.setUser(currentUser);
+        pendingMembers.setStudyGroup(studyGroup);
+        pendingMembersRepository.save(pendingMembers);
 
-        return ResponseEntity.ok().body(new MessageDto("스터디 그룹에 가입했습니다."));
+        return ResponseEntity.ok().body(new MessageDto("스터디 그룹 가입을 요청했습니다."));
     }
+
+    // 스터디 그룹 가입 요청 승인
+    public ResponseEntity<MessageDto> approveJoinRequest(UUID memberId) {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        PendingMembers pendingMember = pendingMembersRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PENDING_MEMBER_NOT_FOUND));
+
+        // Check if the current user is an admin of the study group
+        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, pendingMember.getStudyGroup(), true)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
+        GroupMembers newMember = new GroupMembers();
+        newMember.setUser(pendingMember.getUser());
+        newMember.setStudyGroup(pendingMember.getStudyGroup());
+        newMember.setAdmin(false);
+
+        groupMembersRepository.save(newMember);
+        pendingMembersRepository.delete(pendingMember);
+
+        return ResponseEntity.ok().body(new MessageDto("스터디 그룹 가입을 승인했습니다."));
+    }
+
+    public List<JoinRequestDto> getAllJoinRequests() {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        List<GroupMembers> adminGroups = groupMembersRepository.findAllByUserAndAdmin(currentUser, true);
+
+        List<JoinRequestDto> allJoinRequests = new ArrayList<>();
+
+        for (GroupMembers groupMembers : adminGroups) {
+            StudyGroup studyGroup = groupMembers.getStudyGroup();
+            List<PendingMembers> joinRequests = pendingMembersRepository.findByStudyGroup(studyGroup);
+
+            for (PendingMembers request : joinRequests) {
+                JoinRequestDto joinRequestDto = new JoinRequestDto();
+                joinRequestDto.setMemberId(request.getMemberId());
+                joinRequestDto.setGroupId(studyGroup.getGroupId());
+                joinRequestDto.setGroupName(studyGroup.getGroupName());
+                joinRequestDto.setUserName(request.getUser().getNickname());
+                joinRequestDto.setRequestDate(request.getRequestDate());
+
+                allJoinRequests.add(joinRequestDto);
+            }
+        }
+
+        return allJoinRequests;
+    }
+
+
+
+
+    // 자정마다 만료된 가입 신청 삭제
+//    @Scheduled(cron = "0 0 0 * * ?")  // 매일 자정에 실행
+//    public void rejectExpiredJoinRequests() {
+//        LocalDateTime oneWeekAgo = LocalDateTime.now().minusWeeks(1);
+//        List<PendingMembers> expiredRequests = pendingMembersRepository.findAllByRequestDateBefore(oneWeekAgo);
+//        pendingMembersRepository.deleteAll(expiredRequests);
+//    }
+
 
     // 스터디 그룹 탈퇴
     public ResponseEntity<MessageDto> leaveStudyGroup(Long groupId) {
@@ -159,4 +222,5 @@ public class StudyGroupService {
                             );
                         }).toList());
     }
+
 }
