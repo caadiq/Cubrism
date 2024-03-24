@@ -3,6 +3,7 @@ package com.credential.cubrism.server.authentication.controller;
 import com.credential.cubrism.server.authentication.dto.*;
 import com.credential.cubrism.server.authentication.service.AuthService;
 import com.credential.cubrism.server.common.dto.MessageDto;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +25,9 @@ public class AuthController {
         return authService.signIn(dto);
     }
 
-    @PostMapping("/logout") // 로그아웃
-    public ResponseEntity<MessageDto> logOut() {
-        return authService.logOut();
+    @DeleteMapping("/logout") // 로그아웃
+    public ResponseEntity<MessageDto> logOut(HttpServletRequest request) {
+        return authService.logOut(request);
     }
 
     @GetMapping("/info") // 로그인 유저 정보
