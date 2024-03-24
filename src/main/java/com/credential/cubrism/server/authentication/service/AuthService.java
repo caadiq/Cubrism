@@ -17,6 +17,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -118,15 +119,21 @@ public class AuthService {
     }
 
     // 로그아웃
-    public ResponseEntity<MessageDto> logOut() {
-        Users currentUser = securityUtil.getCurrentUser();
+    public ResponseEntity<MessageDto> logOut(HttpServletRequest request) {
+        try {
+            Users currentUser = securityUtil.getCurrentUser();
 
-        // Redis에서 Refresh Token 삭제
-        redisUtil.deleteData(currentUser.getEmail() + REFRESH_TOKEN_SUFFIX);
+            // Redis에 저장된 Refresh Token 삭제
+            redisUtil.deleteData(currentUser.getEmail() + REFRESH_TOKEN_SUFFIX);
 
-        // TODO: 로그아웃 시 Access Token을 Redis 블랙리스트에 추가
+            // 로그아웃 시 Access Token을 Redis 블랙리스트에 추가
+            String accessToken = request.getHeader("Authorization").substring(7);
+            redisUtil.setData(accessToken, "access_token_blacklist", jwtTokenProvider.getRemainingTime(accessToken));
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("로그아웃 완료"));
+            return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("로그아웃 완료"));
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.LOGOUT_FAILURE);
+        }
     }
 
     // 유저 정보

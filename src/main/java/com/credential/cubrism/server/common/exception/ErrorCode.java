@@ -80,7 +80,8 @@ public enum ErrorCode {
      */
     EMAIL_SEND_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송에 실패했습니다."),
     S3_PRE_SIGNED_URL_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "Pre-Signed URL 생성에 실패했습니다."),
-    SIGNIN_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "로그인에 실패했습니다.");
+    SIGNIN_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "로그인에 실패했습니다."),
+    LOGOUT_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "로그아웃에 실패했습니다.");
 
 
     private final HttpStatus httpStatus;
