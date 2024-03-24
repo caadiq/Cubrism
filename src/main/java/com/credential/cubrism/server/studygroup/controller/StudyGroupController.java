@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.studygroup.controller;
 
+import com.credential.cubrism.server.studygroup.dto.JoinRequestDto;
 import com.credential.cubrism.server.studygroup.dto.StudyGroupCreateDto;
 import com.credential.cubrism.server.studygroup.service.StudyGroupService;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +28,17 @@ public class StudyGroupController {
     public ResponseEntity<?> joinStudyGroup(@RequestParam Long studyGroupId) {
         return studyGroupService.joinStudyGroup(studyGroupId);
     }
+
+    @GetMapping("/approve") // 스터디 그룹 가입 승인
+    public ResponseEntity<?> approveJoinRequest(@RequestParam UUID memberId) {
+        return studyGroupService.approveJoinRequest(memberId);
+    }
+
+    @GetMapping("/join-requests") // 가입 요청 목록
+    public List<JoinRequestDto> getAllJoinRequests() {
+        return studyGroupService.getAllJoinRequests();
+    }
+
 
     @GetMapping("/leave") // 스터디 그룹 탈퇴
     public ResponseEntity<?> leaveStudyGroup(@RequestParam Long studyGroupId) {
