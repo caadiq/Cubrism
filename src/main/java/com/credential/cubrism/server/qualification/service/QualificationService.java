@@ -34,7 +34,9 @@ public class QualificationService {
                 .map(qualificationList -> new QualificationListDto(
                         qualificationList.getCode(),
                         qualificationList.getName()
-                )).toList();
+                ))
+                .sorted(Comparator.comparing(QualificationListDto::getName))
+                .toList();
     }
 
     // 대직무분야명 목록
