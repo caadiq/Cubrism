@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/post/list").permitAll()
                         .requestMatchers("/post/view").permitAll()
                         .requestMatchers("/studygroup/list").permitAll()
+                        .requestMatchers("/api/fcm").permitAll()
                         .requestMatchers("/test/**").permitAll()
                         .anyRequest().authenticated()
                 )
