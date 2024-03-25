@@ -16,7 +16,6 @@ import com.credential.cubrism.server.qualification.entity.QualificationList;
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
 import com.credential.cubrism.server.s3.utils.S3Util;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -234,15 +233,5 @@ public class PostService {
         );
 
         return ResponseEntity.status(HttpStatus.OK).body(dto);
-    }
-
-    // 카테고리 목록
-    @Cacheable("categoryList")
-    public List<CategoryListDto> categoryList() {
-        return qualificationListRepository.findAll().stream()
-                .map(qualificationList -> new CategoryListDto(
-                        qualificationList.getCode(),
-                        qualificationList.getName()
-                )).toList();
     }
 }

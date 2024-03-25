@@ -2,6 +2,7 @@ package com.credential.cubrism.server.qualification.service;
 
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.qualification.dto.QualificationListDto;
 import com.credential.cubrism.server.qualification.dto.MajorFieldDto;
 import com.credential.cubrism.server.qualification.dto.MiddleFieldDto;
 import com.credential.cubrism.server.qualification.dto.QualificationDetailsDto;
@@ -10,6 +11,7 @@ import com.credential.cubrism.server.qualification.repository.QualificationDetai
 import com.credential.cubrism.server.qualification.repository.QualificationListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,15 @@ public class QualificationService {
 
     private final QualificationListRepository qualificationListRepository;
     private final QualificationDetailsRepository qualificationDetailsRepository;
+
+    @Cacheable("qualificationlist")
+    public List<QualificationListDto> qualificationList() {
+        return qualificationListRepository.findAll().stream()
+                .map(qualificationList -> new QualificationListDto(
+                        qualificationList.getCode(),
+                        qualificationList.getName()
+                )).toList();
+    }
 
     // 대직무분야명 목록
     public ResponseEntity<List<MajorFieldDto>> majorFieldList() {
