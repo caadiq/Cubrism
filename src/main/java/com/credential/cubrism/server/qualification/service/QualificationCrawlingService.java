@@ -1,6 +1,6 @@
 package com.credential.cubrism.server.qualification.service;
 
-import com.credential.cubrism.server.posts.dto.CategoryListDto;
+import com.credential.cubrism.server.qualification.dto.QualificationListDto;
 import com.credential.cubrism.server.qualification.dto.QualificationCrawlingDto;
 import com.credential.cubrism.server.qualification.dto.QualificationCrawlingRequestDto;
 import com.credential.cubrism.server.qualification.dto.QualificationListRequestDto;
@@ -42,7 +42,7 @@ public class QualificationCrawlingService {
     // 자격증 목록 가져오기
     @Transactional
     @CachePut(value = "categoryList")
-    public List<CategoryListDto> getQualificationList() {
+    public List<QualificationListDto> getQualificationList() {
         String url = openApiUrl + apiKey;
 
         return webClient.get()
@@ -67,7 +67,7 @@ public class QualificationCrawlingService {
                     qualificationListRepository.saveAll(qualificationLists);
 
                     return Mono.just(qualificationLists.stream()
-                            .map(qualificationList -> new CategoryListDto(
+                            .map(qualificationList -> new QualificationListDto(
                                     qualificationList.getCode(),
                                     qualificationList.getName()
                             )).collect(Collectors.toList()));
