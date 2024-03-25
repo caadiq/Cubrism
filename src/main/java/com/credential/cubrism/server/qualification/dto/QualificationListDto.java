@@ -9,5 +9,5 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class QualificationListDto implements Serializable {
     private String code;
-    private String category;
+    private String name;
 }
