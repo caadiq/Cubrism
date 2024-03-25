@@ -41,7 +41,7 @@ public class QualificationCrawlingService {
 
     // 자격증 목록 가져오기
     @Transactional
-    @CachePut(value = "categoryList")
+    @CachePut(value = "qualificationList")
     public List<QualificationListDto> getQualificationList() {
         String url = openApiUrl + apiKey;
 
