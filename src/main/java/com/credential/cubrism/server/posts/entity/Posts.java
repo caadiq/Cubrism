@@ -31,7 +31,7 @@ public class Posts {
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category", nullable = false)
     private QualificationList qualificationList;
 
