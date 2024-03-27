@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/auth/signup/**").permitAll()
                         .requestMatchers("/auth/signin/**").permitAll()
-                        .requestMatchers("/auth/reissue").permitAll()
+                        .requestMatchers("/auth/reissue-access-token").permitAll()
                         .requestMatchers("/auth/social/**").permitAll()
                         .requestMatchers("/qualification/**").permitAll()
                         .requestMatchers("/post/list").permitAll()
