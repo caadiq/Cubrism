@@ -53,22 +53,24 @@ public class StudyGroupController {
     @GetMapping("/list") // 스터디 그룹 목록
     public ResponseEntity<?> studyGroupList(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int limit
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(defaultValue = "false") boolean recruiting
     ) {
         limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 스터디 그룹 수를 1~50 사이로 제한
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
 
-        return studyGroupService.studyGroupList(pageable);
+        return studyGroupService.studyGroupList(pageable, recruiting);
     }
 
     @GetMapping("/my") // 내 스터디 그룹 목록
     public ResponseEntity<?> myStudyGroupList(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int limit
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(defaultValue = "false") boolean recruiting
     ) {
         limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 스터디 그룹 수를 1~50 사이로 제한
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
 
-        return studyGroupService.myStudyGroupList(pageable);
+        return studyGroupService.myStudyGroupList(pageable, recruiting);
     }
 }

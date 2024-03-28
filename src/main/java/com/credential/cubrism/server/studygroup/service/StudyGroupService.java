@@ -20,11 +20,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -187,19 +185,19 @@ public class StudyGroupService {
     }
 
     // 스터디 그룹 목록
-    public ResponseEntity<StudyGroupListDto> studyGroupList(Pageable pageable) {
+    public ResponseEntity<StudyGroupListDto> studyGroupList(Pageable pageable, boolean recruiting) {
         Page<StudyGroup> studyGroup = studyGroupRepository.findAll(pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(getStudyGroupList(studyGroup, pageable));
+        return ResponseEntity.status(HttpStatus.OK).body(getStudyGroupList(studyGroup, pageable, recruiting));
     }
 
     // 내 스터디 그룹 목록
-    public ResponseEntity<StudyGroupListDto> myStudyGroupList(Pageable pageable) {
+    public ResponseEntity<StudyGroupListDto> myStudyGroupList(Pageable pageable, boolean recruiting) {
         Users currentUser = securityUtil.getCurrentUser();
         Page<StudyGroup> studyGroup = studyGroupRepository.findByUserId(currentUser.getUuid(), pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(getStudyGroupList(studyGroup, pageable));
+        return ResponseEntity.status(HttpStatus.OK).body(getStudyGroupList(studyGroup, pageable, recruiting));
     }
 
-    private StudyGroupListDto getStudyGroupList(Page<StudyGroup> studyGroup, Pageable pageable) {
+    private StudyGroupListDto getStudyGroupList(Page<StudyGroup> studyGroup, Pageable pageable, boolean recruiting) {
         return new StudyGroupListDto(
                 new StudyGroupListDto.Pageable(
                         studyGroup.hasPrevious() ? pageable.getPageNumber() - 1 : null,
@@ -207,6 +205,7 @@ public class StudyGroupService {
                         studyGroup.hasNext() ? pageable.getPageNumber() + 1 : null
                 ),
                 studyGroup.stream()
+                        .filter(group -> !recruiting || group.getGroupMembers().size() < group.getMaxMembers())
                         .map(group -> {
                             boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers(); // 모집중 여부
                             return new StudyGroupListDto.StudyGroupList(
