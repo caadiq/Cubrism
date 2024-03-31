@@ -16,6 +16,9 @@ import java.util.UUID;
 public interface PostRepository extends JpaRepository<Posts, UUID> {
     Page<Posts> findAllByBoard(Board board, Pageable pageable);
 
+    @Query("SELECT p FROM Posts p WHERE p.board = :board AND (LOWER(REPLACE(p.title, ' ', '')) LIKE %:searchQuery% OR LOWER(REPLACE(p.content, ' ', '')) LIKE %:searchQuery%)")
+    Page<Posts> findALlByBoardAndSearchQuery(Board board, String searchQuery, Pageable pageable);
+
     Page<Posts> findAllByUserUuid(UUID userId, Pageable pageable);
 
     @Query("SELECT p FROM Posts p WHERE p.postId = :postId AND p.board.boardName = :boardName")

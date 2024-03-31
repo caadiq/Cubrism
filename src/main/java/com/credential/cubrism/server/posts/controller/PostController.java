@@ -35,12 +35,13 @@ public class PostController {
     public ResponseEntity<PostListDto> postList(
             @RequestParam String boardName,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int limit
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false) String searchQuery
     ) {
         limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 게시글 수를 1~50 사이로 제한
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
 
-        return postService.postList(pageable, boardName);
+        return postService.postList(pageable, boardName, searchQuery);
     }
 
     @GetMapping("/my") // 내 게시글 목록

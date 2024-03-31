@@ -23,9 +23,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -136,9 +140,16 @@ public class PostService {
     }
 
     // 게시글 목록
-    public ResponseEntity<PostListDto> postList(Pageable pageable, String boardName) {
+    public ResponseEntity<PostListDto> postList(Pageable pageable, String boardName, String searchQuery) {
         Board board = boardRepository.findByBoardName(boardName)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
+
+        if (searchQuery != null) {
+            searchQuery = searchQuery.toLowerCase().replace(" ", "");
+
+            Page<Posts> posts = postRepository.findALlByBoardAndSearchQuery(board, searchQuery, pageable);
+            return ResponseEntity.status(HttpStatus.OK).body(getPostList(posts));
+        }
 
         Page<Posts> posts = postRepository.findAllByBoard(board, pageable);
 
@@ -174,7 +185,7 @@ public class PostService {
                                 .orElse(null),
                         post.getTitle(),
                         post.getContent(),
-                        post.getCreatedDate().toString(),
+                        getTimeAgo(post.getCreatedDate()),
                         post.getComments().stream()
                                 .flatMap(comment -> Stream.concat(Stream.of(comment), comment.getReplies().stream()))
                                 .count()
@@ -224,6 +235,7 @@ public class PostService {
                 post.getBoard().getBoardName(),
                 post.getQualificationList().getName(),
                 post.getUser().getNickname(),
+                post.getUser().getImageUrl(),
                 post.getUser().getEmail(),
                 post.getTitle(),
                 post.getContent(),
@@ -234,5 +246,30 @@ public class PostService {
         );
 
         return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
+
+    private String getTimeAgo(LocalDateTime date) {
+        // 현재 날짜와 게시글 날짜의 차이 계산
+        Duration diff = Duration.between(date, LocalDateTime.now());
+
+        // 시간 단위로 변환
+        long seconds = diff.getSeconds();
+        long minutes = diff.toMinutes();
+        long hours = diff.toHours();
+        long days = diff.toDays();
+
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("M/dd", Locale.getDefault());
+
+        if (seconds < 60) { // 60초 이내
+            return "방금 전";
+        } else if (minutes < 60) { // 60분 이내
+            return minutes + "분 전";
+        } else if (hours < 24) { // 하루 이내
+            return hours + "시간 전";
+        } else if (days < 7) { // 1주일 이내
+            return days + "일 전";
+        } else { // 그 외
+            return date.format(dateFormat);
+        }
     }
 }

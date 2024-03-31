@@ -12,6 +12,7 @@ public class PostViewDto {
     private String boardName;
     private String category;
     private String nickname;
+    private String profileImageUrl;
     private String email;
     private String title;
     private String content;
