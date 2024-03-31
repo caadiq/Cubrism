@@ -35,7 +35,7 @@ public class AuthController {
         return authService.userInfo();
     }
 
-    @GetMapping("/reissue-access-token") // Access Token 재발급
+    @PostMapping("/reissue-access-token") // Access Token 재발급
     public ResponseEntity<TokenDto> reIssueAccessToken(
             @RequestHeader(value = "AccessToken") String accessToken,
             @RequestHeader(value = "RefreshToken") String refreshToken
@@ -43,7 +43,7 @@ public class AuthController {
         return authService.reIssueAccessToken(accessToken, refreshToken);
     }
 
-    @GetMapping("/reissue-refresh-token") // Refresh Token 재발급
+    @PostMapping("/reissue-refresh-token") // Refresh Token 재발급
     public ResponseEntity<TokenDto> reIssueRefreshToken() {
         return authService.reIssueRefreshToken();
     }
@@ -58,9 +58,9 @@ public class AuthController {
         return authService.withdrawal();
     }
 
-    @PostMapping("/profileimage") // 프로필 이미지 변경
-    public ResponseEntity<MessageDto> changeProfileImage(@RequestBody ProfileImageDto dto) {
-        return authService.changeProfileImage(dto.getImageUrl());
+    @PostMapping("/user/edit") // 회원 정보 수정
+    public ResponseEntity<MessageDto> editUser(@RequestBody UserEditDto dto) {
+        return authService.editUser(dto);
     }
 
     @PostMapping("/social/login/google")

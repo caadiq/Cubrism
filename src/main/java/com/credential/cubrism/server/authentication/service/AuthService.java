@@ -214,23 +214,27 @@ public class AuthService {
         return null;
     }
 
-    // 프로필 이미지 변경
+    // 회원 정보 수정
     @Transactional
-    public ResponseEntity<MessageDto> changeProfileImage(String imageUrl) {
-        // S3에 파일이 존재하는지 확인
-        if (!s3Util.isFileExists(imageUrl)) {
-            throw new CustomException(ErrorCode.S3_FILE_NOT_FOUND);
-        }
-
+    public ResponseEntity<MessageDto> editUser(UserEditDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
+        
+        if (dto.getImageUrl() != null) {
+            // S3에 파일이 존재하는지 확인
+            if (!s3Util.isFileExists(dto.getImageUrl())) {
+                throw new CustomException(ErrorCode.S3_FILE_NOT_FOUND);
+            }
 
-        // 기존 프로필 이미지 삭제
-        Optional.ofNullable(currentUser.getImageUrl()).ifPresent(s3Util::deleteFile);
+            // 기존 프로필 이미지 삭제
+            Optional.ofNullable(currentUser.getImageUrl()).ifPresent(s3Util::deleteFile);
 
-        currentUser.setImageUrl(imageUrl);
+            currentUser.setImageUrl(dto.getImageUrl());
+        }
+        
+        currentUser.setNickname(dto.getNickname());
         userRepository.save(currentUser);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("프로필 이미지 변경 완료"));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("회원 정보를 수정했습니다."));
     }
 
     // 구글 로그인
