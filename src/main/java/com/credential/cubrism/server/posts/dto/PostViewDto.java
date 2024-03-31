@@ -10,6 +10,7 @@ import java.util.List;
 public class PostViewDto {
     private Long postId;
     private String boardName;
+    private String category;
     private String nickname;
     private String email;
     private String title;

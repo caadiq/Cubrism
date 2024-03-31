@@ -222,6 +222,7 @@ public class PostService {
         PostViewDto dto = new PostViewDto(
                 post.getPostId(),
                 post.getBoard().getBoardName(),
+                post.getQualificationList().getName(),
                 post.getUser().getNickname(),
                 post.getUser().getEmail(),
                 post.getTitle(),
