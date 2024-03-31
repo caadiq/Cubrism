@@ -140,9 +140,16 @@ public class PostService {
     }
 
     // 게시글 목록
-    public ResponseEntity<PostListDto> postList(Pageable pageable, String boardName) {
+    public ResponseEntity<PostListDto> postList(Pageable pageable, String boardName, String searchQuery) {
         Board board = boardRepository.findByBoardName(boardName)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
+
+        if (searchQuery != null) {
+            searchQuery = searchQuery.toLowerCase().replace(" ", "");
+
+            Page<Posts> posts = postRepository.findALlByBoardAndSearchQuery(board, searchQuery, pageable);
+            return ResponseEntity.status(HttpStatus.OK).body(getPostList(posts));
+        }
 
         Page<Posts> posts = postRepository.findAllByBoard(board, pageable);
 
