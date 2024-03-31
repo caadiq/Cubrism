@@ -2,6 +2,7 @@ package com.credential.cubrism.server.studygroup.controller;
 
 import com.credential.cubrism.server.studygroup.dto.JoinRequestDto;
 import com.credential.cubrism.server.studygroup.dto.StudyGroupCreateDto;
+import com.credential.cubrism.server.studygroup.dto.StudyGroupGoalCreateDto;
 import com.credential.cubrism.server.studygroup.service.StudyGroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -72,5 +73,15 @@ public class StudyGroupController {
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
 
         return studyGroupService.myStudyGroupList(pageable, recruiting);
+    }
+
+    @PostMapping("/addStudyGroupGoal") // 스터디 그룹 목표 추가
+    public ResponseEntity<?> addStudyGroupGoal(@RequestBody StudyGroupGoalCreateDto dto) {
+        return studyGroupService.addGoalToStudyGroup(dto);
+    }
+
+    @GetMapping("/deleteStudyGroupGoal") // 스터디 그룹 목표 삭제
+    public ResponseEntity<?> deleteStudyGroupGoal(@RequestParam Long goalId) {
+        return studyGroupService.deleteGoalFromStudyGroup(goalId);
     }
 }

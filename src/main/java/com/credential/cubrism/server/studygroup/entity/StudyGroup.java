@@ -6,7 +6,9 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Getter
@@ -38,4 +40,19 @@ public class StudyGroup {
 
     @OneToMany(mappedBy = "studyGroup", cascade = CascadeType.ALL)
     private List<GroupTags> groupTags;
+
+    @Column(name = "d_day", nullable = true)
+    private LocalDate dDay;
+
+    @OneToMany(mappedBy = "studyGroup", cascade = CascadeType.ALL)
+    private List<StudyGroupGoal> studyGroupGoals;
+
+    @Column(name = "hidden", nullable = true)
+    private boolean hidden;
+
+    public long calculateDDay() {
+        return ChronoUnit.DAYS.between(LocalDate.now(), this.dDay);
+    }
+
+
 }

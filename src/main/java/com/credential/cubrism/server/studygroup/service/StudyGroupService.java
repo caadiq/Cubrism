@@ -7,13 +7,12 @@ import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
 import com.credential.cubrism.server.studygroup.dto.JoinRequestDto;
 import com.credential.cubrism.server.studygroup.dto.StudyGroupCreateDto;
+import com.credential.cubrism.server.studygroup.dto.StudyGroupGoalCreateDto;
 import com.credential.cubrism.server.studygroup.dto.StudyGroupListDto;
-import com.credential.cubrism.server.studygroup.entity.GroupMembers;
-import com.credential.cubrism.server.studygroup.entity.GroupTags;
-import com.credential.cubrism.server.studygroup.entity.PendingMembers;
-import com.credential.cubrism.server.studygroup.entity.StudyGroup;
+import com.credential.cubrism.server.studygroup.entity.*;
 import com.credential.cubrism.server.studygroup.repository.GroupMembersRepository;
 import com.credential.cubrism.server.studygroup.repository.PendingMembersRepository;
+import com.credential.cubrism.server.studygroup.repository.StudyGroupGoalRepository;
 import com.credential.cubrism.server.studygroup.repository.StudyGroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +33,7 @@ public class StudyGroupService {
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMembersRepository groupMembersRepository;
     private final PendingMembersRepository pendingMembersRepository;
+    private final StudyGroupGoalRepository studyGroupGoalRepository;
 
     private final SecurityUtil securityUtil;
 
@@ -54,6 +55,7 @@ public class StudyGroupService {
                     return groupTags;
                 }).toList();
         studyGroup.setGroupTags(groupTagsList);
+        studyGroup.setHidden(false);
 
         GroupMembers groupMembers = new GroupMembers();
         groupMembers.setUser(currentUser);
@@ -220,6 +222,42 @@ public class StudyGroupService {
                                             .toList()
                             );
                         }).toList());
+    }
+
+    public ResponseEntity<MessageDto> addGoalToStudyGroup(StudyGroupGoalCreateDto studyGroupGoalCreateDto) {
+        Long groupId = studyGroupGoalCreateDto.getStudyGroupId();
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid study group Id:" + groupId));
+
+        StudyGroupGoal goal = new StudyGroupGoal();
+        goal.setGoalName(studyGroupGoalCreateDto.getGoalName());
+
+        // details 필드 설정 부분 수정
+        List<GoalDetail> details = studyGroupGoalCreateDto.getDetails().stream()
+                .map(detailStr -> {
+                    GoalDetail detail = new GoalDetail();
+                    detail.setDetail(detailStr);
+                    detail.setStudyGroupGoal(goal);
+                    return detail;
+                }).collect(Collectors.toList());
+        goal.setDetails(details);
+
+        goal.setStudyGroup(studyGroup);
+        studyGroup.getStudyGroupGoals().add(goal);
+
+        studyGroupGoalRepository.save(goal);
+        studyGroupRepository.save(studyGroup);
+
+        return ResponseEntity.ok().body(new MessageDto("스터디 그룹에 목표를 추가했습니다."));
+    }
+
+    public ResponseEntity<MessageDto> deleteGoalFromStudyGroup(Long goalId) {
+        StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid goal Id:" + goalId));
+
+        studyGroupGoalRepository.delete(goal);
+
+        return ResponseEntity.ok().body(new MessageDto("스터디 그룹에서 목표를 삭제했습니다."));
     }
 
 }
