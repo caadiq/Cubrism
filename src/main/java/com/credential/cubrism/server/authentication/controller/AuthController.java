@@ -58,9 +58,9 @@ public class AuthController {
         return authService.withdrawal();
     }
 
-    @PostMapping("/profileimage") // 프로필 이미지 변경
-    public ResponseEntity<MessageDto> changeProfileImage(@RequestBody ProfileImageDto dto) {
-        return authService.changeProfileImage(dto.getImageUrl());
+    @PostMapping("/user/edit") // 회원 정보 수정
+    public ResponseEntity<MessageDto> editUser(@RequestBody UserEditDto dto) {
+        return authService.editUser(dto);
     }
 
     @PostMapping("/social/login/google")
