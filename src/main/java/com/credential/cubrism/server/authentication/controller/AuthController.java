@@ -35,7 +35,7 @@ public class AuthController {
         return authService.userInfo();
     }
 
-    @GetMapping("/reissue-access-token") // Access Token 재발급
+    @PostMapping("/reissue-access-token") // Access Token 재발급
     public ResponseEntity<TokenDto> reIssueAccessToken(
             @RequestHeader(value = "AccessToken") String accessToken,
             @RequestHeader(value = "RefreshToken") String refreshToken
@@ -43,7 +43,7 @@ public class AuthController {
         return authService.reIssueAccessToken(accessToken, refreshToken);
     }
 
-    @GetMapping("/reissue-refresh-token") // Refresh Token 재발급
+    @PostMapping("/reissue-refresh-token") // Refresh Token 재발급
     public ResponseEntity<TokenDto> reIssueRefreshToken() {
         return authService.reIssueRefreshToken();
     }
