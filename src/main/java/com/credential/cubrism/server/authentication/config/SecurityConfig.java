@@ -45,6 +45,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/signin/**").permitAll()
                         .requestMatchers("/auth/reissue-access-token").permitAll()
                         .requestMatchers("/auth/social/**").permitAll()
+                        .requestMatchers("/auth/password/find").permitAll()
+                        .requestMatchers("/auth/password/reset/**").permitAll()
                         .requestMatchers("/qualification/**").permitAll()
                         .requestMatchers("/post/list").permitAll()
                         .requestMatchers("/post/view").permitAll()

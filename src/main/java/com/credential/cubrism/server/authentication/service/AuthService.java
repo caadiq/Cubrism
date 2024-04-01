@@ -5,6 +5,7 @@ import com.credential.cubrism.server.authentication.entity.Authority;
 import com.credential.cubrism.server.authentication.entity.Users;
 import com.credential.cubrism.server.authentication.jwt.JwtTokenProvider;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
+import com.credential.cubrism.server.authentication.utils.EmailUtil;
 import com.credential.cubrism.server.authentication.utils.RedisUtil;
 import com.credential.cubrism.server.authentication.utils.SecurityUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
@@ -30,11 +31,13 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -49,6 +52,9 @@ public class AuthService {
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String googleClientSecret;
 
+    @Value("${cubrism.logo.url}")
+    private String logoUrl;
+
     private final UserRepository userRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -58,6 +64,7 @@ public class AuthService {
 
     private final SecurityUtil securityUtil;
     private final RedisUtil redisUtil;
+    private final EmailUtil emailUtil;
     private final S3Util s3Util;
 
     private final HttpTransport transport = new NetHttpTransport();
@@ -65,6 +72,7 @@ public class AuthService {
 
     private static final String AUTHORITIES_KEY = "auth";
     private static final String REFRESH_TOKEN_SUFFIX = "(refreshToken)"; // Redis Key 중복 방지를 위한 접미사
+    private static final String RESET_PASSWORD_SUFFIX = "(resetPassword)"; // Redis Key 중복 방지를 위한 접미사
     private static final String GOOGLE_TOKEN_SERVER_ENCODED_URL = "https://oauth2.googleapis.com/token";
     private static final String GOOGLE_REDIRECT_URI = "http://localhost:8080/login/oauth2/code/google";
     private static final String KAKAO_REQUEST_URL = "https://kapi.kakao.com/v2/user/me";
@@ -199,6 +207,65 @@ public class AuthService {
         userRepository.save(user);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("비밀번호 변경 완료"));
+    }
+
+    // 비밀번호 초기화 이메일 전송
+    public ResponseEntity<MessageDto> findPassword(String email) {
+        // 이메일 존재 여부 확인
+        userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_FOUND));
+
+        // 소셜 로그인 유저인지 확인
+        userRepository.findByEmail(email)
+                .filter(user -> user.getProvider() == null)
+                .orElseThrow(() -> new CustomException(ErrorCode.SOCIAL_LOGIN_USER));
+
+        try {
+            String uuid = UUID.randomUUID().toString();
+            emailUtil.sendResetPasswordEmail(email, uuid);
+            redisUtil.setData(uuid + RESET_PASSWORD_SUFFIX, email, 300);
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.EMAIL_SEND_FAILURE);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("이메일을 전송했습니다."));
+    }
+
+    // 비밀번호 초기화 페이지
+    public String resetPasswordPage(String uuid, Model model) {
+        if (redisUtil.hasKey(uuid + RESET_PASSWORD_SUFFIX)) {
+            model.addAttribute("uuid", uuid);
+            model.addAttribute("logoUrl", logoUrl);
+            return "reset_password";
+        } else {
+            model.addAttribute("logoUrl", logoUrl);
+            return "reset_password_expired";
+        }
+    }
+
+    // 비밀번호 초기화
+    public String resetPassword(String uuid, String newPassword, String confirmPassword, Model model) {
+        if (!newPassword.equals(confirmPassword)) {
+            return "redirect:/auth/password/reset/" + uuid;
+        }
+
+        System.out.println("uuid: " + uuid + ", newPassword: " + newPassword + ", confirmPassword: " + confirmPassword);
+        String email = redisUtil.getData(uuid + RESET_PASSWORD_SUFFIX);
+        if (email == null) {
+            model.addAttribute("logoUrl", logoUrl);
+            return "reset_password_expired";
+        }
+
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_FOUND));
+
+        user.setPassword(bCryptPasswordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        redisUtil.deleteData(uuid + RESET_PASSWORD_SUFFIX);
+
+        model.addAttribute("logoUrl", logoUrl);
+        return "reset_password_success";
     }
 
     // 회원탈퇴

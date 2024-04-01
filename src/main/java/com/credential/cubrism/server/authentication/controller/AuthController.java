@@ -48,9 +48,14 @@ public class AuthController {
         return authService.reIssueRefreshToken();
     }
 
-    @PostMapping("/password") // 비밀번호 변경
+    @PostMapping("/password/change") // 비밀번호 변경
     public ResponseEntity<MessageDto> changePassword(@RequestBody @Valid ChangePasswordDto dto) {
         return authService.changePassword(dto);
+    }
+
+    @PostMapping("/password/find") // 비밀번호 초기화
+    public ResponseEntity<MessageDto> findPassword(@RequestBody @Valid ResetPasswordDto dto) {
+        return authService.findPassword(dto.getEmail());
     }
 
     @PostMapping("/withdrawal") // 회원탈퇴

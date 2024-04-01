@@ -29,7 +29,7 @@ public class EmailService {
 
         try {
             // 인증번호 이메일 전송 후 Redis에 인증번호 5분 동안 저장
-            redisUtil.setData(receiver + EMAIL_VERIFICATION_SUFFIX, Integer.toString(emailUtil.sendEmail(receiver)), 300);
+            redisUtil.setData(receiver + EMAIL_VERIFICATION_SUFFIX, Integer.toString(emailUtil.sendVerifyEmail(receiver)), 300);
             return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("이메일 전송 완료"));
         } catch (Exception e) {
             throw new CustomException(ErrorCode.EMAIL_SEND_FAILURE);
