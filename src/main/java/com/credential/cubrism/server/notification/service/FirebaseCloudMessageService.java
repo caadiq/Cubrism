@@ -6,10 +6,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
-import okhttp3.*;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,19 +26,18 @@ public class FirebaseCloudMessageService {
     public void sendMessageTo(String targetToken, String title, String body) throws IOException {
         String message = makeMessage(targetToken, title, body);
 
-        OkHttpClient client = new OkHttpClient();
-        RequestBody requestBody = RequestBody.create(message,
-                MediaType.get("application/json; charset=utf-8"));
-        Request request = new Request.Builder()
-                .url(API_URL)
-                .post(requestBody)
-                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
-                .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
-                .build();
+        WebClient webClient = WebClient.create();
 
-        Response response = client.newCall(request).execute();
+        String response = webClient.post()
+                .uri(API_URL)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+                .header(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
+                .body(BodyInserters.fromValue(message))
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
 
-        System.out.println(response.body().string());
+        System.out.println(response);
     }
 
     private String makeMessage(String targetToken, String title, String body) throws JsonParseException, JsonProcessingException {
