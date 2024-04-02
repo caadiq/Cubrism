@@ -30,6 +30,7 @@ public enum ErrorCode {
     BAD_CREDENTIALS(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."),
     INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 액세스 토큰입니다."),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 만료되었습니다."),
 
 
     /**
@@ -51,7 +52,6 @@ public enum ErrorCode {
      * ex) 존재하지 않는 데이터를 조회할 때
      */
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 이메일입니다."),
-    REFRESH_TOKEN_EXPIRED(HttpStatus.NOT_FOUND, "리프레시 토큰이 만료되었습니다."),
     S3_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "S3버킷에 파일이 존재하지 않습니다."),
     SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "일정이 존재하지 않습니다."),
     QUALIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "자격증이 존재하지 않습니다."),
