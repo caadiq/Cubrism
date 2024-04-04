@@ -236,12 +236,26 @@ public class AuthService {
         if (redisUtil.hasKey(uuid + RESET_PASSWORD_SUFFIX)) {
             model.addAttribute("uuid", uuid);
             model.addAttribute("logoUrl", logoUrl);
+            model.addAttribute("errorMessage", null);
             return "reset_password";
         } else {
             model.addAttribute("logoUrl", logoUrl);
             return "reset_password_expired";
         }
     }
+
+    public String resetPasswordPage(String uuid, Model model, String errorMessage) {
+        if (redisUtil.hasKey(uuid + RESET_PASSWORD_SUFFIX)) {
+            model.addAttribute("uuid", uuid);
+            model.addAttribute("logoUrl", logoUrl);
+            model.addAttribute("errorMessage", errorMessage);
+            return "reset_password";
+        } else {
+            model.addAttribute("logoUrl", logoUrl);
+            return "reset_password_expired";
+        }
+    }
+
 
     // 비밀번호 초기화
     public String resetPassword(String uuid, String newPassword, String confirmPassword, Model model) {
