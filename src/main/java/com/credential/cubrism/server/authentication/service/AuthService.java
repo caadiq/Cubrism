@@ -21,7 +21,6 @@ import com.google.api.client.json.gson.GsonFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +38,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -368,7 +366,7 @@ public class AuthService {
     }
 
     // 소셜 로그인 유저 정보 업데이트 및 토큰 발급
-    private ResponseEntity<TokenDto> updateUserAndGenerateTokens(String email, String name, String pictureUrl, String provider) {
+    private ResponseEntity<TokenDto> updateUserAndGenerateTokens(String email, String nickname, String pictureUrl, String provider) {
         Users user = userRepository.findByEmail(email).orElseGet(() -> {
             Authority authority = new Authority();
             authority.setAuthorityName("ROLE_USER");
@@ -379,7 +377,7 @@ public class AuthService {
             return newUser;
         });
 
-        user.setNickname(name);
+        user.setNickname(nickname);
         user.setImageUrl(pictureUrl);
         user.setProvider(provider);
         userRepository.save(user);
@@ -387,6 +385,9 @@ public class AuthService {
         Set<Authority> authorities = user.getAuthorities();
         String accessToken = jwtTokenProvider.reissueAccessToken(email, authorities.toString());
         String refreshToken = jwtTokenProvider.generateRefreshToken();
+
+        redisUtil.setData(email + REFRESH_TOKEN_SUFFIX, refreshToken, refreshTokenExpiration / 1000);
+
         return ResponseEntity.status(HttpStatus.OK).body(new TokenDto(accessToken, refreshToken));
     }
 }
