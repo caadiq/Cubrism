@@ -12,39 +12,43 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/post")
 public class PostController {
     private final PostService postService;
 
-    @PostMapping("/add") // 게시글 작성
+    @PostMapping("/post") // 게시글 작성
     public ResponseEntity<MessageDto> addPost(@RequestBody PostAddDto dto) {
         return postService.addPost(dto);
     }
 
-    @PostMapping("/delete") // 게시글 삭제
-    public ResponseEntity<MessageDto> deletePost(@RequestBody PostDeleteDto dto) {
-        return postService.deletePost(dto);
+    @DeleteMapping("/post/{postId}") // 게시글 삭제
+    public ResponseEntity<MessageDto> deletePost(@PathVariable Long postId) {
+        return postService.deletePost(postId);
     }
 
-    @PostMapping("/update") // 게시글 수정
-    public ResponseEntity<MessageDto> updatePost(@RequestBody PostUpdateDto dto) {
-        return postService.updatePost(dto);
+    @PutMapping("/post/{postId}") // 게시글 수정
+    public ResponseEntity<MessageDto> updatePost(@PathVariable Long postId, @RequestBody PostUpdateDto dto) {
+        return postService.updatePost(postId, dto);
     }
 
-    @GetMapping("/list") // 게시글 목록
+    @GetMapping("/post/{postId}") // 게시글 보기
+    public ResponseEntity<PostViewDto> postView(@PathVariable Long postId) {
+        return postService.postView(postId);
+    }
+
+    @GetMapping("/posts") // 게시글 목록
     public ResponseEntity<PostListDto> postList(
-            @RequestParam String boardName,
+            @RequestParam(value = "board-id") Long boardId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(required = false) String searchQuery
+            @RequestParam(value = "search-query", required = false) String searchQuery
     ) {
         limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 게시글 수를 1~50 사이로 제한
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
 
-        return postService.postList(pageable, boardName, searchQuery);
+        return postService.postList(pageable, boardId, searchQuery);
     }
 
-    @GetMapping("/my") // 내 게시글 목록
+    @GetMapping("/posts/my") // 내 게시글 목록
     public ResponseEntity<PostListDto> myPostList(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit
@@ -53,13 +57,5 @@ public class PostController {
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
 
         return postService.myPostList(pageable);
-    }
-
-    @GetMapping("/view") // 게시글 보기
-    public ResponseEntity<PostViewDto> postView(
-            @RequestParam Long postId,
-            @RequestParam String boardName
-    ) {
-        return postService.postView(postId, boardName);
     }
 }

@@ -49,7 +49,7 @@ public class PostService {
     public ResponseEntity<MessageDto> addPost(PostAddDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        Board board = boardRepository.findByBoardName(dto.getBoardName())
+        Board board = boardRepository.findById(dto.getBoardId())
                 .orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
         QualificationList qualificationList = qualificationListRepository.findByName(dto.getCategory())
@@ -79,10 +79,10 @@ public class PostService {
 
     // 게시글 삭제
     @Transactional
-    public ResponseEntity<MessageDto> deletePost(PostDeleteDto dto) {
+    public ResponseEntity<MessageDto> deletePost(Long postId) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        Posts post = postRepository.findByPostIdAndBoardName(dto.getPostId(), dto.getBoardName())
+        Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // 작성자 본인인지 확인
@@ -97,20 +97,15 @@ public class PostService {
 
     // 게시글 수정
     @Transactional
-    public ResponseEntity<MessageDto> updatePost(PostUpdateDto dto) {
+    public ResponseEntity<MessageDto> updatePost(Long postId, PostUpdateDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        Posts post = postRepository.findByPostId(dto.getPostId())
+        Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // 작성자 본인인지 확인
         if (!post.getUser().getUuid().equals(currentUser.getUuid())) {
             throw new CustomException(ErrorCode.UPDATE_DENIED);
-        }
-
-        // 게시판과 게시글이 일치하는지 확인
-        if (!post.getBoard().getBoardName().equals(dto.getBoardName())) {
-            throw new CustomException(ErrorCode.INVALID_BOARD_AND_POST);
         }
 
         // RemovedImages가 존재하면 S3및 DB에서 이미지 삭제
@@ -121,6 +116,7 @@ public class PostService {
             }
         }
 
+        // 이미지 목록을 업데이트
         List<PostImages> postImagesList = dto.getImages().stream()
                 .map(imageUrl -> {
                     PostImages postImage = new PostImages();
@@ -140,14 +136,14 @@ public class PostService {
     }
 
     // 게시글 목록
-    public ResponseEntity<PostListDto> postList(Pageable pageable, String boardName, String searchQuery) {
-        Board board = boardRepository.findByBoardName(boardName)
+    public ResponseEntity<PostListDto> postList(Pageable pageable, Long boardId, String searchQuery) {
+        Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
         if (searchQuery != null) {
             searchQuery = searchQuery.toLowerCase().replace(" ", "");
 
-            Page<Posts> posts = postRepository.findALlByBoardAndSearchQuery(board, searchQuery, pageable);
+            Page<Posts> posts = postRepository.findAllByBoardAndSearchQuery(board, searchQuery, pageable);
             return ResponseEntity.status(HttpStatus.OK).body(getPostList(posts));
         }
 
@@ -159,7 +155,6 @@ public class PostService {
     // 내 게시글 목록
     public ResponseEntity<PostListDto> myPostList(Pageable pageable) {
         Users currentUser = securityUtil.getCurrentUser();
-
         Page<Posts> posts = postRepository.findAllByUserUuid(currentUser.getUuid(), pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(getPostList(posts));
@@ -175,7 +170,6 @@ public class PostService {
         List<PostListDto.PostList> postListDTO = posts.stream()
                 .map(post -> new PostListDto.PostList(
                         post.getPostId(),
-                        post.getBoard().getBoardName(),
                         post.getQualificationList().getName(),
                         post.getUser().getNickname(),
                         post.getPostImages().stream()
@@ -195,8 +189,8 @@ public class PostService {
     }
 
     // 게시글 보기
-    public ResponseEntity<PostViewDto> postView(Long postId, String boardName) {
-        Posts post = postRepository.findByPostIdAndBoardName(postId, boardName)
+    public ResponseEntity<PostViewDto> postView(Long postId) {
+        Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         List<String> postImagesDto = postImagesRepository.findAllByPostId(postId).stream()
