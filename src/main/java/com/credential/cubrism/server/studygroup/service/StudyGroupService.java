@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -212,8 +213,9 @@ public class StudyGroupService {
                                     .orElse(null),
                             group.getGroupMembers().stream()
                                     .filter(GroupMembers::isAdmin)
-                                    .map(groupMembers -> groupMembers.getUser().getImageUrl())
+                                    .map(groupMembers -> Optional.ofNullable(groupMembers.getUser().getImageUrl()))
                                     .findFirst()
+                                    .orElse(Optional.empty())
                                     .orElse(null),
                             group.getGroupMembers().size(),
                             group.getMaxMembers(),
