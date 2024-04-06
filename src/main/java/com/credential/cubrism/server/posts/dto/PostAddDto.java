@@ -6,7 +6,7 @@ import java.util.List;
 
 @Getter
 public class PostAddDto {
-    private String boardName;
+    private Long boardId;
     private String title;
     private String content;
     private String category;

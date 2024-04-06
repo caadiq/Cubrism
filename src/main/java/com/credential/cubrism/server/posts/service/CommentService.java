@@ -30,7 +30,7 @@ public class CommentService {
     public ResponseEntity<MessageDto> addComment(CommentAddDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        Posts post = postRepository.findByPostId(dto.getPostId())
+        Posts post = postRepository.findById(dto.getPostId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         Comments comment = new Comments();

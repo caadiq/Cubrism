@@ -6,8 +6,6 @@ import java.util.List;
 
 @Getter
 public class PostUpdateDto {
-    private Long postId;
-    private String boardName;
     private String title;
     private String content;
     private List<String> images;

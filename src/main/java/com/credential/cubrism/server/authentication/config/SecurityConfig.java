@@ -4,6 +4,7 @@ import com.credential.cubrism.server.authentication.jwt.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -48,7 +49,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/password/find").permitAll()
                         .requestMatchers("/auth/password/reset/**").permitAll()
                         .requestMatchers("/qualification/**").permitAll()
-                        .requestMatchers("/post/list").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/post/{postId}").permitAll()
+                        .requestMatchers("/posts").permitAll()
                         .requestMatchers("/post/view").permitAll()
                         .requestMatchers("/studygroup/list").permitAll()
                         .requestMatchers("/studygroup/info").permitAll()
