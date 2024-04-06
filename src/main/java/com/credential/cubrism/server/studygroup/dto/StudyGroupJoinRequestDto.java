@@ -1,14 +1,14 @@
 package com.credential.cubrism.server.studygroup.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
-@Setter
-public class JoinRequestDto {
+@AllArgsConstructor
+public class StudyGroupJoinRequestDto {
     private UUID memberId;
     private Long groupId;
     private String groupName;
