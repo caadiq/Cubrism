@@ -42,20 +42,30 @@ public class SecurityConfig {
                 // 권한 설정
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers("/error").permitAll()
+
+                        // 회원
                         .requestMatchers("/auth/signup/**").permitAll()
                         .requestMatchers("/auth/signin/**").permitAll()
                         .requestMatchers("/auth/reissue-access-token").permitAll()
                         .requestMatchers("/auth/social/**").permitAll()
                         .requestMatchers("/auth/password/find").permitAll()
                         .requestMatchers("/auth/password/reset/**").permitAll()
+
+                        // 자격증
                         .requestMatchers("/qualification/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/post/{postId}").permitAll()
-                        .requestMatchers("/posts").permitAll()
-                        .requestMatchers("/post/view").permitAll()
+
+                        // 게시글
+                        .requestMatchers(HttpMethod.GET, "/post/{postId}").permitAll() // 게시글 보기
+                        .requestMatchers("/posts").permitAll() // 게시글 목록
+
+                        // 스터디 그룹
                         .requestMatchers("/studygroup/list").permitAll()
                         .requestMatchers("/studygroup/info").permitAll()
+
+                        // 알림
                         .requestMatchers("/api/fcm").permitAll()
-                        .requestMatchers("/test/**").permitAll()
+
+                        // 그 외
                         .anyRequest().authenticated()
                 )
 

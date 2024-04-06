@@ -49,9 +49,11 @@ public class PostService {
     public ResponseEntity<MessageDto> addPost(PostAddDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
 
+        // 게시판
         Board board = boardRepository.findById(dto.getBoardId())
                 .orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
-
+        
+        // 카테고리
         QualificationList qualificationList = qualificationListRepository.findByName(dto.getCategory())
                 .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
 
@@ -62,6 +64,7 @@ public class PostService {
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
 
+        // 이미지 목록 저장
         List<PostImages> postImagesList = dto.getImages().stream()
                 .map(imageUrl -> {
                     PostImages postImage = new PostImages();
@@ -74,7 +77,7 @@ public class PostService {
         post.setPostImages(postImagesList);
         postRepository.save(post);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("게시글을 작성했습니다."));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("게시글을 작성했습니다."));
     }
 
     // 게시글 삭제
@@ -100,6 +103,7 @@ public class PostService {
     public ResponseEntity<MessageDto> updatePost(Long postId, PostUpdateDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
 
+        // 게시글
         Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
@@ -116,7 +120,7 @@ public class PostService {
             }
         }
 
-        // 이미지 목록을 업데이트
+        // 이미지 목록 업데이트
         List<PostImages> postImagesList = dto.getImages().stream()
                 .map(imageUrl -> {
                     PostImages postImage = new PostImages();
@@ -132,7 +136,7 @@ public class PostService {
 
         postRepository.save(post);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("게시글을 수정했습니다."));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("게시글을 수정했습니다."));
     }
 
     // 게시글 목록
@@ -140,13 +144,16 @@ public class PostService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
 
+        // 검색어가 존재하면
         if (searchQuery != null) {
             searchQuery = searchQuery.toLowerCase().replace(" ", "");
 
             Page<Posts> posts = postRepository.findAllByBoardAndSearchQuery(board, searchQuery, pageable);
+
             return ResponseEntity.status(HttpStatus.OK).body(getPostList(posts));
         }
 
+        // 검색어가 존재하지 않으면
         Page<Posts> posts = postRepository.findAllByBoard(board, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(getPostList(posts));
