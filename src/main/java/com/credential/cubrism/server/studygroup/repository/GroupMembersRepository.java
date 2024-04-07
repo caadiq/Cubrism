@@ -13,7 +13,8 @@ import java.util.UUID;
 @Repository
 public interface GroupMembersRepository extends JpaRepository<GroupMembers, UUID> {
     Optional<GroupMembers> findByUserAndStudyGroup(Users user, StudyGroup studyGroup);
-    List<GroupMembers> findAllByUserAndAdmin(Users user, boolean isAdmin);
+
+    List<GroupMembers> findByUserAndAdmin(Users user, boolean isAdmin);
 
     Optional<GroupMembers> findByUserAndStudyGroupAndAdmin(Users user, StudyGroup studyGroup, boolean admin);
 }

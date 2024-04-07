@@ -58,8 +58,8 @@ public class SecurityConfig {
                         .requestMatchers("/posts").permitAll() // 게시글 목록
 
                         // 스터디 그룹
-                        .requestMatchers("/studygroup/list").permitAll()
-                        .requestMatchers("/studygroup/info").permitAll()
+                        .requestMatchers("/studygroups").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/studygroup/{groupId}").permitAll()
 
                         // 알림
                         .requestMatchers("/api/fcm").permitAll()

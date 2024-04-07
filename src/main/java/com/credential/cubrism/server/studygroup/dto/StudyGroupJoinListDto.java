@@ -8,9 +8,8 @@ import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
-public class StudyGroupJoinRequestDto {
+public class StudyGroupJoinListDto {
     private UUID memberId;
-    private Long groupId;
     private String groupName;
     private String userName;
     private LocalDateTime requestDate;

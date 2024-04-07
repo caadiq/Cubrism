@@ -49,6 +49,7 @@ public enum ErrorCode {
      * 클라이언트가 요청한 리소스를 찾을 수 없을 때 발생하는 에러 코드
      * ex) 존재하지 않는 데이터를 조회할 때
      */
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자를 찾을 수 없습니다."),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 이메일입니다."),
     S3_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "S3버킷에 파일이 존재하지 않습니다."),
     SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "일정이 존재하지 않습니다."),
@@ -59,7 +60,7 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
     REPLY_NOT_FOUND(HttpStatus.NOT_FOUND, "대댓글이 존재하지 않습니다."),
     STUDY_GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹이 존재하지 않습니다."),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자를 찾을 수 없습니다."),
+    STUDY_GROUP_GOAL_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹 목표가 존재하지 않습니다."),
 
 
     /**
