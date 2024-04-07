@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
 import com.credential.cubrism.server.s3.dto.PresignedUrlDto;
+import com.credential.cubrism.server.s3.dto.PresignedUrlRequestDto;
 import com.credential.cubrism.server.s3.utils.S3Util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,10 @@ public class S3Service {
     private final S3Util s3Util;
 
     // Pre-Signed URL 생성
-    public ResponseEntity<List<PresignedUrlDto>> presignedUrl(List<String> filePathList, List<String> fileNameList) {
+    public ResponseEntity<List<PresignedUrlDto>> presignedUrl(PresignedUrlRequestDto requestDto) {
+        List<String> filePathList = requestDto.getFilePath();
+        List<String> fileNameList = requestDto.getFileName();
+
         // filePath 배열과 fileName 배열의 크기가 일치하는지 확인
         if (filePathList.size() != fileNameList.size()) {
             throw new CustomException(ErrorCode.INVALID_REQUEST);
