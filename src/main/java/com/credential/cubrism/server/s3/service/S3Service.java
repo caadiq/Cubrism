@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -20,19 +19,11 @@ public class S3Service {
     private final S3Util s3Util;
 
     // Pre-Signed URL 생성
-    public ResponseEntity<List<PresignedUrlDto>> presignedUrl(PresignedUrlRequestDto requestDto) {
-        List<String> filePathList = requestDto.getFilePath();
-        List<String> fileNameList = requestDto.getFileName();
-
-        // filePath 배열과 fileName 배열의 크기가 일치하는지 확인
-        if (filePathList.size() != fileNameList.size()) {
-            throw new CustomException(ErrorCode.INVALID_REQUEST);
-        }
-
-        List<PresignedUrlDto> results = IntStream.range(0, filePathList.size())
-                .mapToObj(i -> {
-                    String filePath = filePathList.get(i);
-                    String fileName = fileNameList.get(i);
+    public ResponseEntity<List<PresignedUrlDto>> presignedUrl(List<PresignedUrlRequestDto> dtoList) {
+        List<PresignedUrlDto> results = dtoList.stream()
+                .map(dto -> {
+                    String filePath = dto.getFilePath();
+                    String fileName = dto.getFileName();
 
                     // filePath 또는 fileName이 비어있는지 확인
                     if (filePath.isEmpty() || fileName.isEmpty()) {
