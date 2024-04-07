@@ -17,7 +17,7 @@ public class S3Controller {
 
     // Pre-Signed URL 생성
     @PostMapping("/pre-signed-url")
-    public ResponseEntity<List<PresignedUrlDto>> presignedUrl(@RequestBody PresignedUrlRequestDto dto) {
+    public ResponseEntity<List<PresignedUrlDto>> presignedUrl(@RequestBody List<PresignedUrlRequestDto> dto) {
         return s3Service.presignedUrl(dto);
     }
 }
