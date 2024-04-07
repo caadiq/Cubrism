@@ -46,10 +46,9 @@ public class SecurityConfig {
                         // 회원
                         .requestMatchers("/auth/signup/**").permitAll()
                         .requestMatchers("/auth/signin/**").permitAll()
-                        .requestMatchers("/auth/reissue-access-token").permitAll()
-                        .requestMatchers("/auth/social/**").permitAll()
-                        .requestMatchers("/auth/password/find").permitAll()
-                        .requestMatchers("/auth/password/reset/**").permitAll()
+                        .requestMatchers("/auth/token/access").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/users/password").permitAll()
+                        .requestMatchers("/auth/users/password/reset/**").permitAll()
 
                         // 자격증
                         .requestMatchers("/qualification/**").permitAll()

@@ -3,7 +3,6 @@ package com.credential.cubrism.server.authentication.controller;
 import com.credential.cubrism.server.authentication.dto.*;
 import com.credential.cubrism.server.authentication.service.AuthService;
 import com.credential.cubrism.server.common.dto.MessageDto;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,17 +24,17 @@ public class AuthController {
         return authService.signIn(dto);
     }
 
-    @DeleteMapping("/logout") // 로그아웃
-    public ResponseEntity<MessageDto> logOut(HttpServletRequest request) {
-        return authService.logOut(request);
+    @PostMapping("/logout") // 로그아웃
+    public ResponseEntity<MessageDto> logOut() {
+        return authService.logOut();
     }
 
-    @GetMapping("/info") // 로그인 유저 정보
+    @GetMapping("/users") // 로그인 유저 정보
     public ResponseEntity<UserDto> info() {
         return authService.userInfo();
     }
 
-    @PostMapping("/reissue-access-token") // Access Token 재발급
+    @PostMapping("/token/access") // Access Token 재발급
     public ResponseEntity<TokenDto> reIssueAccessToken(
             @RequestHeader(value = "AccessToken") String accessToken,
             @RequestHeader(value = "RefreshToken") String refreshToken
@@ -43,37 +42,37 @@ public class AuthController {
         return authService.reIssueAccessToken(accessToken, refreshToken);
     }
 
-    @PostMapping("/reissue-refresh-token") // Refresh Token 재발급
+    @PostMapping("/token/refresh") // Refresh Token 재발급
     public ResponseEntity<TokenDto> reIssueRefreshToken() {
         return authService.reIssueRefreshToken();
     }
 
-    @PostMapping("/password/change") // 비밀번호 변경
+    @PutMapping("/users/password") // 비밀번호 변경
     public ResponseEntity<MessageDto> changePassword(@RequestBody @Valid ChangePasswordDto dto) {
         return authService.changePassword(dto);
     }
 
-    @PostMapping("/password/find") // 비밀번호 초기화
+    @PostMapping("/users/password") // 비밀번호 초기화 이메일 전송
     public ResponseEntity<MessageDto> findPassword(@RequestBody @Valid ResetPasswordDto dto) {
         return authService.findPassword(dto.getEmail());
     }
 
-    @PostMapping("/withdrawal") // 회원탈퇴
+    @DeleteMapping("/users") // 회원탈퇴
     public ResponseEntity<?> withdrawal() {
         return authService.withdrawal();
     }
 
-    @PostMapping("/user/edit") // 회원 정보 수정
+    @PutMapping("/users") // 회원 정보 수정
     public ResponseEntity<MessageDto> editUser(@RequestBody UserEditDto dto) {
         return authService.editUser(dto);
     }
 
-    @PostMapping("/social/login/google")
+    @PostMapping("/users/signin/google") // 구글 로그인
     public ResponseEntity<TokenDto> googleLogIn(@RequestParam String serverAuthCode) {
         return authService.googleLogIn(serverAuthCode);
     }
 
-    @PostMapping("/social/login/kakao")
+    @PostMapping("/users/signin/kakao") // 카카오 로그인
     public ResponseEntity<TokenDto> kakaoLogIn(@RequestParam String accessToken) {
         return authService.kakaoLogIn(accessToken);
     }
