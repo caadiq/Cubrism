@@ -1,6 +1,5 @@
 package com.credential.cubrism.server.authentication.jwt;
 
-import com.credential.cubrism.server.authentication.utils.RedisUtil;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
@@ -29,8 +27,6 @@ public class JwtTokenProvider {
 
     @Value("${jwt.token.refresh-expiration-time}")
     private long refreshTokenExpiration;
-
-    private final RedisUtil redisUtil;
 
     private static final String AUTHORITIES_KEY = "auth";
 
@@ -117,17 +113,5 @@ public class JwtTokenProvider {
         } catch (ExpiredJwtException e) { // Access Token이 만료되더라도 Claims를 가져옴
             return e.getClaims();
         }
-    }
-
-    // 남은 시간 가져오기
-    public long getRemainingTime(String accessToken) {
-        Date expirationDate = getClaims(accessToken).getExpiration();
-        long diffInMillies = Math.abs(expirationDate.getTime() - new Date().getTime());
-        return TimeUnit.SECONDS.convert(diffInMillies, TimeUnit.MILLISECONDS);
-    }
-
-    // Access Token 블랙리스트 확인
-    public boolean isBlackList(String token) {
-        return redisUtil.hasKey(token);
     }
 }

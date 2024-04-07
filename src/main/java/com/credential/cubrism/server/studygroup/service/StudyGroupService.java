@@ -62,11 +62,11 @@ public class StudyGroupService {
 
         studyGroupRepository.save(studyGroup);
 
-        return ResponseEntity.ok().body(new MessageDto("스터디 그룹을 생성했습니다."));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("스터디 그룹을 생성했습니다."));
     }
 
     // 스터디 그룹 가입 요청
-    public ResponseEntity<MessageDto> joinStudyGroup(Long groupId) {
+    public ResponseEntity<MessageDto> requestJoin(Long groupId) {
         Users currentUser = securityUtil.getCurrentUser();
 
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
@@ -81,7 +81,7 @@ public class StudyGroupService {
         pendingMembers.setStudyGroup(studyGroup);
         pendingMembersRepository.save(pendingMembers);
 
-        return ResponseEntity.ok().body(new MessageDto("스터디 그룹 가입을 요청했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 요청했습니다."));
     }
 
     // 스터디 그룹 가입 요청 승인
@@ -102,23 +102,24 @@ public class StudyGroupService {
         groupMembersRepository.save(newMember);
         pendingMembersRepository.delete(pendingMember);
 
-        return ResponseEntity.ok().body(new MessageDto("스터디 그룹 가입을 승인했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 승인했습니다."));
     }
 
     // 가입 요청 목록
-    public List<StudyGroupJoinRequestDto> getAllJoinRequests() {
+    public ResponseEntity<List<StudyGroupJoinListDto>> getJoinRequest() {
         Users currentUser = securityUtil.getCurrentUser();
 
-        return groupMembersRepository.findAllByUserAndAdmin(currentUser, true).stream()
-                .flatMap(groupMembers -> pendingMembersRepository.findByStudyGroup(groupMembers.getStudyGroup()).stream())
-                .map(request -> new StudyGroupJoinRequestDto(
-                        request.getMemberId(),
-                        request.getStudyGroup().getGroupId(),
-                        request.getStudyGroup().getGroupName(),
-                        request.getUser().getNickname(),
-                        request.getRequestDate()
-                ))
-                .collect(Collectors.toList());
+        List<StudyGroupJoinListDto> joinList = groupMembersRepository.findByUserAndAdmin(currentUser, true).stream()
+                .flatMap(groupMembers -> pendingMembersRepository.findByStudyGroup(groupMembers.getStudyGroup()).stream()
+                        .map(pendingMembers -> new StudyGroupJoinListDto(
+                                pendingMembers.getMemberId(),
+                                pendingMembers.getUser().getNickname(),
+                                pendingMembers.getUser().getEmail(),
+                                pendingMembers.getRequestDate()
+                        )))
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(joinList);
     }
 
     // 스터디 그룹 탈퇴
@@ -137,7 +138,7 @@ public class StudyGroupService {
 
         groupMembersRepository.delete(groupMembers);
 
-        return ResponseEntity.ok().body(new MessageDto("스터디 그룹을 탈퇴했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹을 탈퇴했습니다."));
     }
 
     // 스터디 그룹 삭제
@@ -156,7 +157,7 @@ public class StudyGroupService {
 
         studyGroupRepository.delete(studyGroup);
 
-        return ResponseEntity.ok().body(new MessageDto("스터디 그룹을 삭제했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹을 삭제했습니다."));
     }
 
     // 스터디 그룹 목록
@@ -229,10 +230,10 @@ public class StudyGroupService {
     }
 
     // 스터디 그룹 목표 추가
-    public ResponseEntity<MessageDto> addStudyGroupGoal(StudyGroupGoalCreateDto dto) {
+    public ResponseEntity<MessageDto> addStudyGroupGoal(StudyGroupAddGoalDto dto) {
         Long groupId = dto.getStudyGroupId();
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid study group Id:" + groupId));
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
 
         StudyGroupGoal goal = new StudyGroupGoal();
         goal.setGoalName(dto.getGoalName());
@@ -253,17 +254,16 @@ public class StudyGroupService {
         studyGroupGoalRepository.save(goal);
         studyGroupRepository.save(studyGroup);
 
-        return ResponseEntity.ok().body(new MessageDto("스터디 그룹에 목표를 추가했습니다."));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("스터디 그룹에 목표를 추가했습니다."));
     }
 
     // 스터디 그룹 목표 삭제
-    public ResponseEntity<MessageDto> deleteGoalFromStudyGroup(Long goalId) {
+    public ResponseEntity<MessageDto> deleteStudyGroupGoal(Long goalId) {
         StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid goal Id:" + goalId));
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
 
         studyGroupGoalRepository.delete(goal);
 
-        return ResponseEntity.ok().body(new MessageDto("스터디 그룹 목표를 삭제했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 목표를 삭제했습니다."));
     }
-
 }

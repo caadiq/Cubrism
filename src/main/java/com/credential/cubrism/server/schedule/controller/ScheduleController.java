@@ -13,26 +13,25 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/schedule")
 public class ScheduleController {
     private final ScheduleService scheduleService;
 
-    @PostMapping("/add") // 일정 추가
+    @PostMapping("/schedule") // 일정 추가
     public ResponseEntity<MessageDto> addSchedule(@RequestBody ScheduleAddDto dto) {
         return scheduleService.addSchedule(dto);
     }
 
-    @PostMapping("/delete") // 일정 삭제
-    public ResponseEntity<MessageDto> deleteSchedule(@RequestParam Long scheduleId) {
+    @DeleteMapping("/schedule/{scheduleId}") // 일정 삭제
+    public ResponseEntity<MessageDto> deleteSchedule(@PathVariable Long scheduleId) {
         return scheduleService.deleteSchedule(scheduleId);
     }
 
-    @PostMapping("/update") // 일정 수정
-    public ResponseEntity<MessageDto> updateSchedule(@RequestBody ScheduleUpdateDto dto) {
-        return scheduleService.updateSchedule(dto);
+    @PutMapping("/schedule/{scheduleId}") // 일정 수정
+    public ResponseEntity<MessageDto> updateSchedule(@PathVariable Long scheduleId, @RequestBody ScheduleUpdateDto dto) {
+        return scheduleService.updateSchedule(scheduleId, dto);
     }
 
-    @GetMapping("/list") // 일정 목록
+    @GetMapping("/schedules") // 일정 목록
     public ResponseEntity<List<ScheduleListDto>> getScheduleList(
             @RequestParam(defaultValue = "#{T(java.time.YearMonth).now().getYear()}") int year,
             @RequestParam(defaultValue = "#{T(java.time.YearMonth).now().getMonthValue()}") int month

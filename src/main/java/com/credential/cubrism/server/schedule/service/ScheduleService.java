@@ -43,7 +43,7 @@ public class ScheduleService {
     public ResponseEntity<MessageDto> deleteSchedule(Long scheduleId) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        Schedules schedules = scheduleRepository.findByUserIdAndScheduleId(currentUser.getUuid(), scheduleId)
+        Schedules schedules = scheduleRepository.findByUserUuidAndScheduleId(currentUser.getUuid(), scheduleId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
 
         scheduleRepository.delete(schedules);
@@ -53,10 +53,10 @@ public class ScheduleService {
 
     // 일정 수정
     @Transactional
-    public ResponseEntity<MessageDto> updateSchedule(ScheduleUpdateDto dto) {
+    public ResponseEntity<MessageDto> updateSchedule(Long scheduleId, ScheduleUpdateDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        Schedules schedules = scheduleRepository.findByUserIdAndScheduleId(currentUser.getUuid(), dto.getScheduleId())
+        Schedules schedules = scheduleRepository.findByUserUuidAndScheduleId(currentUser.getUuid(), scheduleId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
 
         setScheduleFields(schedules, currentUser, dto.getStartDate(), dto.getEndDate(), dto.isAllDay(), dto.getTitle(), dto.getContent());

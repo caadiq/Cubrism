@@ -18,7 +18,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -125,16 +124,12 @@ public class AuthService {
     }
 
     // 로그아웃
-    public ResponseEntity<MessageDto> logOut(HttpServletRequest request) {
+    public ResponseEntity<MessageDto> logOut() {
         try {
             Users currentUser = securityUtil.getCurrentUser();
 
             // Redis에 저장된 Refresh Token 삭제
             redisUtil.deleteData(currentUser.getEmail() + REFRESH_TOKEN_SUFFIX);
-
-            // 로그아웃 시 Access Token을 Redis 블랙리스트에 추가
-            String accessToken = request.getHeader("Authorization").substring(7);
-            redisUtil.setData(accessToken, "access_token_blacklist", jwtTokenProvider.getRemainingTime(accessToken));
 
             return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("로그아웃 완료"));
         } catch (Exception e) {
@@ -254,11 +249,10 @@ public class AuthService {
         }
     }
 
-
     // 비밀번호 초기화
     public String resetPassword(String uuid, String newPassword, String confirmPassword, Model model) {
         if (!newPassword.equals(confirmPassword)) {
-            return "redirect:/auth/password/reset/" + uuid;
+            return "redirect:/auth/users/password/reset/" + uuid;
         }
 
         System.out.println("uuid: " + uuid + ", newPassword: " + newPassword + ", confirmPassword: " + confirmPassword);

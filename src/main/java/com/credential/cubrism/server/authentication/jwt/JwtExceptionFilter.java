@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -18,9 +19,9 @@ import java.time.LocalDateTime;
 public class JwtExceptionFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
+    protected void doFilterInternal(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
-            chain.doFilter(request, response);
+            filterChain.doFilter(request, response);
         } catch (JwtTokenException e) {
             setErrorResponse(HttpStatus.UNAUTHORIZED, response, e);
         }

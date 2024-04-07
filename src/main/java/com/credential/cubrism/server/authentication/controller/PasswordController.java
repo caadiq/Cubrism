@@ -13,7 +13,7 @@ import java.util.Objects;
 
 @Controller
 @AllArgsConstructor
-@RequestMapping("/auth/password")
+@RequestMapping("/auth/users/password")
 public class PasswordController {
     private final AuthService authService;
 

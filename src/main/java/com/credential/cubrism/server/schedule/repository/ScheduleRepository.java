@@ -13,6 +13,5 @@ public interface ScheduleRepository extends JpaRepository<Schedules, Long> {
     @Query("SELECT s FROM Schedules s WHERE s.user.uuid = :userId AND ((YEAR(s.startDate) <= :year AND MONTH(s.startDate) <= :month AND YEAR(s.endDate) >= :year AND MONTH(s.endDate) >= :month) OR (YEAR(s.startDate) = :year AND MONTH(s.startDate) = :month) OR (YEAR(s.endDate) = :year AND MONTH(s.endDate) = :month)) ORDER BY s.startDate ASC")
     List<Schedules> findByUserIdAndYearAndMonth(@Param("userId") UUID userId, @Param("year") int year, @Param("month") int month);
 
-    @Query("SELECT s FROM Schedules s WHERE s.user.uuid = :userId AND s.scheduleId = :scheduleId")
-    Optional<Schedules> findByUserIdAndScheduleId(@Param("userId") UUID userId, @Param("scheduleId") Long scheduleId);
+    Optional<Schedules> findByUserUuidAndScheduleId(UUID userId, Long scheduleId);
 }

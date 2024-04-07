@@ -17,8 +17,6 @@ public enum ErrorCode {
     INVALID_JWT_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 JWT 토큰입니다."),
     INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "잘못된 이메일 형식입니다."),
     INVALID_VERIFY_CODE(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않습니다."),
-    INVALID_BOARD_AND_POST(HttpStatus.BAD_REQUEST, "게시판과 게시글이 일치하지 않습니다."),
-    INVALID_POST_AND_COMMENT(HttpStatus.BAD_REQUEST, "게시글과 댓글이 일치하지 않습니다."),
 
 
     /**
@@ -51,6 +49,7 @@ public enum ErrorCode {
      * 클라이언트가 요청한 리소스를 찾을 수 없을 때 발생하는 에러 코드
      * ex) 존재하지 않는 데이터를 조회할 때
      */
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자를 찾을 수 없습니다."),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 이메일입니다."),
     S3_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "S3버킷에 파일이 존재하지 않습니다."),
     SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "일정이 존재하지 않습니다."),
@@ -59,8 +58,9 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "카테고리가 존재하지 않습니다."),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글이 존재하지 않습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
+    REPLY_NOT_FOUND(HttpStatus.NOT_FOUND, "대댓글이 존재하지 않습니다."),
     STUDY_GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹이 존재하지 않습니다."),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자를 찾을 수 없습니다."),
+    STUDY_GROUP_GOAL_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹 목표가 존재하지 않습니다."),
 
 
     /**

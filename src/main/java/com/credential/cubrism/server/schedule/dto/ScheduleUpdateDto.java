@@ -6,7 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ScheduleUpdateDto {
-    private Long scheduleId;
     private String startDate;
     private String endDate;
     private boolean isAllDay;
