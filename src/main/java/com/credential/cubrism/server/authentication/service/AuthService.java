@@ -251,9 +251,6 @@ public class AuthService {
 
     // 비밀번호 초기화
     public String resetPassword(String uuid, String newPassword, String confirmPassword, Model model) {
-        if (!newPassword.equals(confirmPassword)) {
-            return "redirect:/auth/users/password/reset/" + uuid;
-        }
 
         System.out.println("uuid: " + uuid + ", newPassword: " + newPassword + ", confirmPassword: " + confirmPassword);
         String email = redisUtil.getData(uuid + RESET_PASSWORD_SUFFIX);

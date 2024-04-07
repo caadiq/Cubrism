@@ -28,6 +28,9 @@ public class PasswordController {
             String passwordErrorMessage = Objects.requireNonNull(bindingResult.getFieldError("newPassword")).getDefaultMessage();
             return authService.resetPasswordPage(resetPasswordConfirmDto.getUuid(), model, passwordErrorMessage);
         }
+        if (!resetPasswordConfirmDto.newPassword.equals(resetPasswordConfirmDto.confirmPassword)) {
+            return authService.resetPasswordPage(resetPasswordConfirmDto.getUuid(), model, "비밀번호가 일치하지 않습니다.");
+        }
         return authService.resetPassword(resetPasswordConfirmDto.getUuid(), resetPasswordConfirmDto.getNewPassword(), resetPasswordConfirmDto.getConfirmPassword(), model);
     }
 
