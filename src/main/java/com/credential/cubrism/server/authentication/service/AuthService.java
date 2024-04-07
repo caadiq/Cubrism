@@ -312,7 +312,7 @@ public class AuthService {
 
     // 구글 로그인
     @Transactional
-    public ResponseEntity<TokenDto> googleLogIn(String serverAuthCode) {
+    public ResponseEntity<TokenDto> googleLogIn(SocialTokenDto dto) {
         try {
             GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
                     transport,
@@ -320,7 +320,7 @@ public class AuthService {
                     GOOGLE_TOKEN_SERVER_ENCODED_URL,
                     googleClientId,
                     googleClientSecret,
-                    serverAuthCode,
+                    dto.getToken(),
                     GOOGLE_REDIRECT_URI
             ).execute();
 
@@ -339,10 +339,10 @@ public class AuthService {
 
     // 카카오 로그인
     @Transactional
-    public ResponseEntity<TokenDto> kakaoLogIn(String token) {
+    public ResponseEntity<TokenDto> kakaoLogIn(SocialTokenDto dto) {
         ResponseEntity<KakaoUserDto> responseEntity = webClient.get()
                 .uri(KAKAO_REQUEST_URL)
-                .header("Authorization", "Bearer " + token)
+                .header("Authorization", "Bearer " + dto.getToken())
                 .retrieve()
                 .toEntity(KakaoUserDto.class)
                 .block();

@@ -34,19 +34,6 @@ public class AuthController {
         return authService.userInfo();
     }
 
-    @PostMapping("/token/access") // Access Token 재발급
-    public ResponseEntity<TokenDto> reIssueAccessToken(
-            @RequestHeader(value = "AccessToken") String accessToken,
-            @RequestHeader(value = "RefreshToken") String refreshToken
-    ) {
-        return authService.reIssueAccessToken(accessToken, refreshToken);
-    }
-
-    @PostMapping("/token/refresh") // Refresh Token 재발급
-    public ResponseEntity<TokenDto> reIssueRefreshToken() {
-        return authService.reIssueRefreshToken();
-    }
-
     @PutMapping("/users/password") // 비밀번호 변경
     public ResponseEntity<MessageDto> changePassword(@RequestBody @Valid ChangePasswordDto dto) {
         return authService.changePassword(dto);
@@ -68,12 +55,25 @@ public class AuthController {
     }
 
     @PostMapping("/users/signin/google") // 구글 로그인
-    public ResponseEntity<TokenDto> googleLogIn(@RequestParam String serverAuthCode) {
-        return authService.googleLogIn(serverAuthCode);
+    public ResponseEntity<TokenDto> googleLogIn(@RequestBody SocialTokenDto dto) {
+        return authService.googleLogIn(dto);
     }
 
     @PostMapping("/users/signin/kakao") // 카카오 로그인
-    public ResponseEntity<TokenDto> kakaoLogIn(@RequestParam String accessToken) {
-        return authService.kakaoLogIn(accessToken);
+    public ResponseEntity<TokenDto> kakaoLogIn(@RequestBody SocialTokenDto dto) {
+        return authService.kakaoLogIn(dto);
+    }
+
+    @PostMapping("/token/access") // Access Token 재발급
+    public ResponseEntity<TokenDto> reIssueAccessToken(
+            @RequestHeader(value = "AccessToken") String accessToken,
+            @RequestHeader(value = "RefreshToken") String refreshToken
+    ) {
+        return authService.reIssueAccessToken(accessToken, refreshToken);
+    }
+
+    @PostMapping("/token/refresh") // Refresh Token 재발급
+    public ResponseEntity<TokenDto> reIssueRefreshToken() {
+        return authService.reIssueRefreshToken();
     }
 }
