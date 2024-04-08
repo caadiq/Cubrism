@@ -5,6 +5,7 @@ import com.credential.cubrism.server.authentication.utils.SecurityUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.favorites.repository.FavoriteRepository;
 import com.credential.cubrism.server.posts.dto.*;
 import com.credential.cubrism.server.posts.entity.Board;
 import com.credential.cubrism.server.posts.entity.PostImages;
@@ -40,6 +41,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostImagesRepository postImagesRepository;
     private final QualificationListRepository qualificationListRepository;
+    private final FavoriteRepository favoriteRepository;
 
     private final SecurityUtil securityUtil;
     private final S3Util s3util;
@@ -163,6 +165,22 @@ public class PostService {
     public ResponseEntity<PostListDto> myPostList(Pageable pageable) {
         Users currentUser = securityUtil.getCurrentUser();
         Page<Posts> posts = postRepository.findAllByUserUuid(currentUser.getUuid(), pageable);
+
+        return ResponseEntity.status(HttpStatus.OK).body(getPostList(posts));
+    }
+
+    // 관심 자격증 게시글 목록
+    public ResponseEntity<PostListDto> favoritePostList(Pageable pageable, Long boardId) {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOARD_NOT_FOUND));
+
+        List<String> favoriteCodes = favoriteRepository.findAllByUserUuid(currentUser.getUuid()).stream()
+                .map(favorite -> favorite.getQualificationList().getCode())
+                .toList();
+
+        Page<Posts> posts = postRepository.findAllByBoardAndQualificationListCodeIn(board, favoriteCodes, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(getPostList(posts));
     }

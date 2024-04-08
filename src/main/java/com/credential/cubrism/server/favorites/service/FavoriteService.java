@@ -71,7 +71,7 @@ public class FavoriteService {
     public ResponseEntity<List<FavoriteListDto>> favoriteList() {
         Users currentUser = securityUtil.getCurrentUser();
 
-        List<FavoriteListDto> favoriteList = favoriteRepository.findALlByUserUuid(currentUser.getUuid()).stream()
+        List<FavoriteListDto> favoriteList = favoriteRepository.findAllByUserUuid(currentUser.getUuid()).stream()
                 .map(favorite -> new FavoriteListDto(
                         favorite.getFavoriteId(),
                         favorite.getQualificationList().getName(),
