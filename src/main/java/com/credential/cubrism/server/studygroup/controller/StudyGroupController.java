@@ -1,16 +1,16 @@
 package com.credential.cubrism.server.studygroup.controller;
 
 import com.credential.cubrism.server.common.dto.MessageDto;
-import com.credential.cubrism.server.studygroup.dto.StudyGroupAddGoalDto;
-import com.credential.cubrism.server.studygroup.dto.StudyGroupCreateDto;
-import com.credential.cubrism.server.studygroup.dto.StudyGroupJoinListDto;
-import com.credential.cubrism.server.studygroup.dto.StudyGroupListDto;
+import com.credential.cubrism.server.studygroup.dto.*;
 import com.credential.cubrism.server.studygroup.service.StudyGroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -95,6 +95,11 @@ public class StudyGroupController {
         return studyGroupService.addStudyGroupGoal(dto);
     }
 
+    @PostMapping("studygroup/goal/update") // 스터디 그룹 목표 수정
+    public ResponseEntity<MessageDto> updateStudyGroupGoal(@RequestBody StudyGroupUpdateGoalDto dto) {
+        return studyGroupService.updateStudyGroupGoal(dto);
+    }
+
     @DeleteMapping("/studygroup/goal/{goalId}") // 스터디 그룹 목표 삭제
     public ResponseEntity<?> deleteStudyGroupGoal(@PathVariable Long goalId) {
         return studyGroupService.deleteStudyGroupGoal(goalId);
@@ -109,4 +114,16 @@ public class StudyGroupController {
 //    public ResponseEntity<?> studyGroupGoal(@PathVariable Long goalId) {
 //        return studyGroupService.studyGroupGoal(goalId);
 //    }
+
+    // 스터디 그룹의 UserGoal 현황 조회
+    @GetMapping("/studygroup/{groupId}/usergoals")
+    public ResponseEntity<List<UserGoalStatusDto>> getUserGoals(@PathVariable Long groupId) {
+        return studyGroupService.getUserGoals(groupId);
+    }
+
+    // 사용자의 세부사항 완료 처리
+    @PostMapping("/studygroup/goal/complete")
+    public ResponseEntity<MessageDto> completeGoalDetail(@RequestBody CompleteGoalDetailDto dto) {
+        return studyGroupService.completeGoalDetail(dto.getDetailId());
+    }
 }
