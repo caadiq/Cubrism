@@ -58,4 +58,16 @@ public class PostController {
 
         return postService.myPostList(pageable);
     }
+
+    @GetMapping("/posts/favorites") // 관심 자격증 게시글 목록
+    public ResponseEntity<PostListDto> favoritePostList(
+            @RequestParam(value = "board-id") Long boardId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
+        limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 게시글 수를 1~50 사이로 제한
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
+
+        return postService.favoritePostList(pageable, boardId);
+    }
 }
