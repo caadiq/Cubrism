@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -19,4 +21,7 @@ public class GoalDetail {
     @ManyToOne
     @JoinColumn(name = "goal_id")
     private StudyGroupGoal studyGroupGoal;
+
+    @ManyToMany(mappedBy = "completedDetails")
+    private List<UserGoal> completedUserGoals;
 }

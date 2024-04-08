@@ -25,8 +25,17 @@ public class UserGoal {
     @JoinColumn(name = "goal_id")
     private StudyGroupGoal studyGroupGoal;
 
-    @ElementCollection
-    @CollectionTable(name = "completed_details", joinColumns = @JoinColumn(name = "user_goal_id"))
-    @Column(name = "detail")
-    private List<String> completedDetails;
+    @ManyToMany
+    @JoinTable(
+            name = "completed_details",
+            joinColumns = @JoinColumn(name = "user_goal_id"),
+            inverseJoinColumns = @JoinColumn(name = "detail_id")
+    )
+    private List<GoalDetail> completedDetails;
+    public double getCompletionPercentage() {
+        if (studyGroupGoal.getDetails().isEmpty()) {
+            return 0;
+        }
+        return (double) completedDetails.size() / studyGroupGoal.getDetails().size() * 100;
+    }
 }

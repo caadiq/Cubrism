@@ -1,16 +1,14 @@
 package com.credential.cubrism.server.studygroup.service;
 
 import com.credential.cubrism.server.authentication.entity.Users;
+import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.SecurityUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
 import com.credential.cubrism.server.studygroup.dto.*;
 import com.credential.cubrism.server.studygroup.entity.*;
-import com.credential.cubrism.server.studygroup.repository.GroupMembersRepository;
-import com.credential.cubrism.server.studygroup.repository.PendingMembersRepository;
-import com.credential.cubrism.server.studygroup.repository.StudyGroupGoalRepository;
-import com.credential.cubrism.server.studygroup.repository.StudyGroupRepository;
+import com.credential.cubrism.server.studygroup.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,6 +30,9 @@ public class StudyGroupService {
     private final GroupMembersRepository groupMembersRepository;
     private final PendingMembersRepository pendingMembersRepository;
     private final StudyGroupGoalRepository studyGroupGoalRepository;
+    private final UserGoalRepository userGoalRepository;
+    private final UserRepository userRepository;
+    private final GoalDetailRepository goalDetailRepository;
 
     private final SecurityUtil securityUtil;
 
@@ -101,6 +103,15 @@ public class StudyGroupService {
 
         groupMembersRepository.save(newMember);
         pendingMembersRepository.delete(pendingMember);
+
+        // 스터디 그룹의 모든 목표에 대해 새로운 멤버에 대한 UserGoal 인스턴스를 생성하고 저장
+        for (StudyGroupGoal goal : newMember.getStudyGroup().getStudyGroupGoals()) {
+            UserGoal userGoal = new UserGoal();
+            userGoal.setUser(newMember.getUser());
+            userGoal.setStudyGroupGoal(goal);
+            userGoal.setCompletedDetails(new ArrayList<>());
+            userGoalRepository.save(userGoal);
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 승인했습니다."));
     }
@@ -230,6 +241,7 @@ public class StudyGroupService {
     }
 
     // 스터디 그룹 목표 추가
+    @Transactional
     public ResponseEntity<MessageDto> addStudyGroupGoal(StudyGroupAddGoalDto dto) {
         Long groupId = dto.getStudyGroupId();
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
@@ -252,7 +264,15 @@ public class StudyGroupService {
         studyGroup.getStudyGroupGoals().add(goal);
 
         studyGroupGoalRepository.save(goal);
-        studyGroupRepository.save(studyGroup);
+
+        // 스터디 그룹의 모든 멤버들에게 UserGoal 인스턴스를 생성하고 저장
+        for (GroupMembers member : studyGroup.getGroupMembers()) {
+            UserGoal userGoal = new UserGoal();
+            userGoal.setUser(member.getUser());
+            userGoal.setStudyGroupGoal(goal);
+            userGoal.setCompletedDetails(new ArrayList<>());
+            userGoalRepository.save(userGoal);
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("스터디 그룹에 목표를 추가했습니다."));
     }
@@ -266,4 +286,69 @@ public class StudyGroupService {
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 목표를 삭제했습니다."));
     }
+
+    // 스터디 그룹 목표 수정
+    public ResponseEntity<MessageDto> updateStudyGroupGoal(StudyGroupUpdateGoalDto dto) {
+        StudyGroupGoal goal = studyGroupGoalRepository.findById(dto.getGoalId())
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
+
+        goal.setGoalName(dto.getGoalName());
+
+        // details 필드 설정 부분 수정
+        List<GoalDetail> details = dto.getDetails().stream()
+                .map(detailStr -> {
+                    GoalDetail detail = new GoalDetail();
+                    detail.setDetail(detailStr);
+                    detail.setStudyGroupGoal(goal);
+                    return detail;
+                }).collect(Collectors.toList());
+        goal.setDetails(details);
+
+        studyGroupGoalRepository.save(goal);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 목표를 수정했습니다."));
+    }
+
+    public ResponseEntity<List<UserGoalStatusDto>> getUserGoals(Long groupId) {
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        List<UserGoalStatusDto> userGoalStatusList = studyGroup.getGroupMembers().stream()
+                .map(member -> {
+                    UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupGoal_StudyGroup(member.getUser(), studyGroup)
+                            .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
+                    List<GoalDetailDto> completedDetails = userGoal.getCompletedDetails().stream()
+                            .map(detail -> new GoalDetailDto(detail.getId(), detail.getDetail()))
+                            .collect(Collectors.toList());
+                    List<GoalDetailDto> uncompletedDetails = userGoal.getStudyGroupGoal().getDetails().stream()
+                            .filter(detail -> !completedDetails.contains(new GoalDetailDto(detail.getId(), detail.getDetail())))
+                            .map(detail -> new GoalDetailDto(detail.getId(), detail.getDetail()))
+                            .collect(Collectors.toList());
+                    double completionPercentage = userGoal.getCompletionPercentage();
+                    return new UserGoalStatusDto(member.getUser().getNickname(), completedDetails, uncompletedDetails, completionPercentage);
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.status(HttpStatus.OK).body(userGoalStatusList);
+    }
+    @Transactional
+    public ResponseEntity<MessageDto> completeGoalDetail(Long detailId) {
+        Users currentUser = securityUtil.getCurrentUser();
+        GoalDetail detail = goalDetailRepository.findById(detailId)
+                .orElseThrow(() -> new CustomException(ErrorCode.GOAL_DETAIL_NOT_FOUND));
+
+        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupGoal_StudyGroup(currentUser, detail.getStudyGroupGoal().getStudyGroup())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
+
+        if (!userGoal.getCompletedDetails().contains(detail)) {
+            userGoal.getCompletedDetails().add(detail);
+            userGoalRepository.save(userGoal);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("세부사항을 완료했습니다."));
+    }
+
+
+
+
 }
