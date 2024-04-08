@@ -1,10 +1,14 @@
 package com.credential.cubrism.server.authentication.entity;
 
+import com.credential.cubrism.server.favorites.entity.Favorites;
 import com.credential.cubrism.server.posts.entity.Posts;
 import com.credential.cubrism.server.posts.entity.Replies;
 import com.credential.cubrism.server.schedule.entity.Schedules;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -65,4 +69,7 @@ public class Users {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Replies> replies;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Favorites> favorites;
 }
