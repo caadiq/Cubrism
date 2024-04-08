@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.qualification.entity;
 
+import com.credential.cubrism.server.favorites.entity.Favorites;
 import com.credential.cubrism.server.posts.entity.Posts;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -36,4 +37,7 @@ public class QualificationList {
 
     @OneToMany(mappedBy = "qualificationList", cascade = CascadeType.ALL)
     private List<Posts> posts;
+
+    @OneToMany(mappedBy = "qualificationList", cascade = CascadeType.ALL)
+    private List<Favorites> favorites;
 }
