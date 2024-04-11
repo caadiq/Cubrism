@@ -109,6 +109,10 @@ public class PostService {
         Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
+        // 카테고리
+        QualificationList qualificationList = qualificationListRepository.findByName(dto.getCategory())
+                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+
         // 작성자 본인인지 확인
         if (!post.getUser().getUuid().equals(currentUser.getUuid())) {
             throw new CustomException(ErrorCode.UPDATE_DENIED);
@@ -134,6 +138,7 @@ public class PostService {
 
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
+        post.setQualificationList(qualificationList);
         post.setPostImages(postImagesList);
 
         postRepository.save(post);
