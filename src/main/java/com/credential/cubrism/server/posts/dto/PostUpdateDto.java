@@ -8,6 +8,7 @@ import java.util.List;
 public class PostUpdateDto {
     private String title;
     private String content;
+    private String category;
     private List<String> images;
     private List<String> removedImages;
 }
