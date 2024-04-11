@@ -32,5 +32,6 @@ public class PostViewDto {
         private String createdDate;
         private String profileImageUrl;
         private Boolean isReply;
+        private Boolean isUpdated;
     }
 }

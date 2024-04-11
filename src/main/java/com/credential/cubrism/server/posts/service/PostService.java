@@ -232,7 +232,8 @@ public class PostService {
                                 comment.getContent(),
                                 comment.getCreatedDate().toString(),
                                 comment.getUser().getImageUrl(),
-                                false
+                                false,
+                                comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
                         )),
                         comment.getReplies().stream()
                                 .map(reply -> new PostViewDto.Comments(
@@ -243,7 +244,8 @@ public class PostService {
                                         reply.getContent(),
                                         reply.getCreatedDate().toString(),
                                         reply.getUser().getImageUrl(),
-                                        true
+                                        true,
+                                        comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
                                 ))
                 ))
                 .sorted(Comparator.comparing(PostViewDto.Comments::getCreatedDate))
