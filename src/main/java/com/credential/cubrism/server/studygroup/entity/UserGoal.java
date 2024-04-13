@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -22,20 +23,30 @@ public class UserGoal {
     private Users user;
 
     @ManyToOne
-    @JoinColumn(name = "goal_id")
-    private StudyGroupGoal studyGroupGoal;
+    @JoinColumn(name = "group_id")
+    private StudyGroup studyGroup;
 
     @ManyToMany
     @JoinTable(
-            name = "completed_details",
+            name = "UserGoalCompleted",
             joinColumns = @JoinColumn(name = "user_goal_id"),
-            inverseJoinColumns = @JoinColumn(name = "detail_id")
+            inverseJoinColumns = @JoinColumn(name = "goal_id")
     )
-    private List<GoalDetail> completedDetails;
+    private List<StudyGroupGoal> completedGoals = new ArrayList<>();;
+
+    @ManyToMany
+    @JoinTable(
+            name = "UserGoalUncompleted",
+            joinColumns = @JoinColumn(name = "user_goal_id"),
+            inverseJoinColumns = @JoinColumn(name = "goal_id")
+    )
+    private List<StudyGroupGoal> uncompletedGoals = new ArrayList<>();; // 추가된 필드
+
     public double getCompletionPercentage() {
-        if (studyGroupGoal.getDetails().isEmpty()) {
+        int totalGoals = studyGroup.getTotalGoals();
+        if (totalGoals == 0) {
             return 0;
         }
-        return (double) completedDetails.size() / studyGroupGoal.getDetails().size() * 100;
+        return (double) completedGoals.size() / totalGoals * 100;
     }
 }

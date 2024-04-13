@@ -32,7 +32,6 @@ public class StudyGroupService {
     private final StudyGroupGoalRepository studyGroupGoalRepository;
     private final UserGoalRepository userGoalRepository;
     private final UserRepository userRepository;
-    private final GoalDetailRepository goalDetailRepository;
 
     private final SecurityUtil securityUtil;
 
@@ -104,14 +103,16 @@ public class StudyGroupService {
         groupMembersRepository.save(newMember);
         pendingMembersRepository.delete(pendingMember);
 
-        // 스터디 그룹의 모든 목표에 대해 새로운 멤버에 대한 UserGoal 인스턴스를 생성하고 저장
-        for (StudyGroupGoal goal : newMember.getStudyGroup().getStudyGroupGoals()) {
-            UserGoal userGoal = new UserGoal();
-            userGoal.setUser(newMember.getUser());
-            userGoal.setStudyGroupGoal(goal);
-            userGoal.setCompletedDetails(new ArrayList<>());
-            userGoalRepository.save(userGoal);
-        }
+        // 새로 가입한 멤버에 대해서만 UserGoal 생성
+        UserGoal userGoal = new UserGoal();
+        userGoal.setUser(newMember.getUser());
+        userGoal.setStudyGroup(newMember.getStudyGroup());
+
+        // StudyGroup의 StudyGroupGoal 목록을 가져와 UserGoal의 uncompletedGoals에 추가
+        List<StudyGroupGoal> studyGroupGoals = newMember.getStudyGroup().getStudyGroupGoals();
+        userGoal.getUncompletedGoals().addAll(studyGroupGoals);
+
+        userGoalRepository.save(userGoal);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 승인했습니다."));
     }
@@ -147,6 +148,10 @@ public class StudyGroupService {
             throw new CustomException(ErrorCode.STUDY_GROUP_ADMIN_LEAVE);
         }
 
+        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroup(currentUser, studyGroup)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
+        userGoalRepository.delete(userGoal);
+
         groupMembersRepository.delete(groupMembers);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹을 탈퇴했습니다."));
@@ -165,6 +170,14 @@ public class StudyGroupService {
         if (!groupMembers.isAdmin()) {
             throw new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN);
         }
+
+        // 스터디 그룹과 관련된 UserGoal을 찾아 삭제
+        List<UserGoal> userGoals = userGoalRepository.findByStudyGroup(studyGroup);
+        userGoalRepository.deleteAll(userGoals);
+
+        // 스터디 그룹과 관련된 StudyGroupGoal을 찾아 삭제
+        List<StudyGroupGoal> studyGroupGoals = studyGroupGoalRepository.findByStudyGroup(studyGroup);
+        studyGroupGoalRepository.deleteAll(studyGroupGoals);
 
         studyGroupRepository.delete(studyGroup);
 
@@ -249,17 +262,6 @@ public class StudyGroupService {
 
         StudyGroupGoal goal = new StudyGroupGoal();
         goal.setGoalName(dto.getGoalName());
-
-        // details 필드 설정 부분 수정
-        List<GoalDetail> details = dto.getDetails().stream()
-                .map(detailStr -> {
-                    GoalDetail detail = new GoalDetail();
-                    detail.setDetail(detailStr);
-                    detail.setStudyGroupGoal(goal);
-                    return detail;
-                }).collect(Collectors.toList());
-        goal.setDetails(details);
-
         goal.setStudyGroup(studyGroup);
         studyGroup.getStudyGroupGoals().add(goal);
 
@@ -267,10 +269,17 @@ public class StudyGroupService {
 
         // 스터디 그룹의 모든 멤버들에게 UserGoal 인스턴스를 생성하고 저장
         for (GroupMembers member : studyGroup.getGroupMembers()) {
-            UserGoal userGoal = new UserGoal();
-            userGoal.setUser(member.getUser());
-            userGoal.setStudyGroupGoal(goal);
-            userGoal.setCompletedDetails(new ArrayList<>());
+            Optional<UserGoal> optionalUserGoal = userGoalRepository.findByUserAndStudyGroup(member.getUser(), studyGroup);
+            UserGoal userGoal;
+            if (!optionalUserGoal.isPresent()) {
+                userGoal = new UserGoal();
+                userGoal.setUser(member.getUser());
+                userGoal.setStudyGroup(studyGroup);
+                userGoal.getUncompletedGoals().add(goal); // 새로운 목표를 uncompletedGoals 리스트에 추가
+            } else {
+                userGoal = optionalUserGoal.get();
+                userGoal.getUncompletedGoals().add(goal); // 이미 존재하는 UserGoal에 새로운 목표를 uncompletedGoals 리스트에 추가
+            }
             userGoalRepository.save(userGoal);
         }
 
@@ -281,6 +290,13 @@ public class StudyGroupService {
     public ResponseEntity<MessageDto> deleteStudyGroupGoal(Long goalId) {
         StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
+
+        List<UserGoal> userGoals = userGoalRepository.findByStudyGroup(goal.getStudyGroup());
+        for (UserGoal userGoal : userGoals) {
+            userGoal.getCompletedGoals().remove(goal);
+            userGoal.getUncompletedGoals().remove(goal);
+            userGoalRepository.save(userGoal);
+        }
 
         studyGroupGoalRepository.delete(goal);
 
@@ -294,16 +310,6 @@ public class StudyGroupService {
 
         goal.setGoalName(dto.getGoalName());
 
-        // details 필드 설정 부분 수정
-        List<GoalDetail> details = dto.getDetails().stream()
-                .map(detailStr -> {
-                    GoalDetail detail = new GoalDetail();
-                    detail.setDetail(detailStr);
-                    detail.setStudyGroupGoal(goal);
-                    return detail;
-                }).collect(Collectors.toList());
-        goal.setDetails(details);
-
         studyGroupGoalRepository.save(goal);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 목표를 수정했습니다."));
@@ -315,37 +321,41 @@ public class StudyGroupService {
 
         List<UserGoalStatusDto> userGoalStatusList = studyGroup.getGroupMembers().stream()
                 .map(member -> {
-                    UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupGoal_StudyGroup(member.getUser(), studyGroup)
+                    UserGoal userGoal = userGoalRepository.findByUserAndStudyGroup(member.getUser(), studyGroup)
                             .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
-                    List<GoalDetailDto> completedDetails = userGoal.getCompletedDetails().stream()
-                            .map(detail -> new GoalDetailDto(detail.getId(), detail.getDetail()))
-                            .collect(Collectors.toList());
-                    List<GoalDetailDto> uncompletedDetails = userGoal.getStudyGroupGoal().getDetails().stream()
-                            .filter(detail -> !completedDetails.contains(new GoalDetailDto(detail.getId(), detail.getDetail())))
-                            .map(detail -> new GoalDetailDto(detail.getId(), detail.getDetail()))
-                            .collect(Collectors.toList());
                     double completionPercentage = userGoal.getCompletionPercentage();
-                    return new UserGoalStatusDto(member.getUser().getNickname(), completedDetails, uncompletedDetails, completionPercentage);
+
+                    // UserGoal의 completedGoals와 uncompletedGoals를 사용하여 StudyGroupGoalDto 목록을 생성
+                    List<StudyGroupGoalDto> completedGoals = userGoal.getCompletedGoals().stream()
+                            .map(goal -> new StudyGroupGoalDto(goal.getGoalId(), goal.getGoalName()))
+                            .collect(Collectors.toList());
+                    List<StudyGroupGoalDto> uncompletedGoals = userGoal.getUncompletedGoals().stream()
+                            .map(goal -> new StudyGroupGoalDto(goal.getGoalId(), goal.getGoalName()))
+                            .collect(Collectors.toList());
+
+                    return new UserGoalStatusDto(member.getUser().getNickname(), completedGoals, uncompletedGoals, completionPercentage);
                 })
                 .collect(Collectors.toList());
 
         return ResponseEntity.status(HttpStatus.OK).body(userGoalStatusList);
     }
-    @Transactional
-    public ResponseEntity<MessageDto> completeGoalDetail(Long detailId) {
-        Users currentUser = securityUtil.getCurrentUser();
-        GoalDetail detail = goalDetailRepository.findById(detailId)
-                .orElseThrow(() -> new CustomException(ErrorCode.GOAL_DETAIL_NOT_FOUND));
 
-        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupGoal_StudyGroup(currentUser, detail.getStudyGroupGoal().getStudyGroup())
+    @Transactional
+    public ResponseEntity<MessageDto> completeStudyGroupGoal(Long goalId) {
+        Users currentUser = securityUtil.getCurrentUser();
+        StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
+
+        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroup(currentUser, goal.getStudyGroup())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
 
-        if (!userGoal.getCompletedDetails().contains(detail)) {
-            userGoal.getCompletedDetails().add(detail);
+        if (!userGoal.getCompletedGoals().contains(goal)) {
+            userGoal.getCompletedGoals().add(goal);
+            userGoal.getUncompletedGoals().remove(goal); // 추가된 부분
             userGoalRepository.save(userGoal);
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("세부사항을 완료했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
     }
 
 

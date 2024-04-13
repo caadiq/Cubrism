@@ -54,5 +54,9 @@ public class StudyGroup {
         return ChronoUnit.DAYS.between(LocalDate.now(), this.dDay);
     }
 
+    public int getTotalGoals() {
+        return studyGroupGoals.size();
+    }
+
 
 }
