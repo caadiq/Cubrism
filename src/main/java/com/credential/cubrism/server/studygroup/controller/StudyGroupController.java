@@ -7,10 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -123,7 +120,7 @@ public class StudyGroupController {
 
     // 사용자의 세부사항 완료 처리
     @PostMapping("/studygroup/goal/complete")
-    public ResponseEntity<MessageDto> completeGoalDetail(@RequestBody CompleteGoalDetailDto dto) {
-        return studyGroupService.completeGoalDetail(dto.getDetailId());
+    public ResponseEntity<MessageDto> completeStudyGoal(@RequestBody CompleteStudyGroupGoalDto dto) {
+        return studyGroupService.completeStudyGroupGoal(dto.getGoalId());
     }
 }

@@ -5,9 +5,12 @@ import com.credential.cubrism.server.studygroup.entity.StudyGroup;
 import com.credential.cubrism.server.studygroup.entity.UserGoal;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
 
-    Optional<UserGoal> findByUserAndStudyGroupGoal_StudyGroup(Users user, StudyGroup studyGroup);
+    Optional<UserGoal> findByUserAndStudyGroup(Users user, StudyGroup studyGroup);
+
+    List<UserGoal> findByStudyGroup(StudyGroup studyGroup);
 }

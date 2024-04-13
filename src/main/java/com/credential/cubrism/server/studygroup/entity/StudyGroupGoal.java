@@ -21,10 +21,13 @@ public class StudyGroupGoal {
     @Column(name = "goal_name")
     private String goalName;
 
-    @OneToMany(mappedBy = "studyGroupGoal", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<GoalDetail> details;
-
     @ManyToOne
     @JoinColumn(name = "group_id")
     private StudyGroup studyGroup;
+
+    @ManyToMany(mappedBy = "completedGoals")
+    private List<UserGoal> completedUserGoals;
+
+    @ManyToMany(mappedBy = "uncompletedGoals")
+    private List<UserGoal> uncompletedUserGoals;
 }

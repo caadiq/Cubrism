@@ -9,5 +9,4 @@ public class StudyGroupAddGoalDto {
     public Long studyGroupId;
     public String goalName;
     public String goalDescription;
-    public List<String> details;
 }
