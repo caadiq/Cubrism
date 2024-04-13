@@ -137,8 +137,13 @@ public class QualificationCrawlingService {
     private void setExamFees(QualificationCrawlingDto dto, QualificationDetails qualificationDetails) {
         ExamFees examFees = new ExamFees();
         examFees.setCode(dto.getCode());
-        examFees.setWrittenFee(Optional.ofNullable(dto.getFee()).map(QualificationCrawlingDto.Fee::getWrittenFee).orElse(null)); // 필기 수수료
-        examFees.setPracticalFee(Optional.ofNullable(dto.getFee()).map(QualificationCrawlingDto.Fee::getPracticalFee).orElse(null)); // 실기 수수료
+        if (dto.getFee() != null) {
+            examFees.setWrittenFee(dto.getFee().getWrittenFee());
+            examFees.setPracticalFee(dto.getFee().getPracticalFee());
+        } else {
+            examFees.setWrittenFee(null);
+            examFees.setPracticalFee(null);
+        }
         qualificationDetails.setExamFees(examFees);
     }
 
@@ -181,7 +186,7 @@ public class QualificationCrawlingService {
                             ZonedDateTime zonedDateTime = ZonedDateTime.parse(book.getDatetime());
                             recommendBooks.setDate(zonedDateTime.toLocalDate()); // 출판일
                             recommendBooks.setPrice(book.getPrice()); // 정가
-                            recommendBooks.setSalePrice((book.getSale_price() == -1 || book.getSale_price() == book.getPrice()) ? null : book.getSale_price()); // 판매가
+                            recommendBooks.setSalePrice((book.getSale_price() == -1 || book.getSale_price().equals(book.getPrice())) ? null : book.getSale_price()); // 판매가
                             recommendBooks.setThumbnail(book.getThumbnail()); // 책 표지
                             recommendBooks.setUrl(book.getUrl()); // 링크
                             recommendBooks.setQualificationDetails(qualificationDetails);
