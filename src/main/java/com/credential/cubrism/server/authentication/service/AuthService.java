@@ -33,7 +33,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -296,7 +295,9 @@ public class AuthService {
             }
 
             // 기존 프로필 이미지 삭제
-            Optional.ofNullable(currentUser.getImageUrl()).ifPresent(s3Util::deleteFile);
+            if (currentUser.getImageUrl() != null && s3Util.isFileExists(currentUser.getImageUrl())) {
+                s3Util.deleteFile(currentUser.getImageUrl());
+            }
 
             currentUser.setImageUrl(dto.getImageUrl());
         }
@@ -364,12 +365,12 @@ public class AuthService {
 
             Users newUser = new Users();
             newUser.setEmail(email);
+            newUser.setNickname(nickname);
+            newUser.setImageUrl(pictureUrl);
             newUser.setAuthorities(Collections.singleton(authority));
             return newUser;
         });
 
-        user.setNickname(nickname);
-        user.setImageUrl(pictureUrl);
         user.setProvider(provider);
         userRepository.save(user);
 

@@ -60,7 +60,7 @@ public class AuthController {
     }
 
     @PutMapping("/users") // 회원 정보 수정
-    public ResponseEntity<MessageDto> editUser(@RequestBody UserEditDto dto) {
+    public ResponseEntity<MessageDto> editUser(@RequestBody @Valid UserEditDto dto) {
         return authService.editUser(dto);
     }
 

@@ -54,6 +54,10 @@ public class S3Util {
 
     // 파일 확인
     public boolean isFileExists(String fileUrl) {
+        if (fileUrl == null || !fileUrl.startsWith(String.format("https://%s.s3.amazonaws.com/", bucket))) {
+            return false;
+        }
+
         String bucketName = fileUrl.split(".s3.amazonaws.com")[0].replace("https://", "");
         String keyName = fileUrl.split(".s3.amazonaws.com/")[1];
         return amazonS3.doesObjectExist(bucketName, keyName);
