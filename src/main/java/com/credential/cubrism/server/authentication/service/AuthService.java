@@ -365,12 +365,12 @@ public class AuthService {
 
             Users newUser = new Users();
             newUser.setEmail(email);
+            newUser.setNickname(nickname);
+            newUser.setImageUrl(pictureUrl);
             newUser.setAuthorities(Collections.singleton(authority));
             return newUser;
         });
 
-        user.setNickname(nickname);
-        user.setImageUrl(pictureUrl);
         user.setProvider(provider);
         userRepository.save(user);
 
