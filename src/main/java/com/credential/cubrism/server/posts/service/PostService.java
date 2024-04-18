@@ -95,6 +95,9 @@ public class PostService {
             throw new CustomException(ErrorCode.DELETE_DENIED);
         }
 
+        // 게시글 이미지 삭제
+        post.getPostImages().forEach(postImage -> s3util.deleteFile(postImage.getImageUrl()));
+
         postRepository.delete(post);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("게시글을 삭제했습니다."));
