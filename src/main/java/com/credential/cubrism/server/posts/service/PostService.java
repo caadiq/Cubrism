@@ -6,7 +6,10 @@ import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
 import com.credential.cubrism.server.favorites.repository.FavoriteRepository;
-import com.credential.cubrism.server.posts.dto.*;
+import com.credential.cubrism.server.posts.dto.PostAddDto;
+import com.credential.cubrism.server.posts.dto.PostListDto;
+import com.credential.cubrism.server.posts.dto.PostUpdateDto;
+import com.credential.cubrism.server.posts.dto.PostViewDto;
 import com.credential.cubrism.server.posts.entity.Board;
 import com.credential.cubrism.server.posts.entity.PostImages;
 import com.credential.cubrism.server.posts.entity.Posts;
@@ -121,28 +124,30 @@ public class PostService {
             throw new CustomException(ErrorCode.UPDATE_DENIED);
         }
 
-        // RemovedImages가 존재하면 S3및 DB에서 이미지 삭제
-        if (dto.getRemovedImages() != null) {
-            for (String removedImageUrl : dto.getRemovedImages()) {
-                s3util.deleteFile(removedImageUrl);
-                postImagesRepository.deleteByImageUrl(removedImageUrl);
-            }
+        // 삭제할 이미지가 존재하면 S3 및 DB에서 이미지 삭제
+        if (!dto.getRemovedImages().isEmpty()) {
+            dto.getRemovedImages().forEach(imageUrl -> {
+                s3util.deleteFile(imageUrl);
+                postImagesRepository.deleteById(imageUrl);
+            });
         }
 
-        // 이미지 목록 업데이트
-        List<PostImages> postImagesList = dto.getImages().stream()
-                .map(imageUrl -> {
-                    PostImages postImage = new PostImages();
-                    postImage.setPost(post);
-                    postImage.setImageUrl(imageUrl);
-                    postImage.setImageIndex(dto.getImages().indexOf(imageUrl));
-                    return postImage;
-                }).collect(Collectors.toCollection(ArrayList::new));
+        // 추가할 이미지가 존재하면 DB에 추가
+        if (!dto.getImages().isEmpty()) {
+            List<PostImages> postImagesList = dto.getImages().stream()
+                    .map(imageUrl -> {
+                        PostImages postImage = new PostImages();
+                        postImage.setPost(post);
+                        postImage.setImageUrl(imageUrl);
+                        postImage.setImageIndex(dto.getImages().indexOf(imageUrl));
+                        return postImage;
+                    }).collect(Collectors.toCollection(ArrayList::new));
+            post.setPostImages(postImagesList);
+        }
 
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
         post.setQualificationList(qualificationList);
-        post.setPostImages(postImagesList);
 
         postRepository.save(post);
 
@@ -226,7 +231,7 @@ public class PostService {
         Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        List<String> postImagesDto = postImagesRepository.findAllByPostId(postId).stream()
+        List<String> postImagesDto = postImagesRepository.findByPost(post).stream()
                 .map(PostImages::getImageUrl)
                 .toList();
 
@@ -253,7 +258,7 @@ public class PostService {
                                         reply.getCreatedDate().toString(),
                                         reply.getUser().getImageUrl(),
                                         true,
-                                        comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
+                                        reply.getModifiedDate() != null && reply.getModifiedDate().isAfter(reply.getCreatedDate())
                                 ))
                 ))
                 .sorted(Comparator.comparing(PostViewDto.Comments::getCreatedDate))
