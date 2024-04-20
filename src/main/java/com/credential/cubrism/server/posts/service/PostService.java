@@ -22,6 +22,7 @@ import com.credential.cubrism.server.s3.utils.S3Util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -231,7 +232,7 @@ public class PostService {
         Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        List<String> postImagesDto = postImagesRepository.findByPost(post).stream()
+        List<String> postImagesDto = postImagesRepository.findByPost(post, Sort.by(Sort.Direction.ASC, "imageIndex")).stream()
                 .map(PostImages::getImageUrl)
                 .toList();
 
@@ -292,7 +293,7 @@ public class PostService {
         long hours = diff.toHours();
         long days = diff.toDays();
 
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("M/dd", Locale.getDefault());
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("M/d", Locale.getDefault());
 
         if (seconds < 60) { // 60초 이내
             return "방금 전";
