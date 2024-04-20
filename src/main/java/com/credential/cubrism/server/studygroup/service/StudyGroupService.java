@@ -6,6 +6,7 @@ import com.credential.cubrism.server.authentication.utils.SecurityUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.notification.service.FirebaseCloudMessageService;
 import com.credential.cubrism.server.studygroup.dto.*;
 import com.credential.cubrism.server.studygroup.entity.*;
 import com.credential.cubrism.server.studygroup.repository.*;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +34,7 @@ public class StudyGroupService {
     private final StudyGroupGoalRepository studyGroupGoalRepository;
     private final UserGoalRepository userGoalRepository;
     private final UserRepository userRepository;
+    private final FirebaseCloudMessageService firebaseCloudMessageService;
 
     private final SecurityUtil securityUtil;
 
@@ -82,6 +85,28 @@ public class StudyGroupService {
         pendingMembers.setStudyGroup(studyGroup);
         pendingMembersRepository.save(pendingMembers);
 
+        // 스터디 그룹 관리자에게 알림을 보냅니다.
+        GroupMembers admin = studyGroup.getGroupMembers().stream()
+                .filter(GroupMembers::isAdmin)
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
+        String fcmToken = admin.getUser().getFcmToken();
+
+        // FCM 토큰이 있는 경우에만 알림을 보냅니다.
+        if (fcmToken != null) {
+            // 알림 메시지를 생성합니다.
+            String title = "스터디 그룹 가입 요청 알림";
+            String body = currentUser.getNickname() + "님이 '" + studyGroup.getGroupName() + "' 스터디 그룹 가입을 요청했습니다.";
+
+            // 알림을 보냅니다.
+            try {
+                firebaseCloudMessageService.sendMessageTo(fcmToken, title, body);
+            } catch (IOException ignored) {
+
+            }
+        }
+
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 요청했습니다."));
     }
 
@@ -113,6 +138,23 @@ public class StudyGroupService {
         userGoal.getUncompletedGoals().addAll(studyGroupGoals);
 
         userGoalRepository.save(userGoal);
+
+        // 가입 요청을 한 유저에게 알림을 보냅니다.
+        String fcmToken = newMember.getUser().getFcmToken();
+
+        // FCM 토큰이 있는 경우에만 알림을 보냅니다.
+        if (fcmToken != null) {
+            // 알림 메시지를 생성합니다.
+            String title = "스터디 그룹 가입 승인 알림";
+            String body = "'" + newMember.getStudyGroup().getGroupName() + "' 스터디 그룹에 가입이 승인되었습니다.";
+
+            // 알림을 보냅니다.
+            try {
+                firebaseCloudMessageService.sendMessageTo(fcmToken, title, body);
+            } catch (IOException ignored) {
+
+            }
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 승인했습니다."));
     }

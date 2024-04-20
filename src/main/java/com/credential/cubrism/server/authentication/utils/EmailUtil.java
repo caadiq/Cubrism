@@ -83,6 +83,7 @@ public class EmailUtil {
         String title = "[Cubrism] 이메일 인증 코드";
         Map<String, String> replacements = new HashMap<>();
         replacements.put("resetPasswordUrl", restApiUrl + "/auth/users/password/reset/" + uuid);
+//        replacements.put("resetPasswordUrl", "http://localhost:8080" + "/auth/users/password/reset/" + uuid);
         // 메일 내용
         String content = loadEmailTemplate("classpath:email_reset_password.html", replacements);
 
