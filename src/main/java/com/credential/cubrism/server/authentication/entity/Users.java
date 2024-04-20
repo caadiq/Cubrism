@@ -72,4 +72,9 @@ public class Users {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Favorites> favorites;
+
+    @Setter
+    @Column(name = "FcmToken")
+    public String fcmToken;
+
 }

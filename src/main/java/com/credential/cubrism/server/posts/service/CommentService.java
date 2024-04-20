@@ -5,6 +5,7 @@ import com.credential.cubrism.server.authentication.utils.SecurityUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.notification.service.FirebaseCloudMessageService;
 import com.credential.cubrism.server.posts.dto.CommentAddDto;
 import com.credential.cubrism.server.posts.dto.CommentUpdateDto;
 import com.credential.cubrism.server.posts.dto.ReplyAddDto;
@@ -21,12 +22,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+
 @Service
 @RequiredArgsConstructor
 public class CommentService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final ReplyRepository replyRepository;
+    private final FirebaseCloudMessageService firebaseCloudMessageService;
 
     private final SecurityUtil securityUtil;
 
@@ -44,6 +48,25 @@ public class CommentService {
         comment.setUser(currentUser);
         comment.setContent(dto.getContent());
         commentRepository.save(comment);
+
+        // 게시글 작성자와 댓글 작성자가 다른 경우에만 알림을 보냅니다.
+        if (!post.getUser().getUuid().equals(currentUser.getUuid())) {
+            String fcmToken = post.getUser().getFcmToken();
+
+            // FCM 토큰이 있는 경우에만 알림을 보냅니다.
+            if (fcmToken != null) {
+                // 알림 메시지를 생성합니다.
+                String title = "새로운 댓글 알림";
+                String body = currentUser.getNickname() + "님이 댓글을 남겼습니다: " + comment.getContent();
+
+                // 알림을 보냅니다.
+                try {
+                    firebaseCloudMessageService.sendMessageTo(fcmToken, title, body);
+                } catch (IOException ignored) {
+
+                }
+            }
+        }
         
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("댓글을 추가했습니다."));
     }
