@@ -135,12 +135,17 @@ public class PostService {
 
         // 추가할 이미지가 존재하면 DB에 추가
         if (!dto.getImages().isEmpty()) {
+            int maxIndex = post.getPostImages().stream()
+                    .mapToInt(PostImages::getImageIndex)
+                    .max()
+                    .orElse(-1);
+
             List<PostImages> postImagesList = dto.getImages().stream()
                     .map(imageUrl -> {
                         PostImages postImage = new PostImages();
                         postImage.setPost(post);
                         postImage.setImageUrl(imageUrl);
-                        postImage.setImageIndex(dto.getImages().indexOf(imageUrl));
+                        postImage.setImageIndex(dto.getImages().indexOf(imageUrl) + maxIndex + 1);
                         return postImage;
                     }).collect(Collectors.toCollection(ArrayList::new));
             post.setPostImages(postImagesList);
@@ -212,8 +217,7 @@ public class PostService {
                         post.getQualificationList().getName(),
                         post.getUser().getNickname(),
                         post.getPostImages().stream()
-                                .filter(image -> image.getImageIndex() == 0)
-                                .findFirst()
+                                .min(Comparator.comparingInt(PostImages::getImageIndex))
                                 .map(PostImages::getImageUrl)
                                 .orElse(null),
                         post.getTitle(),
