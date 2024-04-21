@@ -87,7 +87,8 @@ public enum ErrorCode {
     SIGNIN_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "로그인에 실패했습니다."),
     LOGOUT_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "로그아웃에 실패했습니다."),
     USER_GOAL_NOT_FOUND(HttpStatus.NOT_FOUND,"유저 목표가 존재하지 않습니다" ),
-    GOAL_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "세부 목표를 찾을 수 없습니다" );
+    GOAL_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "세부 목표를 찾을 수 없습니다" ),
+    FCM_SEND_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "메시지 전송에 실패했습니다.");
 
 
     private final HttpStatus httpStatus;

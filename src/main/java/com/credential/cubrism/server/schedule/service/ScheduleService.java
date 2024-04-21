@@ -10,7 +10,7 @@ import com.credential.cubrism.server.schedule.dto.ScheduleListDto;
 import com.credential.cubrism.server.schedule.dto.ScheduleUpdateDto;
 import com.credential.cubrism.server.schedule.entity.Schedules;
 import com.credential.cubrism.server.schedule.repository.ScheduleRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

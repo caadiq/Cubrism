@@ -1,12 +1,13 @@
 package com.credential.cubrism.server.studygroup.service;
 
 import com.credential.cubrism.server.authentication.entity.Users;
-import com.credential.cubrism.server.authentication.repository.UserRepository;
 import com.credential.cubrism.server.authentication.utils.SecurityUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
-import com.credential.cubrism.server.notification.service.FirebaseCloudMessageService;
+import com.credential.cubrism.server.notification.entity.FcmTokens;
+import com.credential.cubrism.server.notification.repository.FcmRepository;
+import com.credential.cubrism.server.notification.utils.FcmUtils;
 import com.credential.cubrism.server.studygroup.dto.*;
 import com.credential.cubrism.server.studygroup.entity.*;
 import com.credential.cubrism.server.studygroup.repository.*;
@@ -18,8 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,10 +32,10 @@ public class StudyGroupService {
     private final PendingMembersRepository pendingMembersRepository;
     private final StudyGroupGoalRepository studyGroupGoalRepository;
     private final UserGoalRepository userGoalRepository;
-    private final UserRepository userRepository;
-    private final FirebaseCloudMessageService firebaseCloudMessageService;
+    private final FcmRepository fcmRepository;
 
     private final SecurityUtil securityUtil;
+    private final FcmUtils fcmUtils;
 
     // 스터디 그룹 생성
     @Transactional
@@ -91,20 +90,18 @@ public class StudyGroupService {
                 .findFirst()
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
 
-        String fcmToken = admin.getUser().getFcmToken();
+        String fcmToken = fcmRepository.findByUserId(admin.getUser().getUuid())
+                .map(FcmTokens::getToken)
+                .orElse(null);
 
-        // FCM 토큰이 있는 경우에만 알림을 보냅니다.
+        // FCM 토큰이 존재하는 경우 알림 전송
         if (fcmToken != null) {
-            // 알림 메시지를 생성합니다.
-            String title = "스터디 그룹 가입 요청 알림";
-            String body = currentUser.getNickname() + "님이 '" + studyGroup.getGroupName() + "' 스터디 그룹 가입을 요청했습니다.";
+            // 알림 메시지
+            String title = "스터디 그룹 가입 요청이 있습니다.";
+            String body = currentUser.getNickname() + "님이 가입을 요청했습니다.";
 
-            // 알림을 보냅니다.
-            try {
-                firebaseCloudMessageService.sendMessageTo(fcmToken, title, body);
-            } catch (IOException ignored) {
-
-            }
+            // 알림 전송
+            fcmUtils.sendMessageTo(fcmToken, title, body);
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 요청했습니다."));
@@ -139,21 +136,19 @@ public class StudyGroupService {
 
         userGoalRepository.save(userGoal);
 
-        // 가입 요청을 한 유저에게 알림을 보냅니다.
-        String fcmToken = newMember.getUser().getFcmToken();
+        // 가입 요청을 한 유저에게 알림 전송
+        String fcmToken = fcmRepository.findByUserId(newMember.getUser().getUuid())
+                .map(FcmTokens::getToken)
+                .orElse(null);
 
-        // FCM 토큰이 있는 경우에만 알림을 보냅니다.
+        // FCM 토큰이 존재하는 경우 알림 전송
         if (fcmToken != null) {
-            // 알림 메시지를 생성합니다.
-            String title = "스터디 그룹 가입 승인 알림";
-            String body = "'" + newMember.getStudyGroup().getGroupName() + "' 스터디 그룹에 가입이 승인되었습니다.";
+            // 알림 메시지
+            String title = "스터디 그룹 가입 승인";
+            String body = "'" + newMember.getStudyGroup().getGroupName() + "' 스터디 그룹 가입이 승인되었습니다.";
 
-            // 알림을 보냅니다.
-            try {
-                firebaseCloudMessageService.sendMessageTo(fcmToken, title, body);
-            } catch (IOException ignored) {
-
-            }
+            // 알림 전송
+            fcmUtils.sendMessageTo(fcmToken, title, body);
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 승인했습니다."));
@@ -313,7 +308,7 @@ public class StudyGroupService {
         for (GroupMembers member : studyGroup.getGroupMembers()) {
             Optional<UserGoal> optionalUserGoal = userGoalRepository.findByUserAndStudyGroup(member.getUser(), studyGroup);
             UserGoal userGoal;
-            if (!optionalUserGoal.isPresent()) {
+            if (optionalUserGoal.isEmpty()) {
                 userGoal = new UserGoal();
                 userGoal.setUser(member.getUser());
                 userGoal.setStudyGroup(studyGroup);
@@ -393,14 +388,10 @@ public class StudyGroupService {
 
         if (!userGoal.getCompletedGoals().contains(goal)) {
             userGoal.getCompletedGoals().add(goal);
-            userGoal.getUncompletedGoals().remove(goal); // 추가된 부분
+            userGoal.getUncompletedGoals().remove(goal);
             userGoalRepository.save(userGoal);
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
     }
-
-
-
-
 }
