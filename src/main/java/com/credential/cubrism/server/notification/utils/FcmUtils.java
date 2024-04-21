@@ -43,15 +43,10 @@ public class FcmUtils {
 
     private String makeMessage(String targetToken, String title, String body) {
         try {
-            FcmMessageDto fcmMessage = FcmMessageDto.builder()
-                    .message(FcmMessageDto.Message.builder()
-                            .token(targetToken)
-                            .notification(FcmMessageDto.Notification.builder()
-                                    .title(title)
-                                    .body(body)
-                                    .image(null)
-                                    .build()
-                            ).build()).validateOnly(false).build();
+            FcmMessageDto fcmMessage = new FcmMessageDto(new FcmMessageDto.Message(
+                    targetToken,
+                    new FcmMessageDto.Data(title, body))
+            );
 
             return objectMapper.writeValueAsString(fcmMessage);
         } catch (JsonProcessingException e) {
