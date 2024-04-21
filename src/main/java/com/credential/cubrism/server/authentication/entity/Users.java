@@ -1,6 +1,7 @@
 package com.credential.cubrism.server.authentication.entity;
 
 import com.credential.cubrism.server.favorites.entity.Favorites;
+import com.credential.cubrism.server.notification.entity.FcmTokens;
 import com.credential.cubrism.server.posts.entity.Posts;
 import com.credential.cubrism.server.posts.entity.Replies;
 import com.credential.cubrism.server.schedule.entity.Schedules;
@@ -43,6 +44,9 @@ public class Users {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "provider")
+    private String provider;
+
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
@@ -50,9 +54,6 @@ public class Users {
     @LastModifiedDate
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
-
-    @Column(name = "provider")
-    private String provider;
 
     @ManyToMany
     @JoinTable(
@@ -73,8 +74,6 @@ public class Users {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Favorites> favorites;
 
-    @Setter
-    @Column(name = "FcmToken")
-    public String fcmToken;
-
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private FcmTokens fcmTokens;
 }

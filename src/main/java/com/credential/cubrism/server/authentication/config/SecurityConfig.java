@@ -62,7 +62,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/studygroup/{groupId}").permitAll()
 
                         // 알림
-                        .requestMatchers("/api/fcm").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/fcm").permitAll()
 
                         // 그 외
                         .anyRequest().authenticated()

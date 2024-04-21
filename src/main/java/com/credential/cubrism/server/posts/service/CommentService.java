@@ -5,7 +5,9 @@ import com.credential.cubrism.server.authentication.utils.SecurityUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
-import com.credential.cubrism.server.notification.service.FirebaseCloudMessageService;
+import com.credential.cubrism.server.notification.entity.FcmTokens;
+import com.credential.cubrism.server.notification.repository.FcmRepository;
+import com.credential.cubrism.server.notification.utils.FcmUtils;
 import com.credential.cubrism.server.posts.dto.CommentAddDto;
 import com.credential.cubrism.server.posts.dto.CommentUpdateDto;
 import com.credential.cubrism.server.posts.dto.ReplyAddDto;
@@ -16,13 +18,11 @@ import com.credential.cubrism.server.posts.entity.Replies;
 import com.credential.cubrism.server.posts.repository.CommentRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
 import com.credential.cubrism.server.posts.repository.ReplyRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,9 +30,10 @@ public class CommentService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final ReplyRepository replyRepository;
-    private final FirebaseCloudMessageService firebaseCloudMessageService;
+    private final FcmRepository fcmRepository;
 
     private final SecurityUtil securityUtil;
+    private final FcmUtils fcmUtils;
 
     // 댓글 추가
     @Transactional
@@ -49,22 +50,20 @@ public class CommentService {
         comment.setContent(dto.getContent());
         commentRepository.save(comment);
 
-        // 게시글 작성자와 댓글 작성자가 다른 경우에만 알림을 보냅니다.
+        // 게시글 작성자와 댓글 작성자가 다른 경우 알림 전송
         if (!post.getUser().getUuid().equals(currentUser.getUuid())) {
-            String fcmToken = post.getUser().getFcmToken();
+            String fcmToken = fcmRepository.findByUserId(post.getUser().getUuid())
+                    .map(FcmTokens::getToken)
+                    .orElse(null);
 
-            // FCM 토큰이 있는 경우에만 알림을 보냅니다.
+            // FCM 토큰이 존재하는 경우 알림 전송
             if (fcmToken != null) {
-                // 알림 메시지를 생성합니다.
-                String title = "새로운 댓글 알림";
-                String body = currentUser.getNickname() + "님이 댓글을 남겼습니다: " + comment.getContent();
+                // 알림 메시지
+                String title = currentUser.getNickname() + "님이 댓글을 남겼습니다";
+                String body = comment.getContent();
 
-                // 알림을 보냅니다.
-                try {
-                    firebaseCloudMessageService.sendMessageTo(fcmToken, title, body);
-                } catch (IOException ignored) {
-
-                }
+                // 알림 전송
+                fcmUtils.sendMessageTo(fcmToken, title, body);
             }
         }
         
