@@ -298,11 +298,10 @@ public class AuthService {
             if (currentUser.getImageUrl() != null && s3Util.isFileExists(currentUser.getImageUrl())) {
                 s3Util.deleteFile(currentUser.getImageUrl());
             }
-
-            currentUser.setImageUrl(dto.getImageUrl());
         }
         
         currentUser.setNickname(dto.getNickname());
+        currentUser.setImageUrl(dto.getImageUrl());
         userRepository.save(currentUser);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("회원 정보를 수정했습니다."));
