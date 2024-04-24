@@ -275,6 +275,11 @@ public class StudyGroupService {
                                     .orElse(null),
                             group.getGroupMembers().stream()
                                     .filter(GroupMembers::isAdmin)
+                                    .map(groupMembers -> groupMembers.getUser().getEmail())
+                                    .findFirst()
+                                    .orElse(null),
+                            group.getGroupMembers().stream()
+                                    .filter(GroupMembers::isAdmin)
                                     .map(groupMembers -> Optional.ofNullable(groupMembers.getUser().getImageUrl()))
                                     .findFirst()
                                     .orElse(Optional.empty())

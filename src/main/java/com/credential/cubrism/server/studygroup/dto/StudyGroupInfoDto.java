@@ -12,6 +12,7 @@ public class StudyGroupInfoDto {
     private String groupName;
     private String groupDescription;
     private String groupAdmin;
+    private String adminEmail;
     private String adminProfileImage;
     private int currentMembers;
     private int maxMembers;
