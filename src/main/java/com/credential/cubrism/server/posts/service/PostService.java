@@ -36,7 +36,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -223,9 +222,7 @@ public class PostService {
                         post.getTitle(),
                         post.getContent(),
                         getTimeAgo(post.getCreatedDate()),
-                        post.getComments().stream()
-                                .flatMap(comment -> Stream.concat(Stream.of(comment), comment.getReplies().stream()))
-                                .count()
+                        (long) post.getComments().size()
                 )).toList();
 
         return new PostListDto(pageableDTO, postListDTO);
@@ -241,30 +238,15 @@ public class PostService {
                 .toList();
 
         List<PostViewDto.Comments> commentsDto = post.getComments().stream()
-                .flatMap(comment -> Stream.concat(
-                        Stream.of(new PostViewDto.Comments(
-                                comment.getCommentId(),
-                                null,
-                                comment.getUser().getNickname(),
-                                comment.getUser().getEmail(),
-                                comment.getContent(),
-                                comment.getCreatedDate().toString(),
-                                comment.getUser().getImageUrl(),
-                                false,
-                                comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
-                        )),
-                        comment.getReplies().stream()
-                                .map(reply -> new PostViewDto.Comments(
-                                        reply.getReplyId(),
-                                        comment.getCommentId(),
-                                        reply.getUser().getNickname(),
-                                        reply.getUser().getEmail(),
-                                        reply.getContent(),
-                                        reply.getCreatedDate().toString(),
-                                        reply.getUser().getImageUrl(),
-                                        true,
-                                        reply.getModifiedDate() != null && reply.getModifiedDate().isAfter(reply.getCreatedDate())
-                                ))
+                .map(comment -> new PostViewDto.Comments(
+                        comment.getCommentId(),
+                        comment.getReplyTo(),
+                        comment.getUser().getNickname(),
+                        comment.getUser().getEmail(),
+                        comment.getContent(),
+                        comment.getCreatedDate().toString(),
+                        comment.getUser().getImageUrl(),
+                        comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
                 ))
                 .sorted(Comparator.comparing(PostViewDto.Comments::getCreatedDate))
                 .toList();

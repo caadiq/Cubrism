@@ -3,7 +3,6 @@ package com.credential.cubrism.server.authentication.entity;
 import com.credential.cubrism.server.favorites.entity.Favorites;
 import com.credential.cubrism.server.notification.entity.FcmTokens;
 import com.credential.cubrism.server.posts.entity.Posts;
-import com.credential.cubrism.server.posts.entity.Replies;
 import com.credential.cubrism.server.schedule.entity.Schedules;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -67,9 +66,6 @@ public class Users {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Schedules> schedules;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Replies> replies;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Favorites> favorites;
