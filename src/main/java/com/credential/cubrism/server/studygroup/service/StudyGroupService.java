@@ -275,11 +275,6 @@ public class StudyGroupService {
                                     .orElse(null),
                             group.getGroupMembers().stream()
                                     .filter(GroupMembers::isAdmin)
-                                    .map(groupMembers -> groupMembers.getUser().getEmail())
-                                    .findFirst()
-                                    .orElse(null),
-                            group.getGroupMembers().stream()
-                                    .filter(GroupMembers::isAdmin)
                                     .map(groupMembers -> Optional.ofNullable(groupMembers.getUser().getImageUrl()))
                                     .findFirst()
                                     .orElse(Optional.empty())
@@ -289,7 +284,10 @@ public class StudyGroupService {
                             group.getGroupTags().stream()
                                     .map(GroupTags::getTagName)
                                     .toList(),
-                            isRecruiting
+                            isRecruiting,
+                            group.getGroupMembers().stream()
+                                    .map(groupMembers -> groupMembers.getUser().getEmail())
+                                    .toList()
                     ));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
