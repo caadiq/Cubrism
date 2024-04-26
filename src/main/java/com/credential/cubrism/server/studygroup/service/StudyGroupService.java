@@ -162,8 +162,9 @@ public class StudyGroupService {
                 .flatMap(groupMembers -> pendingMembersRepository.findByStudyGroup(groupMembers.getStudyGroup()).stream()
                         .map(pendingMembers -> new StudyGroupJoinListDto(
                                 pendingMembers.getMemberId(),
+                                pendingMembers.getStudyGroup().getGroupName(),
                                 pendingMembers.getUser().getNickname(),
-                                pendingMembers.getUser().getEmail(),
+                                pendingMembers.getUser().getImageUrl(),
                                 pendingMembers.getRequestDate()
                         )))
                 .toList();
