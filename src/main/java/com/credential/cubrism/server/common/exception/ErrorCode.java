@@ -75,7 +75,7 @@ public enum ErrorCode {
     STUDY_GROUP_ADMIN_LEAVE(HttpStatus.CONFLICT, "스터디 그룹의 관리자는 탈퇴할 수 없습니다."),
     SOCIAL_LOGIN_USER(HttpStatus.CONFLICT, "소셜 로그인을 통해 가입한 유저입니다."),
     FAVORITE_ALREADY_ADDED(HttpStatus.CONFLICT, "이미 추가된 자격증입니다."),
-
+    STUDY_GROUP_ALREADY_REQUESTED(HttpStatus.CONFLICT, "이미 가입 신청한 스터디 그룹입니다."),
 
     /**
      * 500 Internal Server Error
