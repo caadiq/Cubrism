@@ -53,6 +53,11 @@ public class StudyGroupController {
         return studyGroupService.approveJoinRequest(memberId);
     }
 
+    @PutMapping("/studygroup/joinreject/{memberId}") // 스터디 그룹 가입 거절
+    public ResponseEntity<MessageDto> denyJoinRequest(@PathVariable UUID memberId) {
+        return studyGroupService.rejectJoinRequest(memberId);
+    }
+
 //    @DeleteMapping("/studygroup/join/{memberId}") // 스터디 그룹 가입 거절
 //    public ResponseEntity<MessageDto> denyJoinRequest(@PathVariable UUID memberId) {
 //        return studyGroupService.denyJoinRequest(memberId);
