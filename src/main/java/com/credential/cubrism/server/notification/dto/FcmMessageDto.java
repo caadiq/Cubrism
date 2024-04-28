@@ -20,5 +20,6 @@ public class FcmMessageDto {
     public static class Data {
         private String title;
         private String body;
+        private String type;
     }
 }

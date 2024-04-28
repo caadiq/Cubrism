@@ -7,4 +7,5 @@ public class PushMessageDto {
     private String targetToken;
     private String title;
     private String body;
+    private String type;
 }

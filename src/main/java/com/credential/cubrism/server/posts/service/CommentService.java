@@ -57,9 +57,10 @@ public class CommentService {
                 // 알림 메시지
                 String title = currentUser.getNickname() + "님이 댓글을 남겼습니다";
                 String body = comment.getContent();
+                String type = "POST|" + post.getPostId();
 
                 // 알림 전송
-                fcmUtils.sendMessageTo(fcmToken, title, body);
+                fcmUtils.sendMessageTo(fcmToken, title, body, type);
             }
         }
         
@@ -71,7 +72,7 @@ public class CommentService {
     public ResponseEntity<MessageDto> deleteComment(Long commentId) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        // 갯글
+        // 댓글
         Comments comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 

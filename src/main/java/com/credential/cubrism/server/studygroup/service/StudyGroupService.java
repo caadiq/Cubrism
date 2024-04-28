@@ -103,9 +103,10 @@ public class StudyGroupService {
             // 알림 메시지
             String title = "스터디 그룹 가입 요청이 있습니다.";
             String body = currentUser.getNickname() + "님이 가입을 요청했습니다.";
+            String type = "STUDY|" + studyGroup.getGroupId();
 
             // 알림 전송
-            fcmUtils.sendMessageTo(fcmToken, title, body);
+            fcmUtils.sendMessageTo(fcmToken, title, body, type);
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 요청했습니다."));
@@ -150,9 +151,10 @@ public class StudyGroupService {
             // 알림 메시지
             String title = "스터디 그룹 가입 승인";
             String body = "'" + newMember.getStudyGroup().getGroupName() + " 스터디 그룹 가입이 승인되었습니다.";
+            String type = "STUDY|" + newMember.getStudyGroup().getGroupId();
 
             // 알림 전송
-            fcmUtils.sendMessageTo(fcmToken, title, body);
+            fcmUtils.sendMessageTo(fcmToken, title, body, type);
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 승인했습니다."));
@@ -182,7 +184,7 @@ public class StudyGroupService {
             String body = "'" + pendingMember.getStudyGroup().getGroupName() + " 스터디 그룹 가입이 거절되었습니다.";
 
             // 알림 전송
-            fcmUtils.sendMessageTo(fcmToken, title, body);
+            fcmUtils.sendMessageTo(fcmToken, title, body, null);
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 거절했습니다."));
