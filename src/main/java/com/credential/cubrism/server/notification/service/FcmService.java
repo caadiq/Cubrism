@@ -26,7 +26,7 @@ public class FcmService {
 
     public ResponseEntity<MessageDto> pushMessage(PushMessageDto dto) {
         try {
-            fcmUtils.sendMessageTo(dto.getTargetToken(), dto.getTitle(), dto.getBody());
+            fcmUtils.sendMessageTo(dto.getTargetToken(), dto.getTitle(), dto.getBody(), dto.getType());
             return ResponseEntity.ok().body(new MessageDto("알림을 전송했습니다."));
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FCM_SEND_FAILURE);

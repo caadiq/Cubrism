@@ -25,8 +25,8 @@ public class FcmUtils {
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
-    public void sendMessageTo(String targetToken, String title, String body) {
-        String message = makeMessage(targetToken, title, body);
+    public void sendMessageTo(String targetToken, String title, String body, String type) {
+        String message = makeMessage(targetToken, title, body, type);
         String accessToken = getAccessToken();
 
         if (message != null && accessToken != null) {
@@ -41,11 +41,11 @@ public class FcmUtils {
         }
     }
 
-    private String makeMessage(String targetToken, String title, String body) {
+    private String makeMessage(String targetToken, String title, String body, String type) {
         try {
             FcmMessageDto fcmMessage = new FcmMessageDto(new FcmMessageDto.Message(
                     targetToken,
-                    new FcmMessageDto.Data(title, body))
+                    new FcmMessageDto.Data(title, body, type))
             );
 
             return objectMapper.writeValueAsString(fcmMessage);
