@@ -79,6 +79,10 @@ public class StudyGroupService {
             throw new CustomException(ErrorCode.STUDY_GROUP_ALREADY_JOINED);
         }
 
+        if(pendingMembersRepository.findByUserAndStudyGroup(currentUser, studyGroup).isPresent()) {
+            throw new CustomException(ErrorCode.STUDY_GROUP_ALREADY_REQUESTED);
+        }
+
         PendingMembers pendingMembers = new PendingMembers();
         pendingMembers.setUser(currentUser);
         pendingMembers.setStudyGroup(studyGroup);
@@ -145,13 +149,43 @@ public class StudyGroupService {
         if (fcmToken != null) {
             // 알림 메시지
             String title = "스터디 그룹 가입 승인";
-            String body = "'" + newMember.getStudyGroup().getGroupName() + "' 스터디 그룹 가입이 승인되었습니다.";
+            String body = "'" + newMember.getStudyGroup().getGroupName() + " 스터디 그룹 가입이 승인되었습니다.";
 
             // 알림 전송
             fcmUtils.sendMessageTo(fcmToken, title, body);
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 승인했습니다."));
+    }
+
+    // 가입 요청 거절
+    public ResponseEntity<MessageDto> rejectJoinRequest(UUID memberId) {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        PendingMembers pendingMember = pendingMembersRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PENDING_MEMBER_NOT_FOUND));
+
+        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, pendingMember.getStudyGroup(), true)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
+        pendingMembersRepository.delete(pendingMember);
+
+        // 가입 요청을 한 유저에게 알림 전송
+        String fcmToken = fcmRepository.findByUserId(pendingMember.getUser().getUuid())
+                .map(FcmTokens::getToken)
+                .orElse(null);
+
+        // FCM 토큰이 존재하는 경우 알림 전송
+        if (fcmToken != null) {
+            // 알림 메시지
+            String title = "스터디 그룹 가입 거절";
+            String body = "'" + pendingMember.getStudyGroup().getGroupName() + " 스터디 그룹 가입이 거절되었습니다.";
+
+            // 알림 전송
+            fcmUtils.sendMessageTo(fcmToken, title, body);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 거절했습니다."));
     }
 
     // 가입 요청 목록
