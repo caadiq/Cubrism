@@ -9,7 +9,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
@@ -26,6 +25,9 @@ public class Comments {
     @JoinColumn(name = "post_id", nullable = false)
     private Posts post;
 
+    @Column(name = "reply_to")
+    private Long replyTo;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
@@ -40,7 +42,4 @@ public class Comments {
     @LastModifiedDate
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
-
-    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)
-    private List<Replies> replies;
 }

@@ -25,13 +25,12 @@ public class PostViewDto {
     @AllArgsConstructor
     public static class Comments {
         private Long commentId;
-        private Long parentId;
+        private Long replyTo;
         private String nickname;
         private String email;
         private String content;
         private String createdDate;
         private String profileImageUrl;
-        private Boolean isReply;
         private Boolean isUpdated;
     }
 }

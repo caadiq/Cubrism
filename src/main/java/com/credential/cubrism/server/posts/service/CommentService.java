@@ -11,13 +11,10 @@ import com.credential.cubrism.server.notification.utils.FcmUtils;
 import com.credential.cubrism.server.posts.dto.CommentAddDto;
 import com.credential.cubrism.server.posts.dto.CommentUpdateDto;
 import com.credential.cubrism.server.posts.dto.ReplyAddDto;
-import com.credential.cubrism.server.posts.dto.ReplyUpdateDto;
 import com.credential.cubrism.server.posts.entity.Comments;
 import com.credential.cubrism.server.posts.entity.Posts;
-import com.credential.cubrism.server.posts.entity.Replies;
 import com.credential.cubrism.server.posts.repository.CommentRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
-import com.credential.cubrism.server.posts.repository.ReplyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class CommentService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final ReplyRepository replyRepository;
     private final FcmRepository fcmRepository;
 
     private final SecurityUtil securityUtil;
@@ -114,55 +110,20 @@ public class CommentService {
     public ResponseEntity<MessageDto> addReply(ReplyAddDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        // 댓글
-        Comments comment = commentRepository.findById(dto.getCommentId())
+        // 게시글
+        Posts post = postRepository.findById(dto.getPostId())
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        commentRepository.findById(dto.getCommentId())
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
-        Replies reply = new Replies();
-        reply.setComment(comment);
-        reply.setUser(currentUser);
-        reply.setContent(dto.getContent());
-        replyRepository.save(reply);
+        Comments comment = new Comments();
+        comment.setPost(post);
+        comment.setReplyTo(dto.getCommentId());
+        comment.setUser(currentUser);
+        comment.setContent(dto.getContent());
+        commentRepository.save(comment);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("대댓글을 추가했습니다."));
-    }
-
-    // 대댓글 삭제
-    @Transactional
-    public ResponseEntity<MessageDto> deleteReply(Long replyId) {
-        Users currentUser = securityUtil.getCurrentUser();
-
-        // 대댓글
-        Replies reply = replyRepository.findById(replyId)
-                .orElseThrow(() -> new CustomException(ErrorCode.REPLY_NOT_FOUND));
-
-        // 작성자 본인인지 확인
-        if (!reply.getUser().getUuid().equals(currentUser.getUuid())) {
-            throw new CustomException(ErrorCode.DELETE_DENIED);
-        }
-
-        replyRepository.delete(reply);
-
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("대댓글을 삭제했습니다."));
-    }
-
-    // 대댓글 수정
-    @Transactional
-    public ResponseEntity<MessageDto> updateReply(Long replyId, ReplyUpdateDto dto) {
-        Users currentUser = securityUtil.getCurrentUser();
-
-        // 대댓글
-        Replies reply = replyRepository.findById(replyId)
-                .orElseThrow(() -> new CustomException(ErrorCode.REPLY_NOT_FOUND));
-
-        // 작성자 본인인지 확인
-        if (!reply.getUser().getUuid().equals(currentUser.getUuid())) {
-            throw new CustomException(ErrorCode.UPDATE_DENIED);
-        }
-
-        reply.setContent(dto.getContent());
-        replyRepository.save(reply);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("대댓글을 수정했습니다."));
     }
 }
