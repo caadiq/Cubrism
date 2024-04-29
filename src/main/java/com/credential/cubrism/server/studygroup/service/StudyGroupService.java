@@ -161,7 +161,7 @@ public class StudyGroupService {
     }
 
     // 가입 요청 거절
-    public ResponseEntity<MessageDto> rejectJoinRequest(UUID memberId) {
+    public ResponseEntity<MessageDto> denyJoinRequest(UUID memberId) {
         Users currentUser = securityUtil.getCurrentUser();
 
         PendingMembers pendingMember = pendingMembersRepository.findById(memberId)
@@ -381,8 +381,8 @@ public class StudyGroupService {
     }
 
     // 스터디 그룹 목표 수정
-    public ResponseEntity<MessageDto> updateStudyGroupGoal(StudyGroupUpdateGoalDto dto) {
-        StudyGroupGoal goal = studyGroupGoalRepository.findById(dto.getGoalId())
+    public ResponseEntity<MessageDto> updateStudyGroupGoal(Long goalId, StudyGroupUpdateGoalDto dto) {
+        StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
 
         goal.setGoalName(dto.getGoalName());

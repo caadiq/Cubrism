@@ -8,4 +8,5 @@ public class PushMessageDto {
     private String title;
     private String body;
     private String type;
+    private Long id;
 }
