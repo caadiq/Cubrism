@@ -4,6 +4,8 @@ package com.credential.cubrism.server.chat.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -23,8 +25,13 @@ public class ChatMessage {
     @Column(name = "senderId", nullable = false)
     private UUID senderId;
 
-    @Column(name = "sentTime", nullable = false)
-    private LocalDateTime sentTime;
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @Column(name = "studyGroupId", nullable = false)
     private Long studyGroupId;
