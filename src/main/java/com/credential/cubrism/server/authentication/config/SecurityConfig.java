@@ -64,6 +64,12 @@ public class SecurityConfig {
                         // 알림
                         .requestMatchers(HttpMethod.POST, "/fcm").permitAll()
 
+                        // 추가된 권한 설정(채팅 테스트용)
+                        .requestMatchers("/chat.sendMessage/**").permitAll()
+                        .requestMatchers("/topic/public/**").permitAll()
+                        .requestMatchers("/api/v1/studygroups/**").permitAll()
+                        .requestMatchers("/ws").permitAll()
+
                         // 그 외
                         .anyRequest().authenticated()
                 )
