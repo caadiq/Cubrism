@@ -6,7 +6,6 @@ import java.util.List;
 
 @Getter
 public class StudyGroupUpdateGoalDto {
-    public Long goalId;
     public String goalName;
     public String goalDescription;
     public List<String> details;

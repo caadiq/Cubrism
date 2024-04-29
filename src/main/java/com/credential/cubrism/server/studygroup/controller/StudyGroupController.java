@@ -34,8 +34,13 @@ public class StudyGroupController {
 //    }
 
     @GetMapping("/studygroup/{groupId}") // 스터디 그룹 정보
-    public ResponseEntity<?> studyGroupInfo(@PathVariable Long groupId) {
+    public ResponseEntity<StudyGroupInfoDto> studyGroupInfo(@PathVariable Long groupId) {
         return studyGroupService.studyGroupInfo(groupId);
+    }
+
+    @GetMapping("/studygroup/join/list") // 스터디 그룹 가입 신청 목록
+    public ResponseEntity<List<StudyGroupJoinListDto>> getJoinList() {
+        return studyGroupService.getJoinList();
     }
 
     @PostMapping("/studygroup/join/{groupId}") // 스터디 그룹 가입 요청
@@ -44,7 +49,7 @@ public class StudyGroupController {
     }
 
     @GetMapping("/studygroup/join") // 가입 요청 목록
-    public ResponseEntity<List<StudyGroupJoinListDto>> getJoinRequest() {
+    public ResponseEntity<List<StudyGroupJoinRequestDto>> getJoinRequest() {
         return studyGroupService.getJoinRequest();
     }
 
@@ -53,15 +58,10 @@ public class StudyGroupController {
         return studyGroupService.approveJoinRequest(memberId);
     }
 
-    @PutMapping("/studygroup/joinreject/{memberId}") // 스터디 그룹 가입 거절
+    @DeleteMapping("/studygroup/join/{memberId}") // 스터디 그룹 가입 거절
     public ResponseEntity<MessageDto> denyJoinRequest(@PathVariable UUID memberId) {
-        return studyGroupService.rejectJoinRequest(memberId);
+        return studyGroupService.denyJoinRequest(memberId);
     }
-
-//    @DeleteMapping("/studygroup/join/{memberId}") // 스터디 그룹 가입 거절
-//    public ResponseEntity<MessageDto> denyJoinRequest(@PathVariable UUID memberId) {
-//        return studyGroupService.denyJoinRequest(memberId);
-//    }
 
     @DeleteMapping("/studygroup/leave/{groupId}") // 스터디 그룹 탈퇴
     public ResponseEntity<MessageDto> leaveStudyGroup(@PathVariable Long groupId) {
@@ -97,20 +97,15 @@ public class StudyGroupController {
         return studyGroupService.addStudyGroupGoal(dto);
     }
 
-    @PostMapping("studygroup/goal/update") // 스터디 그룹 목표 수정
-    public ResponseEntity<MessageDto> updateStudyGroupGoal(@RequestBody StudyGroupUpdateGoalDto dto) {
-        return studyGroupService.updateStudyGroupGoal(dto);
-    }
-
     @DeleteMapping("/studygroup/goal/{goalId}") // 스터디 그룹 목표 삭제
     public ResponseEntity<?> deleteStudyGroupGoal(@PathVariable Long goalId) {
         return studyGroupService.deleteStudyGroupGoal(goalId);
     }
 
-//    @PutMapping("/studygroup/goal/{goalId}") // 스터디 그룹 목표 수정
-//    public ResponseEntity<?> updateStudyGroupGoal(@PathVariable Long goalId, @RequestBody StudyGroupUpdateGoalDto dto) {
-//        return studyGroupService.updateStudyGroupGoal(goalId, dto);
-//    }
+    @PutMapping("/studygroup/goal/{goalId}") // 스터디 그룹 목표 수정
+    public ResponseEntity<?> updateStudyGroupGoal(@PathVariable Long goalId, @RequestBody StudyGroupUpdateGoalDto dto) {
+        return studyGroupService.updateStudyGroupGoal(goalId, dto);
+    }
 
 //    @GetMapping("/studygroup/goal/{goalId}") // 스터디 그룹 목표 정보
 //    public ResponseEntity<?> studyGroupGoal(@PathVariable Long goalId) {
