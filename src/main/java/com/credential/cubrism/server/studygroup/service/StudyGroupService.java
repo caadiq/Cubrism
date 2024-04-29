@@ -191,12 +191,12 @@ public class StudyGroupService {
     }
 
     // 가입 요청 목록
-    public ResponseEntity<List<StudyGroupJoinListDto>> getJoinRequest() {
+    public ResponseEntity<List<StudyGroupJoinRequestDto>> getJoinRequest() {
         Users currentUser = securityUtil.getCurrentUser();
 
-        List<StudyGroupJoinListDto> joinList = groupMembersRepository.findByUserAndAdmin(currentUser, true).stream()
+        List<StudyGroupJoinRequestDto> joinList = groupMembersRepository.findByUserAndAdmin(currentUser, true).stream()
                 .flatMap(groupMembers -> pendingMembersRepository.findByStudyGroup(groupMembers.getStudyGroup()).stream()
-                        .map(pendingMembers -> new StudyGroupJoinListDto(
+                        .map(pendingMembers -> new StudyGroupJoinRequestDto(
                                 pendingMembers.getMemberId(),
                                 pendingMembers.getStudyGroup().getGroupName(),
                                 pendingMembers.getUser().getNickname(),
@@ -328,6 +328,24 @@ public class StudyGroupService {
                     ));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
+    // 스터디 그룹 가입 신청 목록
+    public ResponseEntity<List<StudyGroupJoinListDto>> getJoinList() {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        List<StudyGroupJoinListDto> joinList = pendingMembersRepository.findByUserOrderByRequestDateDesc(currentUser).stream()
+                .map(pendingMembers -> new StudyGroupJoinListDto(
+                        pendingMembers.getStudyGroup().getGroupName(),
+                        pendingMembers.getStudyGroup().getGroupDescription(),
+                        pendingMembers.getStudyGroup().getGroupTags().stream()
+                                .map(GroupTags::getTagName)
+                                .toList(),
+                        pendingMembers.getRequestDate().toString()
+                ))
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(joinList);
     }
 
     // 스터디 그룹 목표 추가

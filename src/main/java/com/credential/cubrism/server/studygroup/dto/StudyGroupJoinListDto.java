@@ -3,15 +3,13 @@ package com.credential.cubrism.server.studygroup.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
 public class StudyGroupJoinListDto {
-    private UUID memberId;
     private String groupName;
-    private String userName;
-    private String userImage;
-    private LocalDateTime requestDate;
+    private String groupDescription;
+    private List<String> tags;
+    private String requestDate;
 }

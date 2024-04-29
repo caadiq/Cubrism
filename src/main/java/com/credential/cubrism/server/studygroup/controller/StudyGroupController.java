@@ -34,8 +34,13 @@ public class StudyGroupController {
 //    }
 
     @GetMapping("/studygroup/{groupId}") // 스터디 그룹 정보
-    public ResponseEntity<?> studyGroupInfo(@PathVariable Long groupId) {
+    public ResponseEntity<StudyGroupInfoDto> studyGroupInfo(@PathVariable Long groupId) {
         return studyGroupService.studyGroupInfo(groupId);
+    }
+
+    @GetMapping("/studygroup/join/list") // 스터디 그룹 가입 신청 목록
+    public ResponseEntity<List<StudyGroupJoinListDto>> getJoinList() {
+        return studyGroupService.getJoinList();
     }
 
     @PostMapping("/studygroup/join/{groupId}") // 스터디 그룹 가입 요청
@@ -44,7 +49,7 @@ public class StudyGroupController {
     }
 
     @GetMapping("/studygroup/join") // 가입 요청 목록
-    public ResponseEntity<List<StudyGroupJoinListDto>> getJoinRequest() {
+    public ResponseEntity<List<StudyGroupJoinRequestDto>> getJoinRequest() {
         return studyGroupService.getJoinRequest();
     }
 
