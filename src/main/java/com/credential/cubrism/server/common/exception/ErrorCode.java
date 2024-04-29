@@ -62,6 +62,8 @@ public enum ErrorCode {
     STUDY_GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹이 존재하지 않습니다."),
     STUDY_GROUP_GOAL_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹 목표가 존재하지 않습니다."),
     FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "관심 자격증이 존재하지 않습니다."),
+    Null_SessionAttributes(HttpStatus.NOT_FOUND,"SessionAttributes가 null입니다." ),
+
 
 
     /**
@@ -76,6 +78,7 @@ public enum ErrorCode {
     SOCIAL_LOGIN_USER(HttpStatus.CONFLICT, "소셜 로그인을 통해 가입한 유저입니다."),
     FAVORITE_ALREADY_ADDED(HttpStatus.CONFLICT, "이미 추가된 자격증입니다."),
     STUDY_GROUP_ALREADY_REQUESTED(HttpStatus.CONFLICT, "이미 가입 신청한 스터디 그룹입니다."),
+    WebSocket_Key_NOT_FOUND(HttpStatus.CONFLICT, "WebSocket Key가 존재하지 않습니다."),
 
     /**
      * 500 Internal Server Error
