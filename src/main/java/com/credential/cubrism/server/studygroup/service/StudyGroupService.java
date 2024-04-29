@@ -452,4 +452,27 @@ public class StudyGroupService {
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
     }
+
+    // 스터디 그룹별 가입 요청 목록
+    public ResponseEntity<List<StudyGroupJoinRequestDto>> joinList(Long groupId) {
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        Users currentUser = securityUtil.getCurrentUser();
+
+        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
+        List<StudyGroupJoinRequestDto> joinList = pendingMembersRepository.findByStudyGroup(studyGroup).stream()
+                .map(pendingMembers -> new StudyGroupJoinRequestDto(
+                        pendingMembers.getMemberId(),
+                        pendingMembers.getStudyGroup().getGroupName(),
+                        pendingMembers.getUser().getNickname(),
+                        pendingMembers.getUser().getImageUrl(),
+                        pendingMembers.getRequestDate()
+                ))
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(joinList);
+    }
 }

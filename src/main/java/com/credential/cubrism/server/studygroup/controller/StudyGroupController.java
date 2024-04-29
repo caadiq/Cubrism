@@ -53,6 +53,11 @@ public class StudyGroupController {
         return studyGroupService.getJoinRequest();
     }
 
+    @PutMapping("/studygroup/joinlist/{groupId}") // 스터디 그룹 가입 신청 목록
+    public ResponseEntity<List<StudyGroupJoinRequestDto>> joinList(@PathVariable Long groupId) {
+        return studyGroupService.joinList(groupId);
+    }
+
     @PutMapping("/studygroup/join/{memberId}") // 스터디 그룹 가입 승인
     public ResponseEntity<MessageDto> approveJoinRequest(@PathVariable UUID memberId) {
         return studyGroupService.approveJoinRequest(memberId);
