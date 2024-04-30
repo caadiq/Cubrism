@@ -6,10 +6,7 @@ import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
 import com.credential.cubrism.server.favorites.repository.FavoriteRepository;
-import com.credential.cubrism.server.posts.dto.PostAddDto;
-import com.credential.cubrism.server.posts.dto.PostListDto;
-import com.credential.cubrism.server.posts.dto.PostUpdateDto;
-import com.credential.cubrism.server.posts.dto.PostViewDto;
+import com.credential.cubrism.server.posts.dto.*;
 import com.credential.cubrism.server.posts.entity.Board;
 import com.credential.cubrism.server.posts.entity.PostImages;
 import com.credential.cubrism.server.posts.entity.Posts;
@@ -180,11 +177,32 @@ public class PostService {
     }
 
     // 내 게시글 목록
-    public ResponseEntity<PostListDto> myPostList(Pageable pageable) {
+    public ResponseEntity<PostMyListDto> myPostList(Pageable pageable) {
         Users currentUser = securityUtil.getCurrentUser();
         Page<Posts> posts = postRepository.findAllByUserUuid(currentUser.getUuid(), pageable);
 
-        return ResponseEntity.status(HttpStatus.OK).body(getPostList(posts));
+        PostMyListDto.Pageable page = new PostMyListDto.Pageable(
+                posts.hasPrevious() ? posts.getNumber() - 1 : null,
+                posts.getNumber(),
+                posts.hasNext() ? posts.getNumber() + 1 : null
+        );
+
+        List<PostMyListDto.PostList> postList = posts.stream()
+                .map(post -> new PostMyListDto.PostList(
+                        post.getPostId(),
+                        post.getQualificationList().getName(),
+                        post.getUser().getNickname(),
+                        post.getPostImages().stream()
+                                .sorted(Comparator.comparingInt(PostImages::getImageIndex))
+                                .map(PostImages::getImageUrl)
+                                .toList(),
+                        post.getTitle(),
+                        post.getContent(),
+                        getTimeAgoMyPost(post.getCreatedDate()),
+                        (long) post.getComments().size()
+                )).toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(new PostMyListDto(page, postList));
     }
 
     // 관심 자격증 게시글 목록
@@ -292,5 +310,15 @@ public class PostService {
         } else { // 그 외
             return date.format(dateFormat);
         }
+    }
+
+    private String getTimeAgoMyPost(LocalDateTime date) {
+        boolean isThisYear = LocalDateTime.now().getYear() == date.getYear();
+
+        DateTimeFormatter dateFormat = isThisYear ?
+                DateTimeFormatter.ofPattern("M.d HH:mm", Locale.getDefault()) :
+                DateTimeFormatter.ofPattern("yyyy.M.d HH:mm", Locale.getDefault());
+
+        return date.format(dateFormat);
     }
 }
