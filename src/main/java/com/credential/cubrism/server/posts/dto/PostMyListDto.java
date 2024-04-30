@@ -25,6 +25,7 @@ public class PostMyListDto {
         private Long postId;
         private String category;
         private String nickname;
+        private String profileImage;
         private List<String> images;
         private String title;
         private String content;

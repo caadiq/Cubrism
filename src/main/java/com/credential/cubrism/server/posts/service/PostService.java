@@ -192,6 +192,7 @@ public class PostService {
                         post.getPostId(),
                         post.getQualificationList().getName(),
                         post.getUser().getNickname(),
+                        post.getUser().getImageUrl(),
                         post.getPostImages().stream()
                                 .sorted(Comparator.comparingInt(PostImages::getImageIndex))
                                 .map(PostImages::getImageUrl)
