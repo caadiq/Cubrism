@@ -49,7 +49,7 @@ public class PostController {
     }
 
     @GetMapping("/posts/my") // 내 게시글 목록
-    public ResponseEntity<PostListDto> myPostList(
+    public ResponseEntity<PostMyListDto> myPostList(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit
     ) {
