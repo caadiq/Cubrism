@@ -276,10 +276,9 @@ public class AuthService {
         //  - 유저 정보 삭제
         //  - S3에 저장된 프로필 이미지 삭제
         //  - Redis에 저장된 Refresh Token 삭제
-        //  - Access Token을 Redis 블랙리스트에 추가
         //  - 일정 삭제
-        //  - 가입된 스터디 그룹 있으면 탈퇴
-        //  - 게시글은 유지? 삭제?
+        //  - 가입된 스터디 그룹 있으면 탈퇴 (그룹장이면 스터디 그룹 삭제)
+        //  - 게시글, 댓글은 유지
         return null;
     }
 
