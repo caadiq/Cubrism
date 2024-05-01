@@ -66,18 +66,34 @@ public class ScheduleService {
     }
 
     // 일정 목록
-    public ResponseEntity<List<ScheduleListDto>> scheduleList(int year, int month) {
+    public ResponseEntity<List<ScheduleListDto>> scheduleList(Integer year, Integer month) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        List<ScheduleListDto> scheduleList = scheduleRepository.findByUserIdAndYearAndMonth(currentUser.getUuid(), year, month).stream()
-                .map(schedule -> new ScheduleListDto(
-                        schedule.getScheduleId(),
-                        schedule.getStartDate().toString(),
-                        schedule.getEndDate() != null ? schedule.getEndDate().toString() : null,
-                        schedule.isAllDay(),
-                        schedule.getTitle(),
-                        schedule.getContent()
-                )).toList();
+        List<ScheduleListDto> scheduleList;
+
+        if (year == null && month == null) {
+            scheduleList = scheduleRepository.findByUserUuid(currentUser.getUuid()).stream()
+                    .map(schedule -> new ScheduleListDto(
+                            schedule.getScheduleId(),
+                            schedule.getStartDate().toString(),
+                            schedule.getEndDate() != null ? schedule.getEndDate().toString() : null,
+                            schedule.isAllDay(),
+                            schedule.getTitle(),
+                            schedule.getContent()
+                    )).toList();
+        } else if (year == null || month == null) {
+            throw new CustomException(ErrorCode.INVALID_FIELD);
+        } else {
+            scheduleList = scheduleRepository.findByUserIdAndYearAndMonth(currentUser.getUuid(), year, month).stream()
+                    .map(schedule -> new ScheduleListDto(
+                            schedule.getScheduleId(),
+                            schedule.getStartDate().toString(),
+                            schedule.getEndDate() != null ? schedule.getEndDate().toString() : null,
+                            schedule.isAllDay(),
+                            schedule.getTitle(),
+                            schedule.getContent()
+                    )).toList();
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(scheduleList);
     }

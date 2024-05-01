@@ -33,8 +33,8 @@ public class ScheduleController {
 
     @GetMapping("/schedules") // 일정 목록
     public ResponseEntity<List<ScheduleListDto>> getScheduleList(
-            @RequestParam(defaultValue = "#{T(java.time.YearMonth).now().getYear()}") int year,
-            @RequestParam(defaultValue = "#{T(java.time.YearMonth).now().getMonthValue()}") int month
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
     ) {
         return scheduleService.scheduleList(year, month);
     }
