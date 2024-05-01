@@ -14,4 +14,6 @@ public interface ScheduleRepository extends JpaRepository<Schedules, Long> {
     List<Schedules> findByUserIdAndYearAndMonth(@Param("userId") UUID userId, @Param("year") int year, @Param("month") int month);
 
     Optional<Schedules> findByUserUuidAndScheduleId(UUID userId, Long scheduleId);
+
+    List<Schedules> findByUserUuid(UUID userId);
 }
