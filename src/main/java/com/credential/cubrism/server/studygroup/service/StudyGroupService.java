@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,7 +57,6 @@ public class StudyGroupService {
                     return groupTags;
                 }).toList();
         studyGroup.setGroupTags(groupTagsList);
-        studyGroup.setHidden(false);
 
         GroupMembers groupMembers = new GroupMembers();
         groupMembers.setUser(currentUser);
@@ -422,7 +423,7 @@ public class StudyGroupService {
                 .map(member -> {
                     UserGoal userGoal = userGoalRepository.findByUserAndStudyGroup(member.getUser(), studyGroup)
                             .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
-                    double completionPercentage = userGoal.getCompletionPercentage();
+                    double completionPercentage = getCompletionPercentage(userGoal);
 
                     // UserGoal의 completedGoals와 uncompletedGoals를 사용하여 StudyGroupGoalDto 목록을 생성
                     List<StudyGroupGoalDto> completedGoals = userGoal.getCompletedGoals().stream()
@@ -478,5 +479,20 @@ public class StudyGroupService {
                 .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(joinList);
+    }
+
+    public long calculateDDay(StudyGroup studyGroup) {
+        return ChronoUnit.DAYS.between(LocalDate.now(), studyGroup.getDDay());
+    }
+
+    public int getTotalGoals(StudyGroup studyGroup) {
+        return studyGroup.getStudyGroupGoals().size();
+    }
+    public double getCompletionPercentage(UserGoal userGoal) {
+        int totalGoals = getTotalGoals(userGoal.getStudyGroup());
+        if (totalGoals == 0) {
+            return 0;
+        }
+        return (double) userGoal.getCompletedGoals().size() / totalGoals * 100;
     }
 }
