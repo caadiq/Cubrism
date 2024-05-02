@@ -41,22 +41,10 @@ public class StudyGroup {
     @OneToMany(mappedBy = "studyGroup", cascade = CascadeType.ALL)
     private List<GroupTags> groupTags;
 
-    @Column(name = "d_day", nullable = true)
+    @Column(name = "d_day")
     private LocalDate dDay;
 
     @OneToMany(mappedBy = "studyGroup", cascade = CascadeType.ALL)
     private List<StudyGroupGoal> studyGroupGoals;
-
-    @Column(name = "hidden", nullable = true)
-    private boolean hidden;
-
-    public long calculateDDay() {
-        return ChronoUnit.DAYS.between(LocalDate.now(), this.dDay);
-    }
-
-    public int getTotalGoals() {
-        return studyGroupGoals.size();
-    }
-
 
 }

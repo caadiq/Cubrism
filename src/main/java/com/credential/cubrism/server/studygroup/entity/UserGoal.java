@@ -42,11 +42,4 @@ public class UserGoal {
     )
     private List<StudyGroupGoal> uncompletedGoals = new ArrayList<>();; // 추가된 필드
 
-    public double getCompletionPercentage() {
-        int totalGoals = studyGroup.getTotalGoals();
-        if (totalGoals == 0) {
-            return 0;
-        }
-        return (double) completedGoals.size() / totalGoals * 100;
-    }
 }
