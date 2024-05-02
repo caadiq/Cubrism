@@ -245,6 +245,10 @@ public class StudyGroupService {
             throw new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN);
         }
 
+        // 해당 스터디 그룹에 속한 GroupMembers를 모두 찾아서 삭제
+        List<GroupMembers> members = groupMembersRepository.findByStudyGroup(studyGroup);
+        groupMembersRepository.deleteAll(members);
+
         // 스터디 그룹과 관련된 UserGoal을 찾아 삭제
         List<UserGoal> userGoals = userGoalRepository.findByStudyGroup(studyGroup);
         userGoalRepository.deleteAll(userGoals);

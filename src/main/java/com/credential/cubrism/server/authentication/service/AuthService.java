@@ -12,6 +12,15 @@ import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
 import com.credential.cubrism.server.s3.utils.S3Util;
+import com.credential.cubrism.server.schedule.entity.Schedules;
+import com.credential.cubrism.server.schedule.repository.ScheduleRepository;
+import com.credential.cubrism.server.studygroup.entity.GroupMembers;
+import com.credential.cubrism.server.studygroup.entity.StudyGroupGoal;
+import com.credential.cubrism.server.studygroup.entity.UserGoal;
+import com.credential.cubrism.server.studygroup.repository.GroupMembersRepository;
+import com.credential.cubrism.server.studygroup.repository.StudyGroupGoalRepository;
+import com.credential.cubrism.server.studygroup.repository.StudyGroupRepository;
+import com.credential.cubrism.server.studygroup.repository.UserGoalRepository;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
@@ -33,6 +42,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -52,6 +62,11 @@ public class AuthService {
     private String logoUrl;
 
     private final UserRepository userRepository;
+    private final ScheduleRepository scheduleRepository;
+    private final GroupMembersRepository groupMembersRepository;
+    private final StudyGroupRepository studyGroupRepository;
+    private final StudyGroupGoalRepository studyGroupGoalRepository;
+    private final UserGoalRepository userGoalRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
@@ -270,8 +285,9 @@ public class AuthService {
         return "reset_password_success";
     }
 
+    @Transactional
     // 회원탈퇴
-    public ResponseEntity<?> withdrawal() {
+    public ResponseEntity<MessageDto> withdrawal() {
         // TODO
         //  - 유저 정보 삭제
         //  - S3에 저장된 프로필 이미지 삭제
@@ -279,7 +295,37 @@ public class AuthService {
         //  - 일정 삭제
         //  - 가입된 스터디 그룹 있으면 탈퇴 (그룹장이면 스터디 그룹 삭제)
         //  - 게시글, 댓글은 유지
-        return null;
+
+        Users currentUser = securityUtil.getCurrentUser();
+
+        List<Schedules> schedules = scheduleRepository.findByUserUuid(currentUser.getUuid());
+        scheduleRepository.deleteAll(schedules);
+
+        List<GroupMembers> memberships = groupMembersRepository.findByUser(currentUser);
+        for (GroupMembers membership : memberships) {
+            if (membership.isAdmin()) {
+                // 사용자가 어드민인 경우, 해당 스터디 그룹을 삭제
+                List<GroupMembers> members = groupMembersRepository.findByStudyGroup(membership.getStudyGroup());
+                groupMembersRepository.deleteAll(members);
+                List<UserGoal> userGoals = userGoalRepository.findByStudyGroup(membership.getStudyGroup());
+                userGoalRepository.deleteAll(userGoals);
+                List<StudyGroupGoal> studyGroupGoals = studyGroupGoalRepository.findByStudyGroup(membership.getStudyGroup());
+                studyGroupGoalRepository.deleteAll(studyGroupGoals);
+                studyGroupRepository.delete(membership.getStudyGroup());
+
+            } else {
+                // 사용자가 어드민이 아닌 경우, 사용자를 스터디 그룹에서 제거
+                UserGoal userGoal = userGoalRepository.findByUserAndStudyGroup(currentUser, membership.getStudyGroup())
+                        .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
+                userGoalRepository.delete(userGoal);
+                groupMembersRepository.delete(membership);
+            }
+        }
+
+        userRepository.delete(currentUser);
+
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("회원 탈퇴가 완료되었습니다."));
     }
 
     // 회원 정보 수정

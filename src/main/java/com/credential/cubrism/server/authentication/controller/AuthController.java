@@ -55,7 +55,7 @@ public class AuthController {
     }
 
     @DeleteMapping("/users") // 회원탈퇴
-    public ResponseEntity<?> withdrawal() {
+    public ResponseEntity<MessageDto> withdrawal() {
         return authService.withdrawal();
     }
 
