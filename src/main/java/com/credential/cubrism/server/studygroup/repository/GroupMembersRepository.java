@@ -17,4 +17,8 @@ public interface GroupMembersRepository extends JpaRepository<GroupMembers, UUID
     List<GroupMembers> findByUserAndAdmin(Users user, boolean isAdmin);
 
     Optional<GroupMembers> findByUserAndStudyGroupAndAdmin(Users user, StudyGroup studyGroup, boolean admin);
+
+    List<GroupMembers> findByUser(Users user);
+
+    List<GroupMembers> findByStudyGroup(StudyGroup studyGroup);
 }
