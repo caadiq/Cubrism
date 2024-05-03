@@ -259,15 +259,15 @@ public class PostService {
                 .map(comment -> new PostViewDto.Comments(
                         comment.getCommentId(),
                         comment.getReplyTo(),
-                        Optional.ofNullable(post.getUser())
+                        Optional.ofNullable(comment.getUser())
                                 .map(Users::getNickname)
                                 .orElse(null),
-                        Optional.ofNullable(post.getUser())
+                        Optional.ofNullable(comment.getUser())
                                 .map(Users::getEmail)
                                 .orElse(null),
                         comment.getContent(),
                         comment.getCreatedDate().toString(),
-                        Optional.ofNullable(post.getUser())
+                        Optional.ofNullable(comment.getUser())
                                 .map(Users::getImageUrl)
                                 .orElse(null),
                         comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
