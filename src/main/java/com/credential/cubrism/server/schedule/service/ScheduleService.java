@@ -76,7 +76,7 @@ public class ScheduleService {
                     .map(schedule -> new ScheduleListDto(
                             schedule.getScheduleId(),
                             schedule.getStartDate().toString(),
-                            schedule.getEndDate() != null ? schedule.getEndDate().toString() : null,
+                            schedule.getEndDate().toString(),
                             schedule.isAllDay(),
                             schedule.getTitle(),
                             schedule.getContent()
@@ -88,7 +88,7 @@ public class ScheduleService {
                     .map(schedule -> new ScheduleListDto(
                             schedule.getScheduleId(),
                             schedule.getStartDate().toString(),
-                            schedule.getEndDate() != null ? schedule.getEndDate().toString() : null,
+                            schedule.getEndDate().toString(),
                             schedule.isAllDay(),
                             schedule.getTitle(),
                             schedule.getContent()
@@ -101,7 +101,7 @@ public class ScheduleService {
     private void setScheduleFields(Schedules schedules, Users user, String startDate, String endDate, boolean isAllDay, String title, String content) {
         schedules.setUser(user);
         schedules.setStartDate(LocalDateTime.parse(startDate));
-        schedules.setEndDate(endDate != null && !endDate.isEmpty() ? LocalDateTime.parse(endDate) : null);
+        schedules.setEndDate(LocalDateTime.parse(endDate));
         schedules.setAllDay(isAllDay);
         schedules.setTitle(title);
         schedules.setContent(content);
