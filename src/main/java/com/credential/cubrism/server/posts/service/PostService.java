@@ -28,10 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -230,26 +227,21 @@ public class PostService {
         );
 
         List<PostListDto.PostList> postListDTO = posts.stream()
-                .map(post -> {
-                    Users user = post.getUser();
-                    String nickname = null;
-                    if (user != null) {
-                        nickname = user.getNickname();
-                    }
-                    return new PostListDto.PostList(
-                            post.getPostId(),
-                            post.getQualificationList().getName(),
-                            nickname,
-                            post.getPostImages().stream()
-                                    .min(Comparator.comparingInt(PostImages::getImageIndex))
-                                    .map(PostImages::getImageUrl)
-                                    .orElse(null),
-                            post.getTitle(),
-                            post.getContent(),
-                            getTimeAgo(post.getCreatedDate()),
-                            (long) post.getComments().size()
-                    );
-                }).toList();
+                .map(post -> new PostListDto.PostList(
+                        post.getPostId(),
+                        post.getQualificationList().getName(),
+                        Optional.ofNullable(post.getUser())
+                                .map(Users::getNickname)
+                                .orElse(null),
+                        post.getPostImages().stream()
+                                .min(Comparator.comparingInt(PostImages::getImageIndex))
+                                .map(PostImages::getImageUrl)
+                                .orElse(null),
+                        post.getTitle(),
+                        post.getContent(),
+                        getTimeAgo(post.getCreatedDate()),
+                        (long) post.getComments().size()
+                )).toList();
 
         return new PostListDto(pageableDTO, postListDTO);
     }
@@ -264,27 +256,22 @@ public class PostService {
                 .toList();
 
         List<PostViewDto.Comments> commentsDto = post.getComments().stream()
-                .map(comment -> {
-                    Users user = comment.getUser();
-                    String nickname = null;
-                    String email = null;
-                    String imageUrl = null;
-                    if (user != null) {
-                        nickname = user.getNickname();
-                        email = user.getEmail();
-                        imageUrl = user.getImageUrl();
-                    }
-                    return new PostViewDto.Comments(
-                            comment.getCommentId(),
-                            comment.getReplyTo(),
-                            nickname,
-                            email,
-                            comment.getContent(),
-                            comment.getCreatedDate().toString(),
-                            imageUrl,
-                            comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
-                    );
-                })
+                .map(comment -> new PostViewDto.Comments(
+                        comment.getCommentId(),
+                        comment.getReplyTo(),
+                        Optional.ofNullable(comment.getUser())
+                                .map(Users::getNickname)
+                                .orElse(null),
+                        Optional.ofNullable(comment.getUser())
+                                .map(Users::getEmail)
+                                .orElse(null),
+                        comment.getContent(),
+                        comment.getCreatedDate().toString(),
+                        Optional.ofNullable(comment.getUser())
+                                .map(Users::getImageUrl)
+                                .orElse(null),
+                        comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
+                ))
                 .sorted(Comparator.comparing(PostViewDto.Comments::getCreatedDate))
                 .toList();
 
@@ -292,9 +279,15 @@ public class PostService {
                 post.getPostId(),
                 post.getBoard().getBoardName(),
                 post.getQualificationList().getName(),
-                post.getUser() != null ? post.getUser().getNickname() : null,
-                post.getUser() != null ? post.getUser().getImageUrl() : null,
-                post.getUser() != null ? post.getUser().getEmail() : null,
+                Optional.ofNullable(post.getUser())
+                        .map(Users::getNickname)
+                        .orElse(null),
+                Optional.ofNullable(post.getUser())
+                        .map(Users::getImageUrl)
+                        .orElse(null),
+                Optional.ofNullable(post.getUser())
+                        .map(Users::getEmail)
+                        .orElse(null),
                 post.getTitle(),
                 post.getContent(),
                 post.getCreatedDate().toString(),
