@@ -230,19 +230,26 @@ public class PostService {
         );
 
         List<PostListDto.PostList> postListDTO = posts.stream()
-                .map(post -> new PostListDto.PostList(
-                        post.getPostId(),
-                        post.getQualificationList().getName(),
-                        post.getUser().getNickname(),
-                        post.getPostImages().stream()
-                                .min(Comparator.comparingInt(PostImages::getImageIndex))
-                                .map(PostImages::getImageUrl)
-                                .orElse(null),
-                        post.getTitle(),
-                        post.getContent(),
-                        getTimeAgo(post.getCreatedDate()),
-                        (long) post.getComments().size()
-                )).toList();
+                .map(post -> {
+                    Users user = post.getUser();
+                    String nickname = null;
+                    if (user != null) {
+                        nickname = user.getNickname();
+                    }
+                    return new PostListDto.PostList(
+                            post.getPostId(),
+                            post.getQualificationList().getName(),
+                            nickname,
+                            post.getPostImages().stream()
+                                    .min(Comparator.comparingInt(PostImages::getImageIndex))
+                                    .map(PostImages::getImageUrl)
+                                    .orElse(null),
+                            post.getTitle(),
+                            post.getContent(),
+                            getTimeAgo(post.getCreatedDate()),
+                            (long) post.getComments().size()
+                    );
+                }).toList();
 
         return new PostListDto(pageableDTO, postListDTO);
     }
