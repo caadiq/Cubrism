@@ -65,7 +65,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/fcm").permitAll()
 
                         // 추가된 권한 설정(채팅 테스트용)
-                        .requestMatchers("/chat.sendMessage/**").permitAll()
+                        .requestMatchers("/studygroup/**").permitAll()
                         .requestMatchers("/topic/public/**").permitAll()
                         .requestMatchers("/api/v1/studygroups/**").permitAll()
                         .requestMatchers("/ws").permitAll()
