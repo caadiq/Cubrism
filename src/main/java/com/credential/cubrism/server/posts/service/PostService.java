@@ -28,10 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -233,7 +230,9 @@ public class PostService {
                 .map(post -> new PostListDto.PostList(
                         post.getPostId(),
                         post.getQualificationList().getName(),
-                        post.getUser().getNickname(),
+                        Optional.ofNullable(post.getUser())
+                                .map(Users::getNickname)
+                                .orElse(null),
                         post.getPostImages().stream()
                                 .min(Comparator.comparingInt(PostImages::getImageIndex))
                                 .map(PostImages::getImageUrl)
@@ -260,11 +259,17 @@ public class PostService {
                 .map(comment -> new PostViewDto.Comments(
                         comment.getCommentId(),
                         comment.getReplyTo(),
-                        comment.getUser().getNickname(),
-                        comment.getUser().getEmail(),
+                        Optional.ofNullable(comment.getUser())
+                                .map(Users::getNickname)
+                                .orElse(null),
+                        Optional.ofNullable(comment.getUser())
+                                .map(Users::getEmail)
+                                .orElse(null),
                         comment.getContent(),
                         comment.getCreatedDate().toString(),
-                        comment.getUser().getImageUrl(),
+                        Optional.ofNullable(comment.getUser())
+                                .map(Users::getImageUrl)
+                                .orElse(null),
                         comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
                 ))
                 .sorted(Comparator.comparing(PostViewDto.Comments::getCreatedDate))
@@ -274,9 +279,15 @@ public class PostService {
                 post.getPostId(),
                 post.getBoard().getBoardName(),
                 post.getQualificationList().getName(),
-                post.getUser().getNickname(),
-                post.getUser().getImageUrl(),
-                post.getUser().getEmail(),
+                Optional.ofNullable(post.getUser())
+                        .map(Users::getNickname)
+                        .orElse(null),
+                Optional.ofNullable(post.getUser())
+                        .map(Users::getImageUrl)
+                        .orElse(null),
+                Optional.ofNullable(post.getUser())
+                        .map(Users::getEmail)
+                        .orElse(null),
                 post.getTitle(),
                 post.getContent(),
                 post.getCreatedDate().toString(),

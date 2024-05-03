@@ -25,16 +25,16 @@ public class ChatController {
 
     private final ChatService chatService;
     @ResponseBody
-    @GetMapping(value = "/api/v1/studygroups/{studygroupId}/chats")
+    @GetMapping(value = "/studygroup/{studygroupId}/chats")
     public ResponseEntity<List<ChatResponse>> getChattingList(
             @PathVariable(name = "studygroupId") Long studygroupId) {
 
-        List<ChatResponse> result = chatService.getAllByCrewId(studygroupId);
+        List<ChatResponse> result = chatService.getAllByStudyGroupID(studygroupId);
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
-    @MessageMapping("/chat.sendMessage/{studygroupId}")
+    @MessageMapping("/sendmessage/{studygroupId}")
     @SendTo("/topic/public/{studygroupId}")
     public ChatResponse sendMessage(@DestinationVariable Long studygroupId,
                                     @Header("simpSessionAttributes") Map<String, Object> simpSessionAttributes,

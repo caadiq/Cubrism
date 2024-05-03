@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,8 +26,25 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
 
-    public List<ChatResponse> getAllByCrewId(Long studygroupId) {
-        return chatMessageRepository.findAllByStudyGroupId(studygroupId);
+    public List<ChatResponse> getAllByStudyGroupID(Long studygroupId) {
+        List<ChatMessage> messages = chatMessageRepository.findAllByStudyGroupId(studygroupId);
+        List<ChatResponse> responses = messages.stream()
+                .map(message -> {
+                    Users sender = userRepository.findById(message.getSenderId()).orElse(null);
+                    ChatResponse response = new ChatResponse();
+                    response.setUserId(message.getSenderId());
+                    response.setContent(message.getContent());
+                    response.setCreatedAt(message.getCreatedAt());
+                    if (sender != null) {
+                        response.setUsername(sender.getNickname());
+                        response.setProfileImgUrl(sender.getImageUrl());
+                    }
+                    response.setId(message.getChatMessageId());
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return responses;
     }
 
     public ChatResponse save(ChatRequest chatRequest, Long studygroupId, Map<String, Object> simpSessionAttributes) {
@@ -37,14 +55,16 @@ public class ChatService {
 
         ChatMessage savedChatMessage = chatMessageRepository.save(newChatMessage);
 
-        Users sender = userRepository.findById(savedChatMessage.getSenderId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Users sender = userRepository.findById(savedChatMessage.getSenderId()).orElse(null);
 
         ChatResponse chatResponse = new ChatResponse();
         chatResponse.setUserId(savedChatMessage.getSenderId());
         chatResponse.setContent(savedChatMessage.getContent());
         chatResponse.setCreatedAt(savedChatMessage.getCreatedAt());
-        chatResponse.setUsername(sender.getNickname());
-        chatResponse.setProfileImgUrl(sender.getImageUrl());
+        if (sender != null) {
+            chatResponse.setUsername(sender.getNickname());
+            chatResponse.setProfileImgUrl(sender.getImageUrl());
+        }
         chatResponse.setId(savedChatMessage.getChatMessageId());
         return chatResponse;
     }

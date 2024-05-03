@@ -61,7 +61,7 @@ public class Users {
             inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")})
     private Set<Authority> authorities;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user")
     private List<Posts> posts;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
