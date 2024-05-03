@@ -257,16 +257,27 @@ public class PostService {
                 .toList();
 
         List<PostViewDto.Comments> commentsDto = post.getComments().stream()
-                .map(comment -> new PostViewDto.Comments(
-                        comment.getCommentId(),
-                        comment.getReplyTo(),
-                        comment.getUser().getNickname(),
-                        comment.getUser().getEmail(),
-                        comment.getContent(),
-                        comment.getCreatedDate().toString(),
-                        comment.getUser().getImageUrl(),
-                        comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
-                ))
+                .map(comment -> {
+                    Users user = comment.getUser();
+                    String nickname = null;
+                    String email = null;
+                    String imageUrl = null;
+                    if (user != null) {
+                        nickname = user.getNickname();
+                        email = user.getEmail();
+                        imageUrl = user.getImageUrl();
+                    }
+                    return new PostViewDto.Comments(
+                            comment.getCommentId(),
+                            comment.getReplyTo(),
+                            nickname,
+                            email,
+                            comment.getContent(),
+                            comment.getCreatedDate().toString(),
+                            imageUrl,
+                            comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
+                    );
+                })
                 .sorted(Comparator.comparing(PostViewDto.Comments::getCreatedDate))
                 .toList();
 
@@ -274,9 +285,9 @@ public class PostService {
                 post.getPostId(),
                 post.getBoard().getBoardName(),
                 post.getQualificationList().getName(),
-                post.getUser().getNickname(),
-                post.getUser().getImageUrl(),
-                post.getUser().getEmail(),
+                post.getUser() != null ? post.getUser().getNickname() : null,
+                post.getUser() != null ? post.getUser().getImageUrl() : null,
+                post.getUser() != null ? post.getUser().getEmail() : null,
                 post.getTitle(),
                 post.getContent(),
                 post.getCreatedDate().toString(),
