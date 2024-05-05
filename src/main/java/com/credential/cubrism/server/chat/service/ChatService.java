@@ -32,10 +32,10 @@ public class ChatService {
                 .map(message -> {
                     Users sender = userRepository.findById(message.getSenderId()).orElse(null);
                     ChatResponse response = new ChatResponse();
-                    response.setUserId(message.getSenderId());
                     response.setContent(message.getContent());
                     response.setCreatedAt(message.getCreatedAt());
                     if (sender != null) {
+                        response.setEmail(sender.getEmail());
                         response.setUsername(sender.getNickname());
                         response.setProfileImgUrl(sender.getImageUrl());
                     }
@@ -58,10 +58,10 @@ public class ChatService {
         Users sender = userRepository.findById(savedChatMessage.getSenderId()).orElse(null);
 
         ChatResponse chatResponse = new ChatResponse();
-        chatResponse.setUserId(savedChatMessage.getSenderId());
         chatResponse.setContent(savedChatMessage.getContent());
         chatResponse.setCreatedAt(savedChatMessage.getCreatedAt());
         if (sender != null) {
+            chatResponse.setEmail(sender.getEmail());
             chatResponse.setUsername(sender.getNickname());
             chatResponse.setProfileImgUrl(sender.getImageUrl());
         }
