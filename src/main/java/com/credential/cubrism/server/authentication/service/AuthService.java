@@ -298,6 +298,12 @@ public class AuthService {
 
         Users currentUser = securityUtil.getCurrentUser();
 
+        redisUtil.deleteData(currentUser.getEmail() + REFRESH_TOKEN_SUFFIX);
+
+        if (currentUser.getImageUrl() != null && s3Util.isFileExists(currentUser.getImageUrl())) {
+            s3Util.deleteFile(currentUser.getImageUrl());
+        }
+
         List<Schedules> schedules = scheduleRepository.findByUserUuid(currentUser.getUuid());
         scheduleRepository.deleteAll(schedules);
 
@@ -333,7 +339,7 @@ public class AuthService {
     public ResponseEntity<MessageDto> editUser(UserEditDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
         
-        if (dto.getImageUrl() != null) {
+        if (dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
             // S3에 파일이 존재하는지 확인
             if (!s3Util.isFileExists(dto.getImageUrl())) {
                 throw new CustomException(ErrorCode.S3_FILE_NOT_FOUND);
