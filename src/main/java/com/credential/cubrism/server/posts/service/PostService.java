@@ -8,6 +8,7 @@ import com.credential.cubrism.server.common.exception.ErrorCode;
 import com.credential.cubrism.server.favorites.repository.FavoriteRepository;
 import com.credential.cubrism.server.posts.dto.*;
 import com.credential.cubrism.server.posts.entity.Board;
+import com.credential.cubrism.server.posts.entity.Comments;
 import com.credential.cubrism.server.posts.entity.PostImages;
 import com.credential.cubrism.server.posts.entity.Posts;
 import com.credential.cubrism.server.posts.repository.BoardRepository;
@@ -29,6 +30,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -255,23 +257,33 @@ public class PostService {
                 .map(PostImages::getImageUrl)
                 .toList();
 
+        Map<Long, Comments> commentMap = post.getComments().stream()
+                .collect(Collectors.toMap(Comments::getCommentId, Function.identity()));
+
         List<PostViewDto.Comments> commentsDto = post.getComments().stream()
-                .map(comment -> new PostViewDto.Comments(
-                        comment.getCommentId(),
-                        comment.getReplyTo(),
-                        Optional.ofNullable(comment.getUser())
-                                .map(Users::getNickname)
-                                .orElse(null),
-                        Optional.ofNullable(comment.getUser())
-                                .map(Users::getEmail)
-                                .orElse(null),
-                        comment.getContent(),
-                        comment.getCreatedDate().toString(),
-                        Optional.ofNullable(comment.getUser())
-                                .map(Users::getImageUrl)
-                                .orElse(null),
-                        comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
-                ))
+                .map(comment -> {
+                    Optional<Comments> replyToComment = Optional.ofNullable(comment.getReplyTo()).map(commentMap::get);
+                    return new PostViewDto.Comments(
+                            comment.getCommentId(),
+                            comment.getReplyTo(),
+                            replyToComment
+                                    .map(Comments::getUser)
+                                    .map(Users::getNickname)
+                                    .orElse(null),
+                            Optional.ofNullable(comment.getUser())
+                                    .map(Users::getNickname)
+                                    .orElse(null),
+                            Optional.ofNullable(comment.getUser())
+                                    .map(Users::getEmail)
+                                    .orElse(null),
+                            comment.getContent(),
+                            comment.getCreatedDate().toString(),
+                            Optional.ofNullable(comment.getUser())
+                                    .map(Users::getImageUrl)
+                                    .orElse(null),
+                            comment.getModifiedDate() != null && comment.getModifiedDate().isAfter(comment.getCreatedDate())
+                    );
+                })
                 .sorted(Comparator.comparing(PostViewDto.Comments::getCreatedDate))
                 .toList();
 
