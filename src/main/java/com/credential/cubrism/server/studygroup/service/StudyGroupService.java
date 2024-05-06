@@ -346,6 +346,17 @@ public class StudyGroupService {
                         pendingMembers.getStudyGroup().getGroupTags().stream()
                                 .map(GroupTags::getTagName)
                                 .toList(),
+                        pendingMembers.getStudyGroup().getGroupMembers().stream()
+                                .filter(GroupMembers::isAdmin)
+                                .map(groupMembers -> groupMembers.getUser().getNickname())
+                                .findFirst()
+                                .orElse(null),
+                        pendingMembers.getStudyGroup().getGroupMembers().stream()
+                                .filter(GroupMembers::isAdmin)
+                                .map(groupMembers -> Optional.ofNullable(groupMembers.getUser().getImageUrl()))
+                                .findFirst()
+                                .orElse(Optional.empty())
+                                .orElse(null),
                         pendingMembers.getRequestDate().toString()
                 ))
                 .toList();
@@ -481,14 +492,15 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(joinList);
     }
 
-    public long calculateDDay(StudyGroup studyGroup) {
+    private long calculateDDay(StudyGroup studyGroup) {
         return ChronoUnit.DAYS.between(LocalDate.now(), studyGroup.getDDay());
     }
 
-    public int getTotalGoals(StudyGroup studyGroup) {
+    private int getTotalGoals(StudyGroup studyGroup) {
         return studyGroup.getStudyGroupGoals().size();
     }
-    public double getCompletionPercentage(UserGoal userGoal) {
+
+    private double getCompletionPercentage(UserGoal userGoal) {
         int totalGoals = getTotalGoals(userGoal.getStudyGroup());
         if (totalGoals == 0) {
             return 0;

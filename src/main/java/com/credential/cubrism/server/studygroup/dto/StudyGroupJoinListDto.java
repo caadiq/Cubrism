@@ -11,5 +11,7 @@ public class StudyGroupJoinListDto {
     private String groupName;
     private String groupDescription;
     private List<String> tags;
+    private String groupAdmin;
+    private String groupAdminProfileImage;
     private String requestDate;
 }
