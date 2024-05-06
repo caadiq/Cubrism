@@ -10,6 +10,6 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 public class ChatRequest {
-    UUID userId;
+    String email;
     String content;
 }

@@ -26,6 +26,7 @@ public class PostViewDto {
     public static class Comments {
         private Long commentId;
         private Long replyTo;
+        private String replyToNickname;
         private String nickname;
         private String email;
         private String content;

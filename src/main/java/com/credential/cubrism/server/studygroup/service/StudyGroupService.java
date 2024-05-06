@@ -19,8 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,7 +67,130 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("스터디 그룹을 생성했습니다."));
     }
 
-    // 스터디 그룹 가입 요청
+    // 스터디 그룹 삭제
+    @Transactional
+    public ResponseEntity<MessageDto> deleteStudyGroup(Long groupId) {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        GroupMembers groupMembers = groupMembersRepository.findByUserAndStudyGroup(currentUser, studyGroup)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_MEMBER));
+
+        if (!groupMembers.isAdmin()) {
+            throw new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN);
+        }
+
+        // 해당 스터디 그룹에 속한 GroupMembers를 모두 찾아서 삭제
+        List<GroupMembers> members = groupMembersRepository.findByStudyGroup(studyGroup);
+        groupMembersRepository.deleteAll(members);
+
+        // 스터디 그룹과 관련된 UserGoal을 찾아 삭제
+        List<UserGoal> userGoals = userGoalRepository.findByStudyGroup(studyGroup);
+        userGoalRepository.deleteAll(userGoals);
+
+        // 스터디 그룹과 관련된 StudyGroupGoal을 찾아 삭제
+        List<StudyGroupGoal> studyGroupGoals = studyGroupGoalRepository.findByStudyGroup(studyGroup);
+        studyGroupGoalRepository.deleteAll(studyGroupGoals);
+
+        studyGroupRepository.delete(studyGroup);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹을 삭제했습니다."));
+    }
+
+    // 스터디 그룹 목록
+    public ResponseEntity<StudyGroupListDto> studyGroupList(Pageable pageable, boolean recruiting) {
+        Page<StudyGroup> studyGroup = studyGroupRepository.findAll(pageable);
+
+        StudyGroupListDto studyGroupListDto = new StudyGroupListDto(
+                new StudyGroupListDto.Pageable(
+                        studyGroup.hasPrevious() ? pageable.getPageNumber() - 1 : null,
+                        pageable.getPageNumber(),
+                        studyGroup.hasNext() ? pageable.getPageNumber() + 1 : null
+                ),
+                studyGroup.stream()
+                        .filter(group -> !recruiting || group.getGroupMembers().size() < group.getMaxMembers())
+                        .map(group -> {
+                            boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers(); // 모집중 여부
+                            return new StudyGroupListDto.StudyGroupList(
+                                    group.getGroupId(),
+                                    group.getGroupName(),
+                                    group.getGroupDescription(),
+                                    group.getGroupMembers().size(),
+                                    group.getMaxMembers(),
+                                    isRecruiting,
+                                    group.getGroupTags().stream()
+                                            .map(GroupTags::getTagName)
+                                            .toList()
+                            );
+                        }).toList());
+
+        return ResponseEntity.status(HttpStatus.OK).body(studyGroupListDto);
+    }
+
+    // 내가 가입한 스터디 그룹 목록
+    public ResponseEntity<StudyGroupListDto.StudyGroupList> myStudyGroupList() {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        StudyGroupListDto.StudyGroupList studyGroupList = studyGroupRepository.findAllByUserId(currentUser.getUuid())
+                .stream()
+                .map(group -> {
+                    boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers();
+                    return new StudyGroupListDto.StudyGroupList(
+                            group.getGroupId(),
+                            group.getGroupName(),
+                            group.getGroupDescription(),
+                            group.getGroupMembers().size(),
+                            group.getMaxMembers(),
+                            isRecruiting,
+                            group.getGroupTags().stream()
+                                    .map(GroupTags::getTagName)
+                                    .toList()
+                    );
+                })
+                .findFirst()
+                .orElse(null);
+
+        return ResponseEntity.status(HttpStatus.OK).body(studyGroupList);
+    }
+
+    // 스터디 그룹 정보
+    public ResponseEntity<StudyGroupInfoDto> studyGroupInfo(Long groupId) {
+        return studyGroupRepository.findById(groupId)
+                .map(group -> {
+                    boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers();
+                    return ResponseEntity.ok().body(new StudyGroupInfoDto(
+                            group.getGroupId(),
+                            group.getGroupName(),
+                            group.getGroupDescription(),
+                            group.getGroupMembers().stream()
+                                    .filter(GroupMembers::isAdmin)
+                                    .map(groupMembers -> groupMembers.getUser().getNickname())
+                                    .findFirst()
+                                    .orElse(null),
+                            group.getGroupMembers().stream()
+                                    .filter(GroupMembers::isAdmin)
+                                    .map(groupMembers -> Optional.ofNullable(groupMembers.getUser().getImageUrl()))
+                                    .findFirst()
+                                    .orElse(Optional.empty())
+                                    .orElse(null),
+                            group.getGroupMembers().size(),
+                            group.getMaxMembers(),
+                            group.getGroupTags().stream()
+                                    .map(GroupTags::getTagName)
+                                    .toList(),
+                            isRecruiting,
+                            group.getGroupMembers().stream()
+                                    .map(groupMembers -> groupMembers.getUser().getEmail())
+                                    .toList()
+                    ));
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
+    // 스터디 그룹 가입 신청
+    @Transactional
     public ResponseEntity<MessageDto> requestJoin(Long groupId) {
         Users currentUser = securityUtil.getCurrentUser();
 
@@ -89,7 +210,7 @@ public class StudyGroupService {
         pendingMembers.setStudyGroup(studyGroup);
         pendingMembersRepository.save(pendingMembers);
 
-        // 스터디 그룹 관리자에게 알림을 보냅니다.
+        // 스터디 그룹 관리자에게 알림 전송
         GroupMembers admin = studyGroup.getGroupMembers().stream()
                 .filter(GroupMembers::isAdmin)
                 .findFirst()
@@ -113,7 +234,55 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 요청했습니다."));
     }
 
-    // 스터디 그룹 가입 요청 승인
+    // 스터디 그룹 가입 신청 취소
+    @Transactional
+    public ResponseEntity<MessageDto> cancelJoinRequest(UUID memberId) {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        PendingMembers pendingMember = pendingMembersRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PENDING_MEMBER_NOT_FOUND));
+
+        if (!pendingMember.getUser().getUuid().equals(currentUser.getUuid())) {
+            throw new CustomException(ErrorCode.PENDING_MEMBER_NOT_MATCH);
+        }
+
+        pendingMembersRepository.delete(pendingMember);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입 신청을 취소했습니다."));
+    }
+
+    // 가입 신청한 스터디 그룹 목록
+    public ResponseEntity<List<StudyGroupJoinListDto>> joinRequestList() {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        List<StudyGroupJoinListDto> joinList = pendingMembersRepository.findByUserOrderByRequestDateDesc(currentUser).stream()
+                .map(pendingMembers -> new StudyGroupJoinListDto(
+                        pendingMembers.getMemberId(),
+                        pendingMembers.getStudyGroup().getGroupName(),
+                        pendingMembers.getStudyGroup().getGroupDescription(),
+                        pendingMembers.getStudyGroup().getGroupTags().stream()
+                                .map(GroupTags::getTagName)
+                                .toList(),
+                        pendingMembers.getStudyGroup().getGroupMembers().stream()
+                                .filter(GroupMembers::isAdmin)
+                                .map(groupMembers -> groupMembers.getUser().getNickname())
+                                .findFirst()
+                                .orElse(null),
+                        pendingMembers.getStudyGroup().getGroupMembers().stream()
+                                .filter(GroupMembers::isAdmin)
+                                .map(groupMembers -> Optional.ofNullable(groupMembers.getUser().getImageUrl()))
+                                .findFirst()
+                                .orElse(Optional.empty())
+                                .orElse(null),
+                        pendingMembers.getRequestDate().toString()
+                ))
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(joinList);
+    }
+
+    // 스터디 그룹 가입 승인
+    @Transactional
     public ResponseEntity<MessageDto> approveJoinRequest(UUID memberId) {
         Users currentUser = securityUtil.getCurrentUser();
 
@@ -161,7 +330,8 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 승인했습니다."));
     }
 
-    // 가입 요청 거절
+    // 스터디 그룹 가입 거절
+    @Transactional
     public ResponseEntity<MessageDto> denyJoinRequest(UUID memberId) {
         Users currentUser = securityUtil.getCurrentUser();
 
@@ -191,162 +361,23 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 가입을 거절했습니다."));
     }
 
-    // 가입 요청 목록
-    public ResponseEntity<List<StudyGroupJoinRequestDto>> getJoinRequest() {
-        Users currentUser = securityUtil.getCurrentUser();
-
-        List<StudyGroupJoinRequestDto> joinList = groupMembersRepository.findByUserAndAdmin(currentUser, true).stream()
-                .flatMap(groupMembers -> pendingMembersRepository.findByStudyGroup(groupMembers.getStudyGroup()).stream()
-                        .map(pendingMembers -> new StudyGroupJoinRequestDto(
-                                pendingMembers.getMemberId(),
-                                pendingMembers.getStudyGroup().getGroupName(),
-                                pendingMembers.getUser().getNickname(),
-                                pendingMembers.getUser().getImageUrl(),
-                                pendingMembers.getRequestDate()
-                        )))
-                .toList();
-
-        return ResponseEntity.status(HttpStatus.OK).body(joinList);
-    }
-
-    // 스터디 그룹 탈퇴
-    public ResponseEntity<MessageDto> leaveStudyGroup(Long groupId) {
-        Users currentUser = securityUtil.getCurrentUser();
-
+    // 해당 스터디 그룹 가입 신청 목록
+    public ResponseEntity<List<StudyGroupJoinRequestDto>> joinRequestList(Long groupId) {
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
 
-        GroupMembers groupMembers = groupMembersRepository.findByUserAndStudyGroup(currentUser, studyGroup)
-                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_MEMBER));
-
-        if (groupMembers.isAdmin()) {
-            throw new CustomException(ErrorCode.STUDY_GROUP_ADMIN_LEAVE);
-        }
-
-        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroup(currentUser, studyGroup)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
-        userGoalRepository.delete(userGoal);
-
-        groupMembersRepository.delete(groupMembers);
-
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹을 탈퇴했습니다."));
-    }
-
-    // 스터디 그룹 삭제
-    public ResponseEntity<MessageDto> deleteStudyGroup(Long groupId) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
-                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
 
-        GroupMembers groupMembers = groupMembersRepository.findByUserAndStudyGroup(currentUser, studyGroup)
-                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_MEMBER));
-
-        if (!groupMembers.isAdmin()) {
-            throw new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN);
-        }
-
-        // 해당 스터디 그룹에 속한 GroupMembers를 모두 찾아서 삭제
-        List<GroupMembers> members = groupMembersRepository.findByStudyGroup(studyGroup);
-        groupMembersRepository.deleteAll(members);
-
-        // 스터디 그룹과 관련된 UserGoal을 찾아 삭제
-        List<UserGoal> userGoals = userGoalRepository.findByStudyGroup(studyGroup);
-        userGoalRepository.deleteAll(userGoals);
-
-        // 스터디 그룹과 관련된 StudyGroupGoal을 찾아 삭제
-        List<StudyGroupGoal> studyGroupGoals = studyGroupGoalRepository.findByStudyGroup(studyGroup);
-        studyGroupGoalRepository.deleteAll(studyGroupGoals);
-
-        studyGroupRepository.delete(studyGroup);
-
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹을 삭제했습니다."));
-    }
-
-    // 스터디 그룹 목록
-    public ResponseEntity<StudyGroupListDto> studyGroupList(Pageable pageable, boolean recruiting) {
-        Page<StudyGroup> studyGroup = studyGroupRepository.findAll(pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(getStudyGroupList(studyGroup, pageable, recruiting));
-    }
-
-    // 내 스터디 그룹 목록
-    public ResponseEntity<StudyGroupListDto> myStudyGroupList(Pageable pageable, boolean recruiting) {
-        Users currentUser = securityUtil.getCurrentUser();
-        Page<StudyGroup> studyGroup = studyGroupRepository.findByUserId(currentUser.getUuid(), pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(getStudyGroupList(studyGroup, pageable, recruiting));
-    }
-
-    private StudyGroupListDto getStudyGroupList(Page<StudyGroup> studyGroup, Pageable pageable, boolean recruiting) {
-        return new StudyGroupListDto(
-                new StudyGroupListDto.Pageable(
-                        studyGroup.hasPrevious() ? pageable.getPageNumber() - 1 : null,
-                        pageable.getPageNumber(),
-                        studyGroup.hasNext() ? pageable.getPageNumber() + 1 : null
-                ),
-                studyGroup.stream()
-                        .filter(group -> !recruiting || group.getGroupMembers().size() < group.getMaxMembers())
-                        .map(group -> {
-                            boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers(); // 모집중 여부
-                            return new StudyGroupListDto.StudyGroupList(
-                                    group.getGroupId(),
-                                    group.getGroupName(),
-                                    group.getGroupDescription(),
-                                    group.getGroupMembers().size(),
-                                    group.getMaxMembers(),
-                                    isRecruiting,
-                                    group.getGroupTags().stream()
-                                            .map(GroupTags::getTagName)
-                                            .toList()
-                            );
-                        }).toList());
-    }
-
-    // 스터디 그룹 정보
-    public ResponseEntity<StudyGroupInfoDto> studyGroupInfo(Long groupId) {
-        return studyGroupRepository.findById(groupId)
-                .map(group -> {
-                    boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers();
-                    return ResponseEntity.ok().body(new StudyGroupInfoDto(
-                            group.getGroupId(),
-                            group.getGroupName(),
-                            group.getGroupDescription(),
-                            group.getGroupMembers().stream()
-                                    .filter(GroupMembers::isAdmin)
-                                    .map(groupMembers -> groupMembers.getUser().getNickname())
-                                    .findFirst()
-                                    .orElse(null),
-                            group.getGroupMembers().stream()
-                                    .filter(GroupMembers::isAdmin)
-                                    .map(groupMembers -> Optional.ofNullable(groupMembers.getUser().getImageUrl()))
-                                    .findFirst()
-                                    .orElse(Optional.empty())
-                                    .orElse(null),
-                            group.getGroupMembers().size(),
-                            group.getMaxMembers(),
-                            group.getGroupTags().stream()
-                                    .map(GroupTags::getTagName)
-                                    .toList(),
-                            isRecruiting,
-                            group.getGroupMembers().stream()
-                                    .map(groupMembers -> groupMembers.getUser().getEmail())
-                                    .toList()
-                    ));
-                })
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
-    }
-
-    // 스터디 그룹 가입 신청 목록
-    public ResponseEntity<List<StudyGroupJoinListDto>> getJoinList() {
-        Users currentUser = securityUtil.getCurrentUser();
-
-        List<StudyGroupJoinListDto> joinList = pendingMembersRepository.findByUserOrderByRequestDateDesc(currentUser).stream()
-                .map(pendingMembers -> new StudyGroupJoinListDto(
+        List<StudyGroupJoinRequestDto> joinList = pendingMembersRepository.findByStudyGroup(studyGroup).stream()
+                .map(pendingMembers -> new StudyGroupJoinRequestDto(
+                        pendingMembers.getMemberId(),
                         pendingMembers.getStudyGroup().getGroupName(),
-                        pendingMembers.getStudyGroup().getGroupDescription(),
-                        pendingMembers.getStudyGroup().getGroupTags().stream()
-                                .map(GroupTags::getTagName)
-                                .toList(),
-                        pendingMembers.getRequestDate().toString()
+                        pendingMembers.getUser().getNickname(),
+                        pendingMembers.getUser().getImageUrl(),
+                        pendingMembers.getRequestDate()
                 ))
                 .toList();
 
@@ -387,6 +418,7 @@ public class StudyGroupService {
     }
 
     // 스터디 그룹 목표 삭제
+    @Transactional
     public ResponseEntity<MessageDto> deleteStudyGroupGoal(Long goalId) {
         StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
@@ -404,6 +436,7 @@ public class StudyGroupService {
     }
 
     // 스터디 그룹 목표 수정
+    @Transactional
     public ResponseEntity<MessageDto> updateStudyGroupGoal(Long goalId, StudyGroupUpdateGoalDto dto) {
         StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
@@ -423,7 +456,12 @@ public class StudyGroupService {
                 .map(member -> {
                     UserGoal userGoal = userGoalRepository.findByUserAndStudyGroup(member.getUser(), studyGroup)
                             .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
-                    double completionPercentage = getCompletionPercentage(userGoal);
+                    double completionPercentage = Optional.of(userGoal)
+                            .map(UserGoal::getStudyGroup)
+                            .map(StudyGroup::getStudyGroupGoals)
+                            .filter(goals -> !goals.isEmpty())
+                            .map(goals -> (double) userGoal.getCompletedGoals().size() / goals.size() * 100)
+                            .orElse(0.0);
 
                     // UserGoal의 completedGoals와 uncompletedGoals를 사용하여 StudyGroupGoalDto 목록을 생성
                     List<StudyGroupGoalDto> completedGoals = userGoal.getCompletedGoals().stream()
@@ -458,41 +496,7 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
     }
 
-    // 스터디 그룹별 가입 요청 목록
-    public ResponseEntity<List<StudyGroupJoinRequestDto>> joinList(Long groupId) {
-        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
-                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
-
-        Users currentUser = securityUtil.getCurrentUser();
-
-        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
-                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
-
-        List<StudyGroupJoinRequestDto> joinList = pendingMembersRepository.findByStudyGroup(studyGroup).stream()
-                .map(pendingMembers -> new StudyGroupJoinRequestDto(
-                        pendingMembers.getMemberId(),
-                        pendingMembers.getStudyGroup().getGroupName(),
-                        pendingMembers.getUser().getNickname(),
-                        pendingMembers.getUser().getImageUrl(),
-                        pendingMembers.getRequestDate()
-                ))
-                .toList();
-
-        return ResponseEntity.status(HttpStatus.OK).body(joinList);
-    }
-
-    public long calculateDDay(StudyGroup studyGroup) {
-        return ChronoUnit.DAYS.between(LocalDate.now(), studyGroup.getDDay());
-    }
-
-    public int getTotalGoals(StudyGroup studyGroup) {
-        return studyGroup.getStudyGroupGoals().size();
-    }
-    public double getCompletionPercentage(UserGoal userGoal) {
-        int totalGoals = getTotalGoals(userGoal.getStudyGroup());
-        if (totalGoals == 0) {
-            return 0;
-        }
-        return (double) userGoal.getCompletedGoals().size() / totalGoals * 100;
-    }
+//    private long calculateDDay(StudyGroup studyGroup) {
+//        return ChronoUnit.DAYS.between(LocalDate.now(), studyGroup.getDDay());
+//    }
 }

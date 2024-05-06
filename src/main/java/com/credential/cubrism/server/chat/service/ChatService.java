@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,10 +33,10 @@ public class ChatService {
                 .map(message -> {
                     Users sender = userRepository.findById(message.getSenderId()).orElse(null);
                     ChatResponse response = new ChatResponse();
-                    response.setUserId(message.getSenderId());
                     response.setContent(message.getContent());
                     response.setCreatedAt(message.getCreatedAt());
                     if (sender != null) {
+                        response.setEmail(sender.getEmail());
                         response.setUsername(sender.getNickname());
                         response.setProfileImgUrl(sender.getImageUrl());
                     }
@@ -48,9 +49,14 @@ public class ChatService {
     }
 
     public ChatResponse save(ChatRequest chatRequest, Long studygroupId, Map<String, Object> simpSessionAttributes) {
+        Optional<Users> userOptional = userRepository.findByEmail(chatRequest.getEmail());
+        if (!userOptional.isPresent()) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+        Users user = userOptional.get();
         ChatMessage newChatMessage = new ChatMessage();
         newChatMessage.setStudyGroupId(studygroupId);
-        newChatMessage.setSenderId(chatRequest.getUserId());
+        newChatMessage.setSenderId(user.getUuid());
         newChatMessage.setContent(chatRequest.getContent());
 
         ChatMessage savedChatMessage = chatMessageRepository.save(newChatMessage);
@@ -58,10 +64,10 @@ public class ChatService {
         Users sender = userRepository.findById(savedChatMessage.getSenderId()).orElse(null);
 
         ChatResponse chatResponse = new ChatResponse();
-        chatResponse.setUserId(savedChatMessage.getSenderId());
         chatResponse.setContent(savedChatMessage.getContent());
         chatResponse.setCreatedAt(savedChatMessage.getCreatedAt());
         if (sender != null) {
+            chatResponse.setEmail(sender.getEmail());
             chatResponse.setUsername(sender.getNickname());
             chatResponse.setProfileImgUrl(sender.getImageUrl());
         }

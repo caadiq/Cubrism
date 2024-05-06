@@ -33,46 +33,6 @@ public class StudyGroupController {
 //        return studyGroupService.updateStudyGroup(studyGroupId, dto);
 //    }
 
-    @GetMapping("/studygroup/{groupId}") // 스터디 그룹 정보
-    public ResponseEntity<StudyGroupInfoDto> studyGroupInfo(@PathVariable Long groupId) {
-        return studyGroupService.studyGroupInfo(groupId);
-    }
-
-    @GetMapping("/studygroup/join/list") // 스터디 그룹 가입 신청 목록
-    public ResponseEntity<List<StudyGroupJoinListDto>> getJoinList() {
-        return studyGroupService.getJoinList();
-    }
-
-    @PostMapping("/studygroup/join/{groupId}") // 스터디 그룹 가입 요청
-    public ResponseEntity<MessageDto> requestJoin(@PathVariable Long groupId) {
-        return studyGroupService.requestJoin(groupId);
-    }
-
-    @GetMapping("/studygroup/join") // 가입 요청 목록
-    public ResponseEntity<List<StudyGroupJoinRequestDto>> getJoinRequest() {
-        return studyGroupService.getJoinRequest();
-    }
-
-    @PutMapping("/studygroup/joinlist/{groupId}") // 스터디 그룹 가입 신청 목록
-    public ResponseEntity<List<StudyGroupJoinRequestDto>> joinList(@PathVariable Long groupId) {
-        return studyGroupService.joinList(groupId);
-    }
-
-    @PutMapping("/studygroup/join/{memberId}") // 스터디 그룹 가입 승인
-    public ResponseEntity<MessageDto> approveJoinRequest(@PathVariable UUID memberId) {
-        return studyGroupService.approveJoinRequest(memberId);
-    }
-
-    @DeleteMapping("/studygroup/join/{memberId}") // 스터디 그룹 가입 거절
-    public ResponseEntity<MessageDto> denyJoinRequest(@PathVariable UUID memberId) {
-        return studyGroupService.denyJoinRequest(memberId);
-    }
-
-    @DeleteMapping("/studygroup/leave/{groupId}") // 스터디 그룹 탈퇴
-    public ResponseEntity<MessageDto> leaveStudyGroup(@PathVariable Long groupId) {
-        return studyGroupService.leaveStudyGroup(groupId);
-    }
-
     @GetMapping("/studygroups") // 스터디 그룹 목록
     public ResponseEntity<StudyGroupListDto> studyGroupList(
             @RequestParam(defaultValue = "0") int page,
@@ -85,17 +45,51 @@ public class StudyGroupController {
         return studyGroupService.studyGroupList(pageable, recruiting);
     }
 
-    @GetMapping("/studygroups/my") // 내 스터디 그룹 목록
-    public ResponseEntity<StudyGroupListDto> myStudyGroupList(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(defaultValue = "false") boolean recruiting
-    ) {
-        limit = Math.max(1, Math.min(limit, 50)); // 한 페이지의 스터디 그룹 수를 1~50 사이로 제한
-        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdDate").descending()); // 페이징 처리 (날짜순으로 정렬)
-
-        return studyGroupService.myStudyGroupList(pageable, recruiting);
+    @GetMapping("/studygroups/my") // 내가 가입한 스터디 그룹 목록
+    public ResponseEntity<StudyGroupListDto.StudyGroupList> myStudyGroupList() {
+        return studyGroupService.myStudyGroupList();
     }
+
+    @GetMapping("/studygroup/{groupId}") // 스터디 그룹 정보
+    public ResponseEntity<StudyGroupInfoDto> studyGroupInfo(@PathVariable Long groupId) {
+        return studyGroupService.studyGroupInfo(groupId);
+    }
+
+
+
+    @PostMapping("/studygroup/join/request/{groupId}") // 스터디 그룹 가입 신청
+    public ResponseEntity<MessageDto> requestJoin(@PathVariable Long groupId) {
+        return studyGroupService.requestJoin(groupId);
+    }
+
+    @DeleteMapping("/studygroup/join/request/{memberId}") // 스터디 그룹 가입 신청 취소
+    public ResponseEntity<MessageDto> cancelJoinRequest(@PathVariable UUID memberId) {
+        return studyGroupService.cancelJoinRequest(memberId);
+    }
+
+    @GetMapping("/studygroup/join/requests") // 가입 신청한 스터디 그룹 목록
+    public ResponseEntity<List<StudyGroupJoinListDto>> joinRequestList() {
+        return studyGroupService.joinRequestList();
+    }
+
+
+
+    @PutMapping("/studygroup/join/receive/{memberId}") // 스터디 그룹 가입 승인
+    public ResponseEntity<MessageDto> approveJoinRequest(@PathVariable UUID memberId) {
+        return studyGroupService.approveJoinRequest(memberId);
+    }
+
+    @DeleteMapping("/studygroup/join/receive/{memberId}") // 스터디 그룹 가입 거절
+    public ResponseEntity<MessageDto> denyJoinRequest(@PathVariable UUID memberId) {
+        return studyGroupService.denyJoinRequest(memberId);
+    }
+
+    @GetMapping("/studygroup/join/receives/{groupId}") // 해당 스터디 그룹 가입 신청 목록
+    public ResponseEntity<List<StudyGroupJoinRequestDto>> joinRequestList(@PathVariable Long groupId) {
+        return studyGroupService.joinRequestList(groupId);
+    }
+
+
 
     @PostMapping("/studygroup/goal") // 스터디 그룹 목표 추가
     public ResponseEntity<MessageDto> addStudyGroupGoal(@RequestBody StudyGroupAddGoalDto dto) {

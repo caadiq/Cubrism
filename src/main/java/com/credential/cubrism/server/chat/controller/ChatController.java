@@ -40,6 +40,7 @@ public class ChatController {
                                     @Header("simpSessionAttributes") Map<String, Object> simpSessionAttributes,
                                     @Payload ChatRequest chatRequest
     ) {
+        System.out.println("메세지 도착");
         return chatService.save(chatRequest, studygroupId, simpSessionAttributes);
     }
 

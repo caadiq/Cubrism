@@ -14,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ChatResponse {
     UUID id;
-    UUID userId;
+    String email;
     String username;
     String profileImgUrl;
     LocalDateTime createdAt;
