@@ -41,7 +41,6 @@ public enum ErrorCode {
     UPDATE_DENIED(HttpStatus.FORBIDDEN, "본인만 수정할 수 있습니다."),
     STUDY_GROUP_NOT_MEMBER(HttpStatus.FORBIDDEN, "스터디 그룹의 멤버가 아닙니다."),
     STUDY_GROUP_NOT_ADMIN(HttpStatus.FORBIDDEN, "스터디 그룹의 관리자가 아닙니다."),
-    PENDING_MEMBER_NOT_FOUND(HttpStatus.FORBIDDEN, "가입 대기 중인 스터디 그룹 멤버가 아닙니다."),
 
 
     /**
@@ -63,7 +62,7 @@ public enum ErrorCode {
     STUDY_GROUP_GOAL_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹 목표가 존재하지 않습니다."),
     FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "관심 자격증이 존재하지 않습니다."),
     Null_SessionAttributes(HttpStatus.NOT_FOUND,"SessionAttributes가 null입니다." ),
-
+    PENDING_MEMBER_NOT_FOUND(HttpStatus.FORBIDDEN, "가입 신청한 유저가 존재하지 않습니다."),
 
 
     /**
@@ -79,6 +78,8 @@ public enum ErrorCode {
     FAVORITE_ALREADY_ADDED(HttpStatus.CONFLICT, "이미 추가된 자격증입니다."),
     STUDY_GROUP_ALREADY_REQUESTED(HttpStatus.CONFLICT, "이미 가입 신청한 스터디 그룹입니다."),
     WebSocket_Key_NOT_FOUND(HttpStatus.CONFLICT, "WebSocket Key가 존재하지 않습니다."),
+    PENDING_MEMBER_NOT_MATCH(HttpStatus.CONFLICT, "가입 신청한 유저가 아닙니다."),
+
 
     /**
      * 500 Internal Server Error
