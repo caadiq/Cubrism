@@ -341,6 +341,7 @@ public class StudyGroupService {
 
         List<StudyGroupJoinListDto> joinList = pendingMembersRepository.findByUserOrderByRequestDateDesc(currentUser).stream()
                 .map(pendingMembers -> new StudyGroupJoinListDto(
+                        pendingMembers.getMemberId(),
                         pendingMembers.getStudyGroup().getGroupName(),
                         pendingMembers.getStudyGroup().getGroupDescription(),
                         pendingMembers.getStudyGroup().getGroupTags().stream()
