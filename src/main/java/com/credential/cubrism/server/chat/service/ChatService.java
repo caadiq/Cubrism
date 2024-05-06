@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,9 +49,14 @@ public class ChatService {
     }
 
     public ChatResponse save(ChatRequest chatRequest, Long studygroupId, Map<String, Object> simpSessionAttributes) {
+        Optional<Users> userOptional = userRepository.findByEmail(chatRequest.getEmail());
+        if (!userOptional.isPresent()) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+        Users user = userOptional.get();
         ChatMessage newChatMessage = new ChatMessage();
         newChatMessage.setStudyGroupId(studygroupId);
-        newChatMessage.setSenderId(chatRequest.getUserId());
+        newChatMessage.setSenderId(user.getUuid());
         newChatMessage.setContent(chatRequest.getContent());
 
         ChatMessage savedChatMessage = chatMessageRepository.save(newChatMessage);
