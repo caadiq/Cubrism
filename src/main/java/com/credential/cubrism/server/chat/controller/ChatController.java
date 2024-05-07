@@ -4,7 +4,6 @@ package com.credential.cubrism.server.chat.controller;
 import com.credential.cubrism.server.chat.dto.request.ChatRequest;
 import com.credential.cubrism.server.chat.dto.response.ChatResponse;
 import com.credential.cubrism.server.chat.service.ChatService;
-import com.credential.cubrism.server.common.dto.MessageDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
