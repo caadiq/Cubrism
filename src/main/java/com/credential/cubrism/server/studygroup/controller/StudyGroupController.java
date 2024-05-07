@@ -46,7 +46,7 @@ public class StudyGroupController {
     }
 
     @GetMapping("/studygroups/my") // 내가 가입한 스터디 그룹 목록
-    public ResponseEntity<StudyGroupListDto.StudyGroupList> myStudyGroupList() {
+    public ResponseEntity<List<StudyGroupListDto.StudyGroupList>> myStudyGroupList() {
         return studyGroupService.myStudyGroupList();
     }
 
