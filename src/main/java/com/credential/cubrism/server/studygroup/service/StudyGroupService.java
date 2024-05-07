@@ -130,10 +130,10 @@ public class StudyGroupService {
     }
 
     // 내가 가입한 스터디 그룹 목록
-    public ResponseEntity<StudyGroupListDto.StudyGroupList> myStudyGroupList() {
+    public ResponseEntity<List<StudyGroupListDto.StudyGroupList>> myStudyGroupList() {
         Users currentUser = securityUtil.getCurrentUser();
 
-        StudyGroupListDto.StudyGroupList studyGroupList = studyGroupRepository.findAllByUserId(currentUser.getUuid())
+        List<StudyGroupListDto.StudyGroupList> studyGroupList = studyGroupRepository.findAllByUserId(currentUser.getUuid())
                 .stream()
                 .map(group -> {
                     boolean isRecruiting = group.getGroupMembers().size() < group.getMaxMembers();
@@ -149,8 +149,7 @@ public class StudyGroupService {
                                     .toList()
                     );
                 })
-                .findFirst()
-                .orElse(null);
+                .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(studyGroupList);
     }
