@@ -122,4 +122,22 @@ public class StudyGroupController {
     public ResponseEntity<MessageDto> completeStudyGoal(@RequestBody CompleteStudyGroupGoalDto dto) {
         return studyGroupService.completeStudyGroupGoal(dto.getGoalId());
     }
+
+    // 스터디 그룹의 목표 리스트
+    @GetMapping("/studygroup/{groupId}/goals")
+    public ResponseEntity<List<StudyGroupGoalDto>> getStudyGroupGoals(@PathVariable Long groupId) {
+        return studyGroupService.getStudyGroupGoals(groupId);
+    }
+
+    // 스터디 그룹 D-day 설정
+    @PostMapping("/studygroup/dday")
+    public ResponseEntity<MessageDto> setStudyGroupDDay(@RequestBody StudyGroupDDayDto dto) {
+        return studyGroupService.setStudyGroupDDay(dto);
+    }
+
+    // 스터디 그룹 D-day 조회
+    @GetMapping("/studygroup/{groupId}/dday")
+    public ResponseEntity<StudyGroupDDayDto> getStudyGroupDDay(@PathVariable Long groupId) {
+        return studyGroupService.getStudyGroupDDay(groupId);
+    }
 }

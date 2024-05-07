@@ -496,6 +496,56 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
     }
 
+    public ResponseEntity<List<StudyGroupGoalDto>> getStudyGroupGoals(Long groupId) {
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        List<StudyGroupGoalDto> studyGroupGoalList = studyGroup.getStudyGroupGoals().stream()
+                .map(goal -> new StudyGroupGoalDto(goal.getGoalId(), goal.getGoalName()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.status(HttpStatus.OK).body(studyGroupGoalList);
+    }
+
+    // 스터디 그룹 D-day 설정
+    public ResponseEntity<MessageDto> setStudyGroupDDay(StudyGroupDDayDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
+        Long groupId = dto.getGroupId();
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        GroupMembers groupMembers = groupMembersRepository.findByUserAndStudyGroup(currentUser, studyGroup)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_MEMBER));
+
+        if (!groupMembers.isAdmin()) {
+            throw new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN);
+        }
+
+        StudyGroupDDay studyGroupDDay = new StudyGroupDDay();
+        studyGroupDDay.setDDay(dto.getDDay());
+        studyGroupDDay.setDName(dto.getDName());
+        studyGroupDDay.setStudyGroup(studyGroup);
+
+        studyGroup.setDDay(studyGroupDDay);
+
+        studyGroupRepository.save(studyGroup);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 D-day를 설정했습니다."));
+    }
+
+    public ResponseEntity<StudyGroupDDayDto> getStudyGroupDDay(Long groupId) {
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        StudyGroupDDayDto studyGroupDDayDto = new StudyGroupDDayDto(
+                studyGroup.getGroupId(),
+                studyGroup.getDDay().getDName(),
+                studyGroup.getDDay().getDDay()
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(studyGroupDDayDto);
+    }
+
 //    private long calculateDDay(StudyGroup studyGroup) {
 //        return ChronoUnit.DAYS.between(LocalDate.now(), studyGroup.getDDay());
 //    }
