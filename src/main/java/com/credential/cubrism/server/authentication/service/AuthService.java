@@ -11,6 +11,8 @@ import com.credential.cubrism.server.authentication.utils.SecurityUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.notification.entity.FcmTokens;
+import com.credential.cubrism.server.notification.repository.FcmRepository;
 import com.credential.cubrism.server.s3.utils.S3Util;
 import com.credential.cubrism.server.schedule.entity.Schedules;
 import com.credential.cubrism.server.schedule.repository.ScheduleRepository;
@@ -27,6 +29,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,14 +45,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
     @Value("${jwt.token.refresh-expiration-time}")
     private long refreshTokenExpiration;
 
@@ -67,6 +70,7 @@ public class AuthService {
     private final StudyGroupRepository studyGroupRepository;
     private final StudyGroupGoalRepository studyGroupGoalRepository;
     private final UserGoalRepository userGoalRepository;
+    private final FcmRepository fcmRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
@@ -137,16 +141,26 @@ public class AuthService {
         }
     }
 
+    @Transactional
     // 로그아웃
     public ResponseEntity<MessageDto> logOut() {
         try {
             Users currentUser = securityUtil.getCurrentUser();
+            // FcmTokens 삭제
+            Optional<FcmTokens> fcmTokens = fcmRepository.findByUserId(currentUser.getUuid());
+            if(fcmTokens.isPresent()) {
+                 currentUser.setFcmTokens(null);
+
+                fcmRepository.delete(fcmTokens.get());
+            }
 
             // Redis에 저장된 Refresh Token 삭제
             redisUtil.deleteData(currentUser.getEmail() + REFRESH_TOKEN_SUFFIX);
 
+
             return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("로그아웃 완료"));
         } catch (Exception e) {
+            logger.error("Error occurred during logout", e);
             throw new CustomException(ErrorCode.LOGOUT_FAILURE);
         }
     }
