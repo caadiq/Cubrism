@@ -41,8 +41,9 @@ public class StudyGroup {
     @OneToMany(mappedBy = "studyGroup", cascade = CascadeType.ALL)
     private List<GroupTags> groupTags;
 
-    @Column(name = "d_day")
-    private LocalDate dDay;
+    @OneToOne(mappedBy = "studyGroup", cascade = CascadeType.ALL)
+    @JoinColumn(name = "group_id")
+    private StudyGroupDDay dDay;
 
     @OneToMany(mappedBy = "studyGroup", cascade = CascadeType.ALL)
     private List<StudyGroupGoal> studyGroupGoals;
