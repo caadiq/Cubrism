@@ -140,4 +140,10 @@ public class StudyGroupController {
     public ResponseEntity<StudyGroupDDayDto> getStudyGroupDDay(@PathVariable Long groupId) {
         return studyGroupService.getStudyGroupDDay(groupId);
     }
+
+    // 스터디 그룹 들어갔을 때 필요한 정보
+    @GetMapping("/studygroup/{groupId}/enter")
+    public ResponseEntity<StudyGroupEnterDto> getStudyGroupEnterInfo(@PathVariable Long groupId) {
+        return studyGroupService.getStudyGroupEnterInfo(groupId);
+    }
 }
