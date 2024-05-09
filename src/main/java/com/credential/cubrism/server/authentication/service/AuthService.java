@@ -11,6 +11,8 @@ import com.credential.cubrism.server.authentication.utils.SecurityUtil;
 import com.credential.cubrism.server.common.dto.MessageDto;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
+import com.credential.cubrism.server.notification.entity.FcmTokens;
+import com.credential.cubrism.server.notification.repository.FcmRepository;
 import com.credential.cubrism.server.s3.utils.S3Util;
 import com.credential.cubrism.server.schedule.entity.Schedules;
 import com.credential.cubrism.server.schedule.repository.ScheduleRepository;
@@ -27,6 +29,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,14 +45,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
     @Value("${jwt.token.refresh-expiration-time}")
     private long refreshTokenExpiration;
 
@@ -67,6 +70,7 @@ public class AuthService {
     private final StudyGroupRepository studyGroupRepository;
     private final StudyGroupGoalRepository studyGroupGoalRepository;
     private final UserGoalRepository userGoalRepository;
+    private final FcmRepository fcmRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
@@ -111,6 +115,7 @@ public class AuthService {
     }
 
     // 로그인 (이메일, 비밀번호)
+    @Transactional
     public ResponseEntity<TokenDto> signIn(SignInDto dto) {
         // 소셜 로그인 유저인지 확인
         userRepository.findByEmail(dto.getEmail()).filter(user -> user.getProvider() != null).ifPresent(user -> {
@@ -131,6 +136,20 @@ public class AuthService {
             // Redis에 Refresh Token 저장
             redisUtil.setData(authentication.getName() + REFRESH_TOKEN_SUFFIX, refreshToken, refreshTokenExpiration / 1000);
 
+            // FcmToken 저장
+            if (dto.getFcmToken() != null) {
+                Users user = userRepository.findByEmail(authentication.getName())
+                        .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_FOUND));
+
+                FcmTokens fcmTokens = fcmRepository.findByUserId(user.getUuid())
+                        .orElseGet(FcmTokens::new);
+
+                fcmTokens.setUser(user);
+                fcmTokens.setToken(dto.getFcmToken());
+
+                fcmRepository.save(fcmTokens);
+            }
+
             return ResponseEntity.status(HttpStatus.OK).body(new TokenDto(accessToken, refreshToken));
         } catch (BadCredentialsException e) {
             throw new CustomException(ErrorCode.BAD_CREDENTIALS);
@@ -138,9 +157,16 @@ public class AuthService {
     }
 
     // 로그아웃
+    @Transactional
     public ResponseEntity<MessageDto> logOut() {
         try {
             Users currentUser = securityUtil.getCurrentUser();
+            // FcmTokens 삭제
+            Optional<FcmTokens> fcmTokens = fcmRepository.findByUserId(currentUser.getUuid());
+            if(fcmTokens.isPresent()) {
+                currentUser.setFcmTokens(null);
+                fcmRepository.delete(fcmTokens.get());
+            }
 
             // Redis에 저장된 Refresh Token 삭제
             redisUtil.deleteData(currentUser.getEmail() + REFRESH_TOKEN_SUFFIX);

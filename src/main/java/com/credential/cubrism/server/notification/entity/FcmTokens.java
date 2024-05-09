@@ -21,5 +21,6 @@ public class FcmTokens {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @MapsId
     private Users user;
 }

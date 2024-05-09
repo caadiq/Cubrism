@@ -73,6 +73,7 @@ public class FavoriteService {
 
         List<FavoriteListDto> favoriteList = favoriteRepository.findAllByUserUuid(currentUser.getUuid()).stream()
                 .map(favorite -> new FavoriteListDto(
+                        favoriteRepository.findAllByUserUuid(currentUser.getUuid()).indexOf(favorite) + 1,
                         favorite.getFavoriteId(),
                         favorite.getQualificationList().getCode(),
                         favorite.getQualificationList().getName()
