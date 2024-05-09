@@ -20,17 +20,17 @@ public class AuthController {
     }
 
     @PostMapping("/signin") // 로그인
-    public ResponseEntity<TokenDto> signIn(@RequestBody @Valid SignInDto dto) {
+    public ResponseEntity<SignInSuccessDto> signIn(@RequestBody @Valid SignInDto dto) {
         return authService.signIn(dto);
     }
 
     @PostMapping("/signin/google") // 구글 로그인
-    public ResponseEntity<TokenDto> googleLogIn(@RequestBody SocialTokenDto dto) {
+    public ResponseEntity<SignInSuccessDto> googleLogIn(@RequestBody SocialTokenDto dto) {
         return authService.googleLogIn(dto);
     }
 
     @PostMapping("/signin/kakao") // 카카오 로그인
-    public ResponseEntity<TokenDto> kakaoLogIn(@RequestBody SocialTokenDto dto) {
+    public ResponseEntity<SignInSuccessDto> kakaoLogIn(@RequestBody SocialTokenDto dto) {
         return authService.kakaoLogIn(dto);
     }
 
@@ -60,7 +60,7 @@ public class AuthController {
     }
 
     @PutMapping("/users") // 회원 정보 수정
-    public ResponseEntity<MessageDto> editUser(@RequestBody @Valid UserEditDto dto) {
+    public ResponseEntity<UserDto> editUser(@RequestBody @Valid UserEditDto dto) {
         return authService.editUser(dto);
     }
 

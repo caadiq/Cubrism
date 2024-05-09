@@ -116,7 +116,7 @@ public class AuthService {
 
     // 로그인 (이메일, 비밀번호)
     @Transactional
-    public ResponseEntity<TokenDto> signIn(SignInDto dto) {
+    public ResponseEntity<SignInSuccessDto> signIn(SignInDto dto) {
         // 소셜 로그인 유저인지 확인
         userRepository.findByEmail(dto.getEmail()).filter(user -> user.getProvider() != null).ifPresent(user -> {
             throw new CustomException(ErrorCode.SOCIAL_LOGIN_USER);
@@ -136,11 +136,11 @@ public class AuthService {
             // Redis에 Refresh Token 저장
             redisUtil.setData(authentication.getName() + REFRESH_TOKEN_SUFFIX, refreshToken, refreshTokenExpiration / 1000);
 
+            Users user = userRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_FOUND));
+
             // FcmToken 저장
             if (dto.getFcmToken() != null) {
-                Users user = userRepository.findByEmail(authentication.getName())
-                        .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_FOUND));
-
                 FcmTokens fcmTokens = fcmRepository.findByUserId(user.getUuid())
                         .orElseGet(FcmTokens::new);
 
@@ -150,7 +150,10 @@ public class AuthService {
                 fcmRepository.save(fcmTokens);
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body(new TokenDto(accessToken, refreshToken));
+            return ResponseEntity.status(HttpStatus.OK).body(new SignInSuccessDto(
+                    new UserDto(user.getEmail(), user.getNickname(), user.getImageUrl(), user.getProvider()),
+                    new TokenDto(accessToken, refreshToken)
+            ));
         } catch (BadCredentialsException e) {
             throw new CustomException(ErrorCode.BAD_CREDENTIALS);
         }
@@ -362,7 +365,7 @@ public class AuthService {
 
     // 회원 정보 수정
     @Transactional
-    public ResponseEntity<MessageDto> editUser(UserEditDto dto) {
+    public ResponseEntity<UserDto> editUser(UserEditDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
         
         if (dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
@@ -381,12 +384,16 @@ public class AuthService {
         currentUser.setImageUrl(dto.getImageUrl());
         userRepository.save(currentUser);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("회원 정보를 수정했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new UserDto(
+                currentUser.getEmail(),
+                currentUser.getNickname(),
+                currentUser.getImageUrl(),
+                currentUser.getProvider()));
     }
 
     // 구글 로그인
     @Transactional
-    public ResponseEntity<TokenDto> googleLogIn(SocialTokenDto dto) {
+    public ResponseEntity<SignInSuccessDto> googleLogIn(SocialTokenDto dto) {
         try {
             GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
                     transport,
@@ -413,7 +420,7 @@ public class AuthService {
 
     // 카카오 로그인
     @Transactional
-    public ResponseEntity<TokenDto> kakaoLogIn(SocialTokenDto dto) {
+    public ResponseEntity<SignInSuccessDto> kakaoLogIn(SocialTokenDto dto) {
         ResponseEntity<KakaoUserDto> responseEntity = webClient.get()
                 .uri(KAKAO_REQUEST_URL)
                 .header("Authorization", "Bearer " + dto.getToken())
@@ -434,7 +441,7 @@ public class AuthService {
     }
 
     // 소셜 로그인 유저 정보 업데이트 및 토큰 발급
-    private ResponseEntity<TokenDto> updateUserAndGenerateTokens(String email, String nickname, String pictureUrl, String provider) {
+    private ResponseEntity<SignInSuccessDto> updateUserAndGenerateTokens(String email, String nickname, String pictureUrl, String provider) {
         Users user = userRepository.findByEmail(email).orElseGet(() -> {
             Authority authority = new Authority();
             authority.setAuthorityName("ROLE_USER");
@@ -456,6 +463,9 @@ public class AuthService {
 
         redisUtil.setData(email + REFRESH_TOKEN_SUFFIX, refreshToken, refreshTokenExpiration / 1000);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new TokenDto(accessToken, refreshToken));
+        return ResponseEntity.status(HttpStatus.OK).body(new SignInSuccessDto(
+                new UserDto(user.getEmail(), user.getNickname(), user.getImageUrl(), user.getProvider()),
+                new TokenDto(accessToken, refreshToken)
+        ));
     }
 }
