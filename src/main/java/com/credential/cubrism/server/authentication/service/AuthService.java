@@ -29,9 +29,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -42,6 +39,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -50,8 +48,6 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
-
     @Value("${jwt.token.refresh-expiration-time}")
     private long refreshTokenExpiration;
 
@@ -314,8 +310,8 @@ public class AuthService {
         return "reset_password_success";
     }
 
-    @Transactional
     // 회원탈퇴
+    @Transactional
     public ResponseEntity<MessageDto> withdrawal() {
         // TODO
         //  - 유저 정보 삭제
@@ -368,20 +364,16 @@ public class AuthService {
     public ResponseEntity<UserDto> editUser(UserEditDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
         
-        if (dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
-            // S3에 파일이 존재하는지 확인
-            if (!s3Util.isFileExists(dto.getImageUrl())) {
-                throw new CustomException(ErrorCode.S3_FILE_NOT_FOUND);
-            }
-
+        if (dto.getIsImageChange()) {
             // 기존 프로필 이미지 삭제
-            if (currentUser.getImageUrl() != null && s3Util.isFileExists(currentUser.getImageUrl())) {
+            if (dto.getImageUrl() != null && s3Util.isFileExists(currentUser.getImageUrl())) {
                 s3Util.deleteFile(currentUser.getImageUrl());
             }
+
+            currentUser.setImageUrl(dto.getImageUrl());
         }
         
         currentUser.setNickname(dto.getNickname());
-        currentUser.setImageUrl(dto.getImageUrl());
         userRepository.save(currentUser);
 
         return ResponseEntity.status(HttpStatus.OK).body(new UserDto(
