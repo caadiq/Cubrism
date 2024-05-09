@@ -545,6 +545,56 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(studyGroupDDayDto);
     }
 
+    // 스터디 그룹 들어갔을 때 필요한 정보
+    public ResponseEntity<StudyGroupEnterDto> getStudyGroupEnterInfo(Long groupId) {
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+
+
+            List<StudyGroupGoalDto> goals = studyGroup.getStudyGroupGoals().stream()
+                    .map(goal -> new StudyGroupGoalDto(goal.getGoalId(), goal.getGoalName()))
+                    .collect(Collectors.toList());
+
+            List<UserGoalStatusDto> userGoals = studyGroup.getGroupMembers().stream()
+                    .map(member -> {
+                        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroup(member.getUser(), studyGroup)
+                                .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
+                        double completionPercentage = Optional.of(userGoal)
+                                .map(UserGoal::getStudyGroup)
+                                .map(StudyGroup::getStudyGroupGoals)
+                                .filter(goal -> !goal.isEmpty())
+                                .map(goal -> (double) userGoal.getCompletedGoals().size() / goal.size() * 100)
+                                .orElse(0.0);
+
+                        // UserGoal의 completedGoals와 uncompletedGoals를 사용하여 StudyGroupGoalDto 목록을 생성
+                        List<StudyGroupGoalDto> completedGoals = userGoal.getCompletedGoals().stream()
+                                .map(goal -> new StudyGroupGoalDto(goal.getGoalId(), goal.getGoalName()))
+                                .collect(Collectors.toList());
+                        List<StudyGroupGoalDto> uncompletedGoals = userGoal.getUncompletedGoals().stream()
+                                .map(goal -> new StudyGroupGoalDto(goal.getGoalId(), goal.getGoalName()))
+                                .collect(Collectors.toList());
+
+                        return new UserGoalStatusDto(member.getUser().getNickname(), completedGoals, uncompletedGoals, completionPercentage);
+                    })
+                    .collect(Collectors.toList());
+
+        List<StudyGroupMemberInfo> members = studyGroup.getGroupMembers().stream()
+                .map(member -> new StudyGroupMemberInfo(member.getUser().getNickname(), member.getUser().getEmail(), member.isAdmin()))
+                .collect(Collectors.toList());
+
+            StudyGroupDDayDto dDay = new StudyGroupDDayDto(
+                    studyGroup.getGroupId(),
+                    studyGroup.getDDay().getDName(),
+                    studyGroup.getDDay().getDDay()
+            );
+
+
+            StudyGroupEnterDto studyGroupEnterDto = new StudyGroupEnterDto(goals, userGoals, members, dDay);
+
+            return ResponseEntity.status(HttpStatus.OK).body(studyGroupEnterDto);
+    }
+
 //    private long calculateDDay(StudyGroup studyGroup) {
 //        return ChronoUnit.DAYS.between(LocalDate.now(), studyGroup.getDDay());
 //    }
