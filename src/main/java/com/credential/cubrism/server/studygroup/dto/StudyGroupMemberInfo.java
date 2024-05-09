@@ -9,4 +9,6 @@ public class StudyGroupMemberInfo {
     private String nickname;
     private String email;
     private boolean admin;
+    private UserGoalEnterDto userGoal;
+
 }
