@@ -10,6 +10,4 @@ import java.util.UUID;
 @Repository
 public interface FcmRepository extends JpaRepository<FcmTokens, UUID> {
     Optional<FcmTokens> findByUserId(UUID userId);
-
-    void deleteByUserId(UUID uuid);
 }

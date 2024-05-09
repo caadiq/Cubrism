@@ -115,6 +115,7 @@ public class AuthService {
     }
 
     // 로그인 (이메일, 비밀번호)
+    @Transactional
     public ResponseEntity<TokenDto> signIn(SignInDto dto) {
         // 소셜 로그인 유저인지 확인
         userRepository.findByEmail(dto.getEmail()).filter(user -> user.getProvider() != null).ifPresent(user -> {
@@ -135,32 +136,43 @@ public class AuthService {
             // Redis에 Refresh Token 저장
             redisUtil.setData(authentication.getName() + REFRESH_TOKEN_SUFFIX, refreshToken, refreshTokenExpiration / 1000);
 
+            // FcmToken 저장
+            if (dto.getFcmToken() != null) {
+                Users user = userRepository.findByEmail(authentication.getName())
+                        .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_FOUND));
+
+                FcmTokens fcmTokens = fcmRepository.findByUserId(user.getUuid())
+                        .orElseGet(FcmTokens::new);
+
+                fcmTokens.setUser(user);
+                fcmTokens.setToken(dto.getFcmToken());
+
+                fcmRepository.save(fcmTokens);
+            }
+
             return ResponseEntity.status(HttpStatus.OK).body(new TokenDto(accessToken, refreshToken));
         } catch (BadCredentialsException e) {
             throw new CustomException(ErrorCode.BAD_CREDENTIALS);
         }
     }
 
-    @Transactional
     // 로그아웃
+    @Transactional
     public ResponseEntity<MessageDto> logOut() {
         try {
             Users currentUser = securityUtil.getCurrentUser();
             // FcmTokens 삭제
             Optional<FcmTokens> fcmTokens = fcmRepository.findByUserId(currentUser.getUuid());
             if(fcmTokens.isPresent()) {
-                 currentUser.setFcmTokens(null);
-
+                currentUser.setFcmTokens(null);
                 fcmRepository.delete(fcmTokens.get());
             }
 
             // Redis에 저장된 Refresh Token 삭제
             redisUtil.deleteData(currentUser.getEmail() + REFRESH_TOKEN_SUFFIX);
 
-
             return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("로그아웃 완료"));
         } catch (Exception e) {
-            logger.error("Error occurred during logout", e);
             throw new CustomException(ErrorCode.LOGOUT_FAILURE);
         }
     }
