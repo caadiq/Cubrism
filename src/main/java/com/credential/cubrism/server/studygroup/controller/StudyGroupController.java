@@ -132,6 +132,9 @@ public class StudyGroupController {
     // 스터디 그룹 D-day 설정
     @PostMapping("/studygroup/dday")
     public ResponseEntity<MessageDto> setStudyGroupDDay(@RequestBody StudyGroupDDayDto dto) {
+        System.out.println(dto.getGroupId());
+        System.out.println(dto.getName());
+        System.out.println(dto.getDay());
         return studyGroupService.setStudyGroupDDay(dto);
     }
 
