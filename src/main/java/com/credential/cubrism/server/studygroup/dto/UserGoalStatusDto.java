@@ -9,14 +9,12 @@ import java.util.List;
 @Setter
 public class UserGoalStatusDto {
     private String username;
-    private List<StudyGroupGoalDto> completedGoals; // 수정된 부분
-    private List<StudyGroupGoalDto> uncompletedGoals; // 수정된 부분
+    private List<StudyGroupGoalDto> goals;
     private double completionPercentage;
 
-    public UserGoalStatusDto(String username, List<StudyGroupGoalDto> completedGoals, List<StudyGroupGoalDto> uncompletedGoals, double completionPercentage) {
+    public UserGoalStatusDto(String username, List<StudyGroupGoalDto> goals, double completionPercentage) {
         this.username = username;
-        this.completedGoals = completedGoals;
-        this.uncompletedGoals = uncompletedGoals;
+        this.goals = goals;
         this.completionPercentage = completionPercentage;
     }
 }

@@ -5,9 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Getter
 @Setter
 @Entity
@@ -26,20 +23,11 @@ public class UserGoal {
     @JoinColumn(name = "group_id")
     private StudyGroup studyGroup;
 
-    @ManyToMany
-    @JoinTable(
-            name = "UserGoalCompleted",
-            joinColumns = @JoinColumn(name = "user_goal_id"),
-            inverseJoinColumns = @JoinColumn(name = "goal_id")
-    )
-    private List<StudyGroupGoal> completedGoals = new ArrayList<>();;
+    @ManyToOne
+    @JoinColumn(name = "goal_id")
+    private StudyGroupGoal studyGroupGoal;
 
-    @ManyToMany
-    @JoinTable(
-            name = "UserGoalUncompleted",
-            joinColumns = @JoinColumn(name = "user_goal_id"),
-            inverseJoinColumns = @JoinColumn(name = "goal_id")
-    )
-    private List<StudyGroupGoal> uncompletedGoals = new ArrayList<>();; // 추가된 필드
+    @Column(name = "completed")
+    private boolean completed;
 
 }
