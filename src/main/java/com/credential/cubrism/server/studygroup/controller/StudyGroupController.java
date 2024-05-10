@@ -133,7 +133,7 @@ public class StudyGroupController {
     @PostMapping("/studygroup/dday")
     public ResponseEntity<MessageDto> setStudyGroupDDay(@RequestBody StudyGroupDDayDto dto) {
         System.out.println(dto.getGroupId());
-        System.out.println(dto.getName());
+        System.out.println(dto.getTitle());
         System.out.println(dto.getDay());
         return studyGroupService.setStudyGroupDDay(dto);
     }

@@ -506,7 +506,7 @@ public class StudyGroupService {
 
         StudyGroupDDay studyGroupDDay = new StudyGroupDDay();
         studyGroupDDay.setDDay(dto.getDay());
-        studyGroupDDay.setDName(dto.getName());
+        studyGroupDDay.setDTitle(dto.getTitle());
         studyGroupDDay.setStudyGroup(studyGroup);
 
         studyGroup.setDDay(studyGroupDDay);
@@ -522,7 +522,7 @@ public class StudyGroupService {
 
         StudyGroupDDayDto studyGroupDDayDto = new StudyGroupDDayDto(
                 studyGroup.getGroupId(),
-                studyGroup.getDDay().getDName(),
+                studyGroup.getDDay().getDTitle(),
                 studyGroup.getDDay().getDDay()
         );
 
@@ -555,7 +555,7 @@ public class StudyGroupService {
         if (studyGroup.getDDay() != null) {
             studyGroupDDayDto = new StudyGroupDDayDto(
                     studyGroup.getGroupId(),
-                    studyGroup.getDDay().getDName(),
+                    studyGroup.getDDay().getDTitle(),
                     studyGroup.getDDay().getDDay()
             );
         } else {
