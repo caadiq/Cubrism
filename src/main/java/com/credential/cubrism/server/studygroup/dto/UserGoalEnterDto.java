@@ -7,9 +7,9 @@ import java.util.List;
 @Getter
 public class UserGoalEnterDto {
     private List<StudyGroupGoalEnterDto> goals;
-    private double completionPercentage;
+    private Double completionPercentage;
 
-    public UserGoalEnterDto(List<StudyGroupGoalEnterDto> goals, double completionPercentage) {
+    public UserGoalEnterDto(List<StudyGroupGoalEnterDto> goals, Double completionPercentage) {
         this.goals = goals;
         this.completionPercentage = completionPercentage;
     }
