@@ -505,8 +505,8 @@ public class StudyGroupService {
         }
 
         StudyGroupDDay studyGroupDDay = new StudyGroupDDay();
-        studyGroupDDay.setDDay(dto.getDDay());
-        studyGroupDDay.setDName(dto.getDName());
+        studyGroupDDay.setDDay(dto.getDay());
+        studyGroupDDay.setDName(dto.getName());
         studyGroupDDay.setStudyGroup(studyGroup);
 
         studyGroup.setDDay(studyGroupDDay);
