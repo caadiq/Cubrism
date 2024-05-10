@@ -11,6 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 public class StudyGroupEnterDto {
     List<StudyGroupMemberInfo> members;
-    StudyGroupDDayDto dDay;
+    StudyGroupDDayDto day;
 
 }

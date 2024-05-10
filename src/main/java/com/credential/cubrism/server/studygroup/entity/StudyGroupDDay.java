@@ -20,6 +20,6 @@ public class StudyGroupDDay {
     @Column(name = "d_day")
     private LocalDate dDay;
 
-    @Column(name = "d_name")
-    private String dName;
+    @Column(name = "d_title")
+    private String dTitle;
 }

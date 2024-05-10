@@ -11,12 +11,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class StudyGroupDDayDto {
     private Long groupId;
-    private String name;
+    private String title;
     private LocalDate day;
 
-    public StudyGroupDDayDto(Long groupId, String Name, LocalDate day) {
+    public StudyGroupDDayDto(Long groupId, String title, LocalDate day) {
         this.groupId = groupId;
-        this.name = Name;
+        this.title = title;
         this.day = day;
     }
 }
