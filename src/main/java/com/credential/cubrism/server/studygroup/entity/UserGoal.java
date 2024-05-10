@@ -12,22 +12,22 @@ import lombok.Setter;
 public class UserGoal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_goal_id")
+    @Column(name = "user_goal_id", nullable = false)
     private Long userGoalId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
     @ManyToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", nullable = false)
     private StudyGroup studyGroup;
 
     @ManyToOne
-    @JoinColumn(name = "goal_id")
+    @JoinColumn(name = "goal_id", nullable = false)
     private StudyGroupGoal studyGroupGoal;
 
-    @Column(name = "completed")
+    @Column(name = "completed", nullable = false)
     private boolean completed;
 
 }

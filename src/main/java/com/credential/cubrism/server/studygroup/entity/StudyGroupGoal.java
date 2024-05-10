@@ -11,13 +11,13 @@ import lombok.Setter;
 public class StudyGroupGoal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "goal_id")
+    @Column(name = "goal_id", nullable = false)
     private Long goalId;
 
-    @Column(name = "goal_name")
+    @Column(name = "goal_name", nullable = false)
     private String goalName;
 
     @ManyToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", nullable = false)
     private StudyGroup studyGroup;
 }
