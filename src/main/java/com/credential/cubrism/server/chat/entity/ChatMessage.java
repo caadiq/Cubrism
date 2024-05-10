@@ -1,4 +1,4 @@
-package com.credential.cubrism.server.chat.model;
+package com.credential.cubrism.server.chat.entity;
 
 
 import jakarta.persistence.*;

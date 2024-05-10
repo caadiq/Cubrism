@@ -2,9 +2,9 @@ package com.credential.cubrism.server.chat.service;
 
 import com.credential.cubrism.server.authentication.entity.Users;
 import com.credential.cubrism.server.authentication.repository.UserRepository;
-import com.credential.cubrism.server.chat.dto.request.ChatRequest;
-import com.credential.cubrism.server.chat.dto.response.ChatResponse;
-import com.credential.cubrism.server.chat.model.ChatMessage;
+import com.credential.cubrism.server.chat.dto.ChatRequestDto;
+import com.credential.cubrism.server.chat.dto.ChatResponseDto;
+import com.credential.cubrism.server.chat.entity.ChatMessage;
 import com.credential.cubrism.server.chat.repository.ChatMessageRepository;
 import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
@@ -14,64 +14,68 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ChatService {
-
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
 
-    public List<ChatResponse> getAllByStudyGroupID(Long studygroupId) {
-        List<ChatMessage> messages = chatMessageRepository.findAllByStudyGroupId(studygroupId);
-        List<ChatResponse> responses = messages.stream()
-                .map(message -> {
-                    Users sender = userRepository.findById(message.getSenderId()).orElse(null);
-                    ChatResponse response = new ChatResponse();
-                    response.setContent(message.getContent());
-                    response.setCreatedAt(message.getCreatedAt());
-                    if (sender != null) {
-                        response.setEmail(sender.getEmail());
-                        response.setUsername(sender.getNickname());
-                        response.setProfileImgUrl(sender.getImageUrl());
-                    }
-                    response.setId(message.getChatMessageId());
-                    return response;
-                })
-                .collect(Collectors.toList());
+    public ResponseEntity<List<ChatResponseDto>> getAllByStudyGroupID(Long studygroupId) {
+        List<ChatMessage> messages = chatMessageRepository.findAllByStudyGroupIdOrderByCreatedAtAsc(studygroupId);
 
-        return responses;
+        LocalDateTime previousDate = null;
+        List<ChatResponseDto> responses = new ArrayList<>();
+
+        for (ChatMessage message : messages) {
+            Users sender = userRepository.findById(message.getSenderId()).orElse(null);
+            ChatResponseDto response = createChatResponse(message, sender);
+
+            LocalDateTime currentDate = message.getCreatedAt().toLocalDate().atStartOfDay();
+            if (!currentDate.equals(previousDate)) {
+                response.setIsDateHeader(true);
+                previousDate = currentDate;
+            } else {
+                response.setIsDateHeader(false);
+            }
+
+            responses.add(response);
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
 
-    public ChatResponse save(ChatRequest chatRequest, Long studygroupId, Map<String, Object> simpSessionAttributes) {
-        Optional<Users> userOptional = userRepository.findByEmail(chatRequest.getEmail());
-        if (!userOptional.isPresent()) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
-        Users user = userOptional.get();
+    @Transactional
+    public ChatResponseDto save(ChatRequestDto chatRequestDto, Long studygroupId, Map<String, Object> simpSessionAttributes) {
+        Users user = userRepository.findByEmail(chatRequestDto.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
         ChatMessage newChatMessage = new ChatMessage();
         newChatMessage.setStudyGroupId(studygroupId);
         newChatMessage.setSenderId(user.getUuid());
-        newChatMessage.setContent(chatRequest.getContent());
+        newChatMessage.setContent(chatRequestDto.getContent());
 
         ChatMessage savedChatMessage = chatMessageRepository.save(newChatMessage);
 
         Users sender = userRepository.findById(savedChatMessage.getSenderId()).orElse(null);
 
-        ChatResponse chatResponse = new ChatResponse();
-        chatResponse.setContent(savedChatMessage.getContent());
-        chatResponse.setCreatedAt(savedChatMessage.getCreatedAt());
+        return createChatResponse(savedChatMessage, sender);
+    }
+
+    private ChatResponseDto createChatResponse(ChatMessage message, Users sender) {
+        ChatResponseDto response = new ChatResponseDto();
+        response.setContent(message.getContent());
+        response.setCreatedAt(message.getCreatedAt());
         if (sender != null) {
-            chatResponse.setEmail(sender.getEmail());
-            chatResponse.setUsername(sender.getNickname());
-            chatResponse.setProfileImgUrl(sender.getImageUrl());
+            response.setEmail(sender.getEmail());
+            response.setUsername(sender.getNickname());
+            response.setProfileImgUrl(sender.getImageUrl());
         }
-        chatResponse.setId(savedChatMessage.getChatMessageId());
-        return chatResponse;
+        response.setId(message.getChatMessageId());
+        return response;
     }
 }
