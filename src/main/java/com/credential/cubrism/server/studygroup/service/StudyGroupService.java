@@ -543,7 +543,7 @@ public class StudyGroupService {
                             .map(userGoal -> new StudyGroupGoalEnterDto(userGoal.getStudyGroupGoal().getGoalId(), userGoal.getStudyGroupGoal().getGoalName(), userGoal.isCompleted()))
                             .collect(Collectors.toList());
 
-                    double completionPercentage = (double) userGoals.stream().filter(UserGoal::isCompleted).count() / userGoals.size() * 100;
+                    Double completionPercentage = userGoals.isEmpty() ? null : (double) userGoals.stream().filter(UserGoal::isCompleted).count() / userGoals.size() * 100;
 
                     UserGoalEnterDto userGoalEnterDto = new UserGoalEnterDto(goals, completionPercentage);
 
