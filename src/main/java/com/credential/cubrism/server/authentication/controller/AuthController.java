@@ -25,12 +25,12 @@ public class AuthController {
     }
 
     @PostMapping("/signin/google") // 구글 로그인
-    public ResponseEntity<SignInSuccessDto> googleLogIn(@RequestBody SocialTokenDto dto) {
+    public ResponseEntity<SignInSuccessDto> googleLogIn(@RequestBody SocialLogInDto dto) {
         return authService.googleLogIn(dto);
     }
 
     @PostMapping("/signin/kakao") // 카카오 로그인
-    public ResponseEntity<SignInSuccessDto> kakaoLogIn(@RequestBody SocialTokenDto dto) {
+    public ResponseEntity<SignInSuccessDto> kakaoLogIn(@RequestBody SocialLogInDto dto) {
         return authService.kakaoLogIn(dto);
     }
 

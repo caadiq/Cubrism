@@ -386,7 +386,7 @@ public class AuthService {
 
     // 구글 로그인
     @Transactional
-    public ResponseEntity<SignInSuccessDto> googleLogIn(SocialTokenDto dto) {
+    public ResponseEntity<SignInSuccessDto> googleLogIn(SocialLogInDto dto) {
         try {
             GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
                     transport,
@@ -405,7 +405,7 @@ public class AuthService {
             String name = (String) payload.get("name");
             String pictureUrl = (String) payload.get("picture");
 
-            return updateUserAndGenerateTokens(email, name, pictureUrl, "google");
+            return updateUserAndGenerateTokens(email, name, pictureUrl, "google", dto.getFcmToken());
         } catch (Exception e) {
             throw new CustomException(ErrorCode.SIGNIN_FAILURE);
         }
@@ -413,7 +413,7 @@ public class AuthService {
 
     // 카카오 로그인
     @Transactional
-    public ResponseEntity<SignInSuccessDto> kakaoLogIn(SocialTokenDto dto) {
+    public ResponseEntity<SignInSuccessDto> kakaoLogIn(SocialLogInDto dto) {
         ResponseEntity<KakaoUserDto> responseEntity = webClient.get()
                 .uri(KAKAO_REQUEST_URL)
                 .header("Authorization", "Bearer " + dto.getToken())
@@ -427,14 +427,14 @@ public class AuthService {
             String nickname = kakaoUserDto.getKakao_account().getProfile().getNickname();
             String profileImageUrl = kakaoUserDto.getKakao_account().getProfile().getProfile_image_url();
 
-            return updateUserAndGenerateTokens(email, nickname, profileImageUrl, "kakao");
+            return updateUserAndGenerateTokens(email, nickname, profileImageUrl, "kakao", dto.getFcmToken());
         } else {
             throw new CustomException(ErrorCode.SIGNIN_FAILURE);
         }
     }
 
     // 소셜 로그인 유저 정보 업데이트 및 토큰 발급
-    private ResponseEntity<SignInSuccessDto> updateUserAndGenerateTokens(String email, String nickname, String pictureUrl, String provider) {
+    private ResponseEntity<SignInSuccessDto> updateUserAndGenerateTokens(String email, String nickname, String pictureUrl, String provider, String fcmToken) {
         Users user = userRepository.findByEmail(email).orElseGet(() -> {
             Authority authority = new Authority();
             authority.setAuthorityName("ROLE_USER");
@@ -455,6 +455,17 @@ public class AuthService {
         String refreshToken = jwtTokenProvider.generateRefreshToken();
 
         redisUtil.setData(email + REFRESH_TOKEN_SUFFIX, refreshToken, refreshTokenExpiration / 1000);
+
+        // FcmToken 저장
+        if (fcmToken != null) {
+            FcmTokens fcmTokens = fcmRepository.findByUserId(user.getUuid())
+                    .orElseGet(FcmTokens::new);
+
+            fcmTokens.setUser(user);
+            fcmTokens.setToken(fcmToken);
+
+            fcmRepository.save(fcmTokens);
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(new SignInSuccessDto(
                 new UserDto(user.getEmail(), user.getNickname(), user.getImageUrl(), user.getProvider()),
