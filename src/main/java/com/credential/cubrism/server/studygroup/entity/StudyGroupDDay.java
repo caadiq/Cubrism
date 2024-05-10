@@ -13,13 +13,13 @@ import java.time.LocalDate;
 public class StudyGroupDDay {
     @Id
     @OneToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", nullable = false)
     @MapsId
     private StudyGroup studyGroup;
 
-    @Column(name = "d_day")
+    @Column(name = "d_day", nullable = false)
     private LocalDate dDay;
 
-    @Column(name = "d_title")
+    @Column(name = "d_title", nullable = false)
     private String dTitle;
 }
