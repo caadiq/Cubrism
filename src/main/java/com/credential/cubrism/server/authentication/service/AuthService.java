@@ -346,9 +346,10 @@ public class AuthService {
 
             } else {
                 // 사용자가 어드민이 아닌 경우, 사용자를 스터디 그룹에서 제거
-                UserGoal userGoal = userGoalRepository.findByUserAndStudyGroup(currentUser, membership.getStudyGroup())
-                        .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
-                userGoalRepository.delete(userGoal);
+                List<UserGoal> userGoals = userGoalRepository.findAllByUserAndStudyGroup(currentUser, membership.getStudyGroup());
+                if(!userGoals.isEmpty()) {
+                    userGoalRepository.deleteAll(userGoals);
+                }
                 groupMembersRepository.delete(membership);
             }
         }
