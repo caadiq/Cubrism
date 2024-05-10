@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,11 +26,26 @@ public class ChatService {
     private final UserRepository userRepository;
 
     public ResponseEntity<List<ChatResponseDto>> getAllByStudyGroupID(Long studygroupId) {
-        List<ChatResponseDto> responses = chatMessageRepository.findAllByStudyGroupId(studygroupId).stream()
-                .map(message -> {
-                    Users sender = userRepository.findById(message.getSenderId()).orElse(null);
-                    return createChatResponse(message, sender);
-                }).toList();
+        List<ChatMessage> messages = chatMessageRepository.findAllByStudyGroupIdOrderByCreatedAtAsc(studygroupId);
+
+        LocalDateTime previousDate = null;
+        List<ChatResponseDto> responses = new ArrayList<>();
+
+        for (ChatMessage message : messages) {
+            Users sender = userRepository.findById(message.getSenderId()).orElse(null);
+            ChatResponseDto response = createChatResponse(message, sender);
+
+            LocalDateTime currentDate = message.getCreatedAt().toLocalDate().atStartOfDay();
+            if (!currentDate.equals(previousDate)) {
+                response.setIsDateHeader(true);
+                previousDate = currentDate;
+            } else {
+                response.setIsDateHeader(false);
+            }
+
+            responses.add(response);
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
 

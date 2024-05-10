@@ -15,4 +15,5 @@ public class ChatResponseDto {
     private String profileImgUrl;
     private LocalDateTime createdAt;
     private String content;
+    private Boolean isDateHeader;
 }
