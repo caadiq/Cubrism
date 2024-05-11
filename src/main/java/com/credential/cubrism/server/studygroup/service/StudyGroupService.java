@@ -454,8 +454,12 @@ public class StudyGroupService {
 
                     // UserGoal의 completed 필드를 사용하여 StudyGroupGoalEnterDto 목록을 생성
                     List<StudyGroupGoalDto> goals = userGoals.stream()
-                            .map(userGoal -> new StudyGroupGoalDto(userGoal.getStudyGroupGoal().getGoalId(), userGoal.getStudyGroupGoal().getGoalName()))
-                            .collect(Collectors.toList());
+                            .map(userGoal -> new StudyGroupGoalDto(
+                                    userGoals.indexOf(userGoal) + 1,
+                                    userGoal.getStudyGroupGoal().getGoalId(),
+                                    userGoal.getStudyGroupGoal().getGoalName())
+                            )
+                            .toList();
 
                     return new UserGoalStatusDto(member.getUser().getNickname(), goals, completionPercentage);
                 })
@@ -484,8 +488,12 @@ public class StudyGroupService {
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
 
         List<StudyGroupGoalDto> studyGroupGoalList = studyGroup.getStudyGroupGoals().stream()
-                .map(goal -> new StudyGroupGoalDto(goal.getGoalId(), goal.getGoalName()))
-                .collect(Collectors.toList());
+                .map(goal -> new StudyGroupGoalDto(
+                        studyGroup.getStudyGroupGoals().indexOf(goal) + 1,
+                        goal.getGoalId(),
+                        goal.getGoalName())
+                )
+                .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(studyGroupGoalList);
     }
@@ -568,8 +576,4 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(studyGroupEnterDto);
 
     }
-
-//    private long calculateDDay(StudyGroup studyGroup) {
-//        return ChronoUnit.DAYS.between(LocalDate.now(), studyGroup.getDDay());
-//    }
 }

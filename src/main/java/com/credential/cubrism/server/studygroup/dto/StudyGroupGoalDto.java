@@ -1,16 +1,12 @@
 package com.credential.cubrism.server.studygroup.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
+@AllArgsConstructor
 public class StudyGroupGoalDto {
+    private Integer index;
     private Long goalId;
     private String goalName;
-
-    public StudyGroupGoalDto(Long goalId, String goalName) {
-        this.goalId = goalId;
-        this.goalName = goalName;
-    }
 }
