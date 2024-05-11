@@ -322,7 +322,7 @@ public class StudyGroupService {
         if (fcmToken != null) {
             // 알림 메시지
             String title = "스터디 그룹 가입 승인";
-            String body = "'" + newMember.getStudyGroup().getGroupName() + " 스터디 그룹 가입이 승인되었습니다.";
+            String body = "'" + newMember.getStudyGroup().getGroupName() + "' 스터디 그룹 가입이 승인되었습니다.";
             String type = "STUDY|" + newMember.getStudyGroup().getGroupId();
 
             // 알림 전송
@@ -354,7 +354,7 @@ public class StudyGroupService {
         if (fcmToken != null) {
             // 알림 메시지
             String title = "스터디 그룹 가입 거절";
-            String body = "'" + pendingMember.getStudyGroup().getGroupName() + " 스터디 그룹 가입이 거절되었습니다.";
+            String body = "'" + pendingMember.getStudyGroup().getGroupName() + "' 스터디 그룹 가입이 거절되었습니다.";
 
             // 알림 전송
             fcmUtils.sendMessageTo(fcmToken, title, body, null);
@@ -411,7 +411,7 @@ public class StudyGroupService {
             userGoalRepository.save(userGoal);
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("스터디 그룹에 목표를 추가했습니다."));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("목표를 추가했습니다."));
     }
 
     // 스터디 그룹 목표 삭제
@@ -425,45 +425,10 @@ public class StudyGroupService {
 
         studyGroupGoalRepository.delete(goal);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 목표를 삭제했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 삭제했습니다."));
     }
 
-    // 스터디 그룹 목표 수정
-    @Transactional
-    public ResponseEntity<MessageDto> updateStudyGroupGoal(Long goalId, StudyGroupUpdateGoalDto dto) {
-        StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
-                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
-
-        goal.setGoalName(dto.getGoalName());
-
-        studyGroupGoalRepository.save(goal);
-
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 목표를 수정했습니다."));
-    }
-
-    public ResponseEntity<List<UserGoalStatusDto>> getUserGoals(Long groupId) {
-        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
-                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
-
-        List<UserGoalStatusDto> userGoalStatusList = studyGroup.getGroupMembers().stream()
-                .map(member -> {
-                    List<UserGoal> userGoals = userGoalRepository.findAllByUserAndStudyGroup(member.getUser(), studyGroup);
-                    double completionPercentage = userGoals.stream()
-                            .filter(UserGoal::isCompleted)
-                            .count() / (double) userGoals.size() * 100;
-
-                    // UserGoal의 completed 필드를 사용하여 StudyGroupGoalEnterDto 목록을 생성
-                    List<StudyGroupGoalDto> goals = userGoals.stream()
-                            .map(userGoal -> new StudyGroupGoalDto(userGoal.getStudyGroupGoal().getGoalId(), userGoal.getStudyGroupGoal().getGoalName()))
-                            .collect(Collectors.toList());
-
-                    return new UserGoalStatusDto(member.getUser().getNickname(), goals, completionPercentage);
-                })
-                .collect(Collectors.toList());
-
-        return ResponseEntity.status(HttpStatus.OK).body(userGoalStatusList);
-    }
-
+    // 스터디 그룹 목표 완료
     @Transactional
     public ResponseEntity<MessageDto> completeStudyGroupGoal(Long goalId) {
         Users currentUser = securityUtil.getCurrentUser();
@@ -479,13 +444,44 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
     }
 
+    public ResponseEntity<List<UserGoalStatusDto>> getUserGoals(Long groupId) {
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        List<UserGoalStatusDto> userGoalStatusList = studyGroup.getGroupMembers().stream()
+                .map(member -> {
+                    List<UserGoal> userGoals = userGoalRepository.findAllByUserAndStudyGroup(member.getUser(), studyGroup);
+                    double completionPercentage = userGoals.stream()
+                            .filter(UserGoal::isCompleted)
+                            .count() / (double) userGoals.size() * 100;
+
+                    // UserGoal의 completed 필드를 사용하여 StudyGroupGoalEnterDto 목록을 생성
+                    List<StudyGroupGoalDto> goals = userGoals.stream()
+                            .map(userGoal -> new StudyGroupGoalDto(
+                                    userGoals.indexOf(userGoal) + 1,
+                                    userGoal.getStudyGroupGoal().getGoalId(),
+                                    userGoal.getStudyGroupGoal().getGoalName())
+                            )
+                            .toList();
+
+                    return new UserGoalStatusDto(member.getUser().getNickname(), goals, completionPercentage);
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.status(HttpStatus.OK).body(userGoalStatusList);
+    }
+
     public ResponseEntity<List<StudyGroupGoalDto>> getStudyGroupGoals(Long groupId) {
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
 
         List<StudyGroupGoalDto> studyGroupGoalList = studyGroup.getStudyGroupGoals().stream()
-                .map(goal -> new StudyGroupGoalDto(goal.getGoalId(), goal.getGoalName()))
-                .collect(Collectors.toList());
+                .map(goal -> new StudyGroupGoalDto(
+                        studyGroup.getStudyGroupGoals().indexOf(goal) + 1,
+                        goal.getGoalId(),
+                        goal.getGoalName())
+                )
+                .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(studyGroupGoalList);
     }
@@ -513,7 +509,7 @@ public class StudyGroupService {
 
         studyGroupRepository.save(studyGroup);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 D-day를 설정했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("D-Day를 설정했습니다."));
     }
 
     public ResponseEntity<StudyGroupDDayDto> getStudyGroupDDay(Long groupId) {
@@ -547,7 +543,7 @@ public class StudyGroupService {
 
                     UserGoalEnterDto userGoalEnterDto = new UserGoalEnterDto(goals, completionPercentage);
 
-                    return new StudyGroupMemberInfo(user.getNickname(), user.getEmail(), groupMembers.isAdmin(), userGoalEnterDto);
+                    return new StudyGroupMemberInfo(user.getNickname(), user.getEmail(), user.getImageUrl(), groupMembers.isAdmin(), userGoalEnterDto);
                 })
                 .collect(Collectors.toList());
 
@@ -568,8 +564,4 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(studyGroupEnterDto);
 
     }
-
-//    private long calculateDDay(StudyGroup studyGroup) {
-//        return ChronoUnit.DAYS.between(LocalDate.now(), studyGroup.getDDay());
-//    }
 }

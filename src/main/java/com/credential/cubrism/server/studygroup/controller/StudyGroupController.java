@@ -28,11 +28,6 @@ public class StudyGroupController {
         return studyGroupService.deleteStudyGroup(groupId);
     }
 
-//    @PutMapping("/studygroup/{groupId}") // 스터디 그룹 수정
-//    public ResponseEntity<MessageDto> updateStudyGroup(@PathVariable Long groupId), @RequestBody StudyGroupUpdateDto dto) {
-//        return studyGroupService.updateStudyGroup(studyGroupId, dto);
-//    }
-
     @GetMapping("/studygroups") // 스터디 그룹 목록
     public ResponseEntity<StudyGroupListDto> studyGroupList(
             @RequestParam(defaultValue = "0") int page,
@@ -97,30 +92,21 @@ public class StudyGroupController {
     }
 
     @DeleteMapping("/studygroup/goal/{goalId}") // 스터디 그룹 목표 삭제
-    public ResponseEntity<?> deleteStudyGroupGoal(@PathVariable Long goalId) {
+    public ResponseEntity<MessageDto> deleteStudyGroupGoal(@PathVariable Long goalId) {
         return studyGroupService.deleteStudyGroupGoal(goalId);
     }
 
-    @PutMapping("/studygroup/goal/{goalId}") // 스터디 그룹 목표 수정
-    public ResponseEntity<?> updateStudyGroupGoal(@PathVariable Long goalId, @RequestBody StudyGroupUpdateGoalDto dto) {
-        return studyGroupService.updateStudyGroupGoal(goalId, dto);
+    @PutMapping("/studygroup/goal/{goalId}") // 스터디 그룹 목표 완료
+    public ResponseEntity<MessageDto> completeStudyGroupGoal(@PathVariable Long goalId) {
+        return studyGroupService.completeStudyGroupGoal(goalId);
     }
 
-//    @GetMapping("/studygroup/goal/{goalId}") // 스터디 그룹 목표 정보
-//    public ResponseEntity<?> studyGroupGoal(@PathVariable Long goalId) {
-//        return studyGroupService.studyGroupGoal(goalId);
-//    }
+
 
     // 스터디 그룹의 UserGoal 현황 조회
     @GetMapping("/studygroup/{groupId}/usergoals")
     public ResponseEntity<List<UserGoalStatusDto>> getUserGoals(@PathVariable Long groupId) {
         return studyGroupService.getUserGoals(groupId);
-    }
-
-    // 사용자의 세부사항 완료 처리
-    @PostMapping("/studygroup/goal/complete")
-    public ResponseEntity<MessageDto> completeStudyGoal(@RequestBody CompleteStudyGroupGoalDto dto) {
-        return studyGroupService.completeStudyGroupGoal(dto.getGoalId());
     }
 
     // 스터디 그룹의 목표 리스트
