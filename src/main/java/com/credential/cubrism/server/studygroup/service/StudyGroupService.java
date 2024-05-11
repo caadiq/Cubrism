@@ -428,17 +428,20 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 삭제했습니다."));
     }
 
-    // 스터디 그룹 목표 수정
+    // 스터디 그룹 목표 완료
     @Transactional
-    public ResponseEntity<MessageDto> updateStudyGroupGoal(Long goalId, StudyGroupUpdateGoalDto dto) {
+    public ResponseEntity<MessageDto> completeStudyGroupGoal(Long goalId) {
+        Users currentUser = securityUtil.getCurrentUser();
         StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
 
-        goal.setGoalName(dto.getGoalName());
+        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupAndStudyGroupGoal(currentUser, goal.getStudyGroup(), goal)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
 
-        studyGroupGoalRepository.save(goal);
+        userGoal.setCompleted(true); // completed 필드를 true로 설정
+        userGoalRepository.save(userGoal);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 수정했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
     }
 
     public ResponseEntity<List<UserGoalStatusDto>> getUserGoals(Long groupId) {
@@ -466,21 +469,6 @@ public class StudyGroupService {
                 .collect(Collectors.toList());
 
         return ResponseEntity.status(HttpStatus.OK).body(userGoalStatusList);
-    }
-
-    @Transactional
-    public ResponseEntity<MessageDto> completeStudyGroupGoal(Long goalId) {
-        Users currentUser = securityUtil.getCurrentUser();
-        StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
-                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
-
-        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupAndStudyGroupGoal(currentUser, goal.getStudyGroup(), goal)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
-
-        userGoal.setCompleted(true); // completed 필드를 true로 설정
-        userGoalRepository.save(userGoal);
-
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
     }
 
     public ResponseEntity<List<StudyGroupGoalDto>> getStudyGroupGoals(Long groupId) {
