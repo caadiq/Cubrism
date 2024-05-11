@@ -543,7 +543,7 @@ public class StudyGroupService {
 
                     UserGoalEnterDto userGoalEnterDto = new UserGoalEnterDto(goals, completionPercentage);
 
-                    return new StudyGroupMemberInfo(user.getNickname(), user.getEmail(), groupMembers.isAdmin(), userGoalEnterDto);
+                    return new StudyGroupMemberInfo(user.getNickname(), user.getEmail(), user.getImageUrl(), groupMembers.isAdmin(), userGoalEnterDto);
                 })
                 .collect(Collectors.toList());
 
