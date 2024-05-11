@@ -8,5 +8,4 @@ import java.util.List;
 public class StudyGroupAddGoalDto {
     public Long studyGroupId;
     public String goalName;
-    public String goalDescription;
 }
