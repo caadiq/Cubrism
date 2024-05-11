@@ -322,7 +322,7 @@ public class StudyGroupService {
         if (fcmToken != null) {
             // 알림 메시지
             String title = "스터디 그룹 가입 승인";
-            String body = "'" + newMember.getStudyGroup().getGroupName() + " 스터디 그룹 가입이 승인되었습니다.";
+            String body = "'" + newMember.getStudyGroup().getGroupName() + "' 스터디 그룹 가입이 승인되었습니다.";
             String type = "STUDY|" + newMember.getStudyGroup().getGroupId();
 
             // 알림 전송
@@ -354,7 +354,7 @@ public class StudyGroupService {
         if (fcmToken != null) {
             // 알림 메시지
             String title = "스터디 그룹 가입 거절";
-            String body = "'" + pendingMember.getStudyGroup().getGroupName() + " 스터디 그룹 가입이 거절되었습니다.";
+            String body = "'" + pendingMember.getStudyGroup().getGroupName() + "' 스터디 그룹 가입이 거절되었습니다.";
 
             // 알림 전송
             fcmUtils.sendMessageTo(fcmToken, title, body, null);
@@ -411,7 +411,7 @@ public class StudyGroupService {
             userGoalRepository.save(userGoal);
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("스터디 그룹에 목표를 추가했습니다."));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("목표를 추가했습니다."));
     }
 
     // 스터디 그룹 목표 삭제
@@ -425,7 +425,7 @@ public class StudyGroupService {
 
         studyGroupGoalRepository.delete(goal);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 목표를 삭제했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 삭제했습니다."));
     }
 
     // 스터디 그룹 목표 수정
@@ -438,7 +438,7 @@ public class StudyGroupService {
 
         studyGroupGoalRepository.save(goal);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 목표를 수정했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 수정했습니다."));
     }
 
     public ResponseEntity<List<UserGoalStatusDto>> getUserGoals(Long groupId) {
@@ -521,7 +521,7 @@ public class StudyGroupService {
 
         studyGroupRepository.save(studyGroup);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹 D-day를 설정했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("D-Day를 설정했습니다."));
     }
 
     public ResponseEntity<StudyGroupDDayDto> getStudyGroupDDay(Long groupId) {
