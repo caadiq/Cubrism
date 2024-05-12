@@ -59,11 +59,14 @@ public class ChatService {
         newChatMessage.setSenderId(user.getUuid());
         newChatMessage.setContent(chatRequestDto.getContent());
 
+        ChatMessage lastMessage = chatMessageRepository.findTopByStudyGroupIdOrderByCreatedAtDesc(studygroupId);
         ChatMessage savedChatMessage = chatMessageRepository.save(newChatMessage);
-
         Users sender = userRepository.findById(savedChatMessage.getSenderId()).orElse(null);
+        ChatResponseDto response = createChatResponse(savedChatMessage, sender);
 
-        return createChatResponse(savedChatMessage, sender);
+        response.setIsDateHeader(lastMessage == null || !savedChatMessage.getCreatedAt().toLocalDate().equals(lastMessage.getCreatedAt().toLocalDate()));
+
+        return response;
     }
 
     private ChatResponseDto createChatResponse(ChatMessage message, Users sender) {
