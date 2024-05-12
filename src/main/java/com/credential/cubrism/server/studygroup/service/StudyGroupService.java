@@ -406,7 +406,7 @@ public class StudyGroupService {
             userGoal.setUser(member.getUser());
             userGoal.setStudyGroup(studyGroup);
             userGoal.setStudyGroupGoal(goal);
-            userGoal.setCompleted(false); // completed 설정
+            userGoal.setCompleted(false);
 
             userGoalRepository.save(userGoal);
         }
@@ -438,7 +438,7 @@ public class StudyGroupService {
         UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupAndStudyGroupGoal(currentUser, goal.getStudyGroup(), goal)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
 
-        userGoal.setCompleted(true); // completed 필드를 true로 설정
+        userGoal.setCompleted(true);
         userGoalRepository.save(userGoal);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
@@ -455,7 +455,7 @@ public class StudyGroupService {
                             .filter(UserGoal::isCompleted)
                             .count() / (double) userGoals.size() * 100;
 
-                    // UserGoal의 completed 필드를 사용하여 StudyGroupGoalEnterDto 목록을 생성
+
                     List<StudyGroupGoalDto> goals = userGoals.stream()
                             .map(userGoal -> new StudyGroupGoalDto(
                                     userGoals.indexOf(userGoal) + 1,
@@ -555,7 +555,7 @@ public class StudyGroupService {
                     studyGroup.getDDay().getDDay()
             );
         } else {
-            studyGroupDDayDto = new StudyGroupDDayDto(); // 빈 StudyGroupDDayDto 생성
+            studyGroupDDayDto = new StudyGroupDDayDto();
             studyGroupDDayDto.setGroupId(studyGroup.getGroupId());
         }
 

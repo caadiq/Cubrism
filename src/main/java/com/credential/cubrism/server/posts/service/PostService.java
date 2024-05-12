@@ -221,6 +221,7 @@ public class PostService {
         return ResponseEntity.status(HttpStatus.OK).body(getPostList(posts));
     }
 
+    // 게시글 목록 불러오기
     private PostListDto getPostList(Page<Posts> posts) {
         PostListDto.Pageable pageableDTO = new PostListDto.Pageable(
                 posts.hasPrevious() ? posts.getNumber() - 1 : null,

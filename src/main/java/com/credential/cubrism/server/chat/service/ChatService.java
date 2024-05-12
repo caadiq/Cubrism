@@ -25,6 +25,7 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
 
+    //채팅 내용 불러오기
     public ResponseEntity<List<ChatResponseDto>> getAllByStudyGroupID(Long studygroupId) {
         List<ChatMessage> messages = chatMessageRepository.findAllByStudyGroupIdOrderByCreatedAtAsc(studygroupId);
 
@@ -49,6 +50,7 @@ public class ChatService {
         return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
 
+    // 채팅 메시지 DB에 저장
     @Transactional
     public ChatResponseDto save(ChatRequestDto chatRequestDto, Long studygroupId, Map<String, Object> simpSessionAttributes) {
         Users user = userRepository.findByEmail(chatRequestDto.getEmail())

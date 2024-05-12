@@ -25,12 +25,14 @@ import java.util.Map;
 public class ChatController {
     private final ChatService chatService;
 
+    //채팅방 처음 들어갔을 때 채팅 내용 불러오기
     @ResponseBody
     @GetMapping(value = "/studygroup/{studygroupId}/chats")
     public ResponseEntity<List<ChatResponseDto>> getChattingList(@PathVariable(name = "studygroupId") Long studygroupId) {
         return chatService.getAllByStudyGroupID(studygroupId);
     }
 
+    //Stomp 이용
     @MessageMapping("/sendmessage/{studygroupId}")
     @SendTo("/topic/public/{studygroupId}")
     public ChatResponseDto sendMessage(@DestinationVariable Long studygroupId,
