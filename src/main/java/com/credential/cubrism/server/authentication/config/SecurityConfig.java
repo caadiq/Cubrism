@@ -64,7 +64,7 @@ public class SecurityConfig {
                         // 알림
                         .requestMatchers(HttpMethod.POST, "/fcm").permitAll()
 
-                        // 추가된 권한 설정(채팅 테스트용)
+                        // 채팅 소켓 연결(지우면 안됨)
                         .requestMatchers("/topic/**").permitAll()
                         .requestMatchers("/ws").permitAll()
 
