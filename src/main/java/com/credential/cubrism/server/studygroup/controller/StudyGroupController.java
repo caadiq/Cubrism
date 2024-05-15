@@ -102,13 +102,6 @@ public class StudyGroupController {
     }
 
 
-
-    // 스터디 그룹의 UserGoal 현황 조회
-    @GetMapping("/studygroup/{groupId}/usergoals")
-    public ResponseEntity<List<UserGoalStatusDto>> getUserGoals(@PathVariable Long groupId) {
-        return studyGroupService.getUserGoals(groupId);
-    }
-
     // 스터디 그룹의 목표 리스트
     @GetMapping("/studygroup/{groupId}/goals")
     public ResponseEntity<List<StudyGroupGoalDto>> getStudyGroupGoals(@PathVariable Long groupId) {
