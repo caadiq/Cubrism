@@ -444,32 +444,6 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
     }
 
-    public ResponseEntity<List<UserGoalStatusDto>> getUserGoals(Long groupId) {
-        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
-                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
-
-        List<UserGoalStatusDto> userGoalStatusList = studyGroup.getGroupMembers().stream()
-                .map(member -> {
-                    List<UserGoal> userGoals = userGoalRepository.findAllByUserAndStudyGroup(member.getUser(), studyGroup);
-                    double completionPercentage = userGoals.stream()
-                            .filter(UserGoal::isCompleted)
-                            .count() / (double) userGoals.size() * 100;
-
-
-                    List<StudyGroupGoalDto> goals = userGoals.stream()
-                            .map(userGoal -> new StudyGroupGoalDto(
-                                    userGoals.indexOf(userGoal) + 1,
-                                    userGoal.getStudyGroupGoal().getGoalId(),
-                                    userGoal.getStudyGroupGoal().getGoalName())
-                            )
-                            .toList();
-
-                    return new UserGoalStatusDto(member.getUser().getNickname(), goals, completionPercentage);
-                })
-                .collect(Collectors.toList());
-
-        return ResponseEntity.status(HttpStatus.OK).body(userGoalStatusList);
-    }
 
     public ResponseEntity<List<StudyGroupGoalDto>> getStudyGroupGoals(Long groupId) {
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
