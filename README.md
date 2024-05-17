@@ -42,6 +42,13 @@
 </ul>
 
 ## :screwdriver: 적용 기술
+<ul>
+  <li>Language: <img src="https://img.shields.io/badge/java-000000?style=for-the-badge&logo=openjdk&logoColor=white"> <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=HTML5&logoColor=white"></li>
+  <li>Database: <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white"> <img src="https://img.shields.io/badge/redis-DC382D?style=for-the-badge&logo=redis&logoColor=white"> <img src="https://img.shields.io/badge/mariadb-003545?style=for-the-badge&logo=mariadb&logoColor=white"> </li>
+  <li>Framework: <img src="https://img.shields.io/badge/Spring-6DB33F?style=for-the-badge&logo=Spring&logoColor=white"> <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white"> <img src="https://img.shields.io/badge/springsecurity-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white"></li>
+  <li> tool: </li>
+</ul>
+ 
 
 ## :gear: 시스템 구조도
 ![시스템 구조도](https://github.com/caadiq/Cubrism/assets/74907427/d2ae2a63-71e9-4b25-aea0-00afa2472f52)
