@@ -559,7 +559,7 @@ public class StudyGroupService {
             studyGroupDDayDto.setGroupId(studyGroup.getGroupId());
         }
 
-        StudyGroupEnterDto studyGroupEnterDto = new StudyGroupEnterDto(members, studyGroupDDayDto);
+        StudyGroupEnterDto studyGroupEnterDto = new StudyGroupEnterDto(studyGroup.getGroupName(), members, studyGroupDDayDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(studyGroupEnterDto);
 
