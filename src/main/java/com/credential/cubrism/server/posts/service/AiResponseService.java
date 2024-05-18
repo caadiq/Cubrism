@@ -38,6 +38,5 @@ public class AiResponseService {
         postAiComments.setPost(post);
         post.setPostAiComments(postAiComments);
         postRepository.save(post);
-        System.out.println("AI 답변 저장 완료");
     }
 }

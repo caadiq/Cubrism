@@ -156,19 +156,15 @@ public class PostService {
         post.setContent(dto.getContent());
         post.setQualificationList(qualificationList);
 
+        // 게시글 내용이 변경되었을 때만 AI 답변 다시 생성
         if(!(oldContent.equals(post.getContent()))){
-            System.out.println("내용이 변경되었습니다");
             if (post.getPostAiComments() != null) {
                 postAiCommentsRepository.delete(post.getPostAiComments());
                 post.setPostAiComments(null);
             }
             aiResponseService.postWithAiResponse(post);
-        } else{
-            System.out.println("내용이 변경되지 않았습니다");
         }
         postRepository.save(post);
-
-        System.out.println("게시글 수정 완료");
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("게시글을 수정했습니다."));
     }
 
