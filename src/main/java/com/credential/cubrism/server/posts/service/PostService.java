@@ -82,7 +82,6 @@ public class PostService {
 
         aiResponseService.updatePostWithAiResponse(post);
 
-        System.out.println("게시글 작성 완료");
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("게시글을 작성했습니다."));
     }
 
