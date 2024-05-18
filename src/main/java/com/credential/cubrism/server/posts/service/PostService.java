@@ -7,11 +7,9 @@ import com.credential.cubrism.server.common.exception.CustomException;
 import com.credential.cubrism.server.common.exception.ErrorCode;
 import com.credential.cubrism.server.favorites.repository.FavoriteRepository;
 import com.credential.cubrism.server.posts.dto.*;
-import com.credential.cubrism.server.posts.entity.Board;
-import com.credential.cubrism.server.posts.entity.Comments;
-import com.credential.cubrism.server.posts.entity.PostImages;
-import com.credential.cubrism.server.posts.entity.Posts;
+import com.credential.cubrism.server.posts.entity.*;
 import com.credential.cubrism.server.posts.repository.BoardRepository;
+import com.credential.cubrism.server.posts.repository.PostAiCommentsRepository;
 import com.credential.cubrism.server.posts.repository.PostImagesRepository;
 import com.credential.cubrism.server.posts.repository.PostRepository;
 import com.credential.cubrism.server.qualification.entity.QualificationList;
@@ -41,9 +39,12 @@ public class PostService {
     private final PostImagesRepository postImagesRepository;
     private final QualificationListRepository qualificationListRepository;
     private final FavoriteRepository favoriteRepository;
+    private final AiResponseService aiResponseService;
+    private final PostAiCommentsRepository postAiCommentsRepository;
 
     private final SecurityUtil securityUtil;
     private final S3Util s3util;
+
 
     // 게시글 작성
     @Transactional
@@ -76,8 +77,12 @@ public class PostService {
                 }).toList();
 
         post.setPostImages(postImagesList);
+
         postRepository.save(post);
 
+        aiResponseService.updatePostWithAiResponse(post);
+
+        System.out.println("게시글 작성 완료");
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("게시글을 작성했습니다."));
     }
 
@@ -149,9 +154,16 @@ public class PostService {
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
         post.setQualificationList(qualificationList);
+        if (post.getPostAiComments() != null) {
+            postAiCommentsRepository.delete(post.getPostAiComments());
+            post.setPostAiComments(null);
+        }
 
         postRepository.save(post);
 
+        aiResponseService.updatePostWithAiResponse(post);
+
+        System.out.println("게시글 수정 완료");
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("게시글을 수정했습니다."));
     }
 
@@ -288,6 +300,9 @@ public class PostService {
                 .sorted(Comparator.comparing(PostViewDto.Comments::getCreatedDate))
                 .toList();
 
+        PostAiComments postAiComments = post.getPostAiComments();
+        String aiResponse = postAiComments != null ? postAiComments.getContent() : null;
+
         PostViewDto dto = new PostViewDto(
                 post.getPostId(),
                 post.getBoard().getBoardName(),
@@ -306,7 +321,7 @@ public class PostService {
                 post.getCreatedDate().toString(),
                 post.getModifiedDate().toString(),
                 postImagesDto,
-                commentsDto
+                commentsDto, aiResponse
         );
 
         return ResponseEntity.status(HttpStatus.OK).body(dto);

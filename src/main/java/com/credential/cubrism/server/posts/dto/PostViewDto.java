@@ -20,6 +20,7 @@ public class PostViewDto {
     private String modifiedDate;
     private List<String> images;
     private List<Comments> comments;
+    private String aiComment;
 
     @Getter
     @AllArgsConstructor

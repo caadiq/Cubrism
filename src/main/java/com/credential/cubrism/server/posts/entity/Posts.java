@@ -54,4 +54,8 @@ public class Posts {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private List<Comments> comments;
+
+    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL)
+    private PostAiComments postAiComments;
+
 }

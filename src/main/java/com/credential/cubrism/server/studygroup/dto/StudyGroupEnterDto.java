@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class StudyGroupEnterDto {
+    String groupName;
     List<StudyGroupMemberInfo> members;
     StudyGroupDDayDto day;
-
 }
