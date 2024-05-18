@@ -27,7 +27,7 @@ public class AiResponseService {
     private String apiUrl;
 
     @Async
-    public void updatePostWithAiResponse(Posts post) {
+    public void postWithAiResponse(Posts post) {
         GPTRequest request = new GPTRequest(model, post.getContent(), 0.7, 1024, 1, 2, 2);
 
         GPTResponse gptResponse = restTemplate.postForObject(apiUrl, request, GPTResponse.class);
@@ -38,5 +38,6 @@ public class AiResponseService {
         postAiComments.setPost(post);
         post.setPostAiComments(postAiComments);
         postRepository.save(post);
+        System.out.println("AI 답변 저장 완료");
     }
 }
