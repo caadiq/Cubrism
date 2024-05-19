@@ -101,12 +101,15 @@ public class StudyGroupController {
         return studyGroupService.completeStudyGroupGoal(goalId);
     }
 
-    @PostMapping("/studygroup/goal/submit")
-    public ResponseEntity<MessageDto> submitStudyGroupGoal(@RequestBody StudyGroupGoalCompleteDto dto) {
+    @PostMapping("/studygroup/goal/submit") // 스터디 그룹 목표 제출
+    public ResponseEntity<MessageDto> submitStudyGroupGoal(@RequestBody StudyGroupGoalSubmitDto dto) {
         return studyGroupService.submitStudyGroupGoal(dto);
     }
 
-
+    @GetMapping("/studygroup/goal/submits/{groupId}") // 스터디 그룹 목표 제출 목록
+    public ResponseEntity<List<StudyGroupGoalSubmitListDto>> getStudyGroupGoalSubmits(@PathVariable Long groupId) {
+        return studyGroupService.studyGroupGoalSubmitList(groupId);
+    }
 
     // 스터디 그룹의 목표 리스트
     @GetMapping("/studygroup/{groupId}/goals")

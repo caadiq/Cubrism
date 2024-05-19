@@ -465,11 +465,14 @@ public class StudyGroupService {
 
     // 스터디 그룹 목표 제출
     @Transactional
-    public ResponseEntity<MessageDto> submitStudyGroupGoal(StudyGroupGoalCompleteDto dto) {
+    public ResponseEntity<MessageDto> submitStudyGroupGoal(StudyGroupGoalSubmitDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
 
         UserGoal userGoal = userGoalRepository.findById(dto.getUserGoalId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
+
+        StudyGroup studyGroup = studyGroupRepository.findById(dto.getGroupId())
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
 
         if (!userGoal.getUser().getUuid().equals(currentUser.getUuid())) {
             throw new CustomException(ErrorCode.USER_GOAL_NOT_MATCH);
@@ -480,15 +483,39 @@ public class StudyGroupService {
         }
 
         StudyGroupGoalSubmit studyGroupGoalSubmit = new StudyGroupGoalSubmit();
+        studyGroupGoalSubmit.setUserGoal(userGoal);
+        studyGroupGoalSubmit.setStudyGroup(studyGroup);
+        studyGroupGoalSubmit.setUser(currentUser);
         studyGroupGoalSubmit.setContent(dto.getContent());
         studyGroupGoalSubmit.setImageUrl(dto.getImageUrl());
-        studyGroupGoalSubmit.setUserGoal(userGoal);
         studyGroupGoalSubmitRepository.save(studyGroupGoalSubmit);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 제출했습니다."));
     }
 
+    // 스터디 그룹 목표 제출 목록
+    public ResponseEntity<List<StudyGroupGoalSubmitListDto>> studyGroupGoalSubmitList(Long groupId) {
+        Users currentUser = securityUtil.getCurrentUser();
 
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
+        List<StudyGroupGoalSubmitListDto> submitList = studyGroupGoalSubmitRepository.findByUserGoal_StudyGroup_GroupId(groupId).stream()
+                .map(submit -> new StudyGroupGoalSubmitListDto(
+                        submit.getUserGoalId(),
+                        submit.getUserGoal().getUser().getNickname(),
+                        submit.getUserGoal().getStudyGroupGoal().getGoalName(),
+                        submit.getContent(),
+                        submit.getImageUrl(),
+                        submit.getSubmittedAt()
+                ))
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(submitList);
+    }
 
     // 스터디 그룹 D-day 설정
     public ResponseEntity<MessageDto> setStudyGroupDDay(StudyGroupDDayDto dto) {

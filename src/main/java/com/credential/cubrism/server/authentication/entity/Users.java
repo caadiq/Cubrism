@@ -4,6 +4,7 @@ import com.credential.cubrism.server.favorites.entity.Favorites;
 import com.credential.cubrism.server.notification.entity.FcmTokens;
 import com.credential.cubrism.server.posts.entity.Posts;
 import com.credential.cubrism.server.schedule.entity.Schedules;
+import com.credential.cubrism.server.studygroup.entity.StudyGroupGoalSubmit;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -72,4 +73,7 @@ public class Users {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private FcmTokens fcmTokens;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<StudyGroupGoalSubmit> studyGroupGoalSubmit;
 }

@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.studygroup.entity;
 
+import com.credential.cubrism.server.authentication.entity.Users;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,11 +26,19 @@ public class StudyGroupGoalSubmit {
     private String imageUrl;
 
     @CreatedDate
-    @Column(name = "completed_at", updatable = false)
-    private LocalDateTime completedAt;
+    @Column(name = "submitted_at", updatable = false)
+    private LocalDateTime submittedAt;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_goal_id")
     @MapsId
     private UserGoal userGoal;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    private StudyGroup studyGroup;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private Users user;
 }
