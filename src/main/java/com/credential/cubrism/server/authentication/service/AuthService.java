@@ -313,14 +313,6 @@ public class AuthService {
     // 회원탈퇴
     @Transactional
     public ResponseEntity<MessageDto> withdrawal() {
-        // TODO
-        //  - 유저 정보 삭제
-        //  - S3에 저장된 프로필 이미지 삭제
-        //  - Redis에 저장된 Refresh Token 삭제
-        //  - 일정 삭제
-        //  - 가입된 스터디 그룹 있으면 탈퇴 (그룹장이면 스터디 그룹 삭제)
-        //  - 게시글, 댓글은 유지
-
         Users currentUser = securityUtil.getCurrentUser();
 
         redisUtil.deleteData(currentUser.getEmail() + REFRESH_TOKEN_SUFFIX);

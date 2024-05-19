@@ -8,6 +8,7 @@ import com.credential.cubrism.server.common.exception.ErrorCode;
 import com.credential.cubrism.server.notification.entity.FcmTokens;
 import com.credential.cubrism.server.notification.repository.FcmRepository;
 import com.credential.cubrism.server.notification.utils.FcmUtils;
+import com.credential.cubrism.server.s3.utils.S3Util;
 import com.credential.cubrism.server.studygroup.dto.*;
 import com.credential.cubrism.server.studygroup.entity.*;
 import com.credential.cubrism.server.studygroup.repository.*;
@@ -31,11 +32,13 @@ public class StudyGroupService {
     private final GroupMembersRepository groupMembersRepository;
     private final PendingMembersRepository pendingMembersRepository;
     private final StudyGroupGoalRepository studyGroupGoalRepository;
+    private final StudyGroupGoalSubmitRepository studyGroupGoalSubmitRepository;
     private final UserGoalRepository userGoalRepository;
     private final FcmRepository fcmRepository;
 
     private final SecurityUtil securityUtil;
     private final FcmUtils fcmUtils;
+    private final S3Util s3Util;
 
     // 스터디 그룹 생성
     @Transactional
@@ -460,6 +463,114 @@ public class StudyGroupService {
         return ResponseEntity.status(HttpStatus.OK).body(studyGroupGoalList);
     }
 
+    // 스터디 그룹 목표 제출
+    @Transactional
+    public ResponseEntity<MessageDto> submitStudyGroupGoal(StudyGroupGoalSubmitDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        StudyGroupGoal goal = studyGroupGoalRepository.findById(dto.getGoalId())
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
+
+        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupGoal(currentUser, goal).orElseThrow(()->new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
+
+        StudyGroup studyGroup = studyGroupRepository.findById(dto.getGroupId())
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        if (!userGoal.getUser().getUuid().equals(currentUser.getUuid())) {
+            throw new CustomException(ErrorCode.USER_GOAL_NOT_MATCH);
+        }
+
+        // 목표가 이미 완료되었으면 제출 불가
+        if (userGoal.isCompleted()) {
+            throw new CustomException(ErrorCode.STUDY_GROUP_GOAL_ALREADY_COMPLETED);
+        }
+
+        //이미 제출중인 목표가 있으면 제출 불가
+        if (studyGroupGoalSubmitRepository.findByUserGoal(userGoal).isPresent()) {
+            throw new CustomException(ErrorCode.STUDY_GROUP_GOAL_ALREADY_SUBMITTED);
+        }
+
+//        if (!s3Util.isFileExists(dto.getImageUrl())) {
+//            throw new CustomException(ErrorCode.S3_FILE_NOT_FOUND);
+//        }
+
+        StudyGroupGoalSubmit studyGroupGoalSubmit = new StudyGroupGoalSubmit();
+        studyGroupGoalSubmit.setUserGoal(userGoal);
+        studyGroupGoalSubmit.setStudyGroup(studyGroup);
+        studyGroupGoalSubmit.setUser(currentUser);
+        studyGroupGoalSubmit.setContent(dto.getContent());
+        studyGroupGoalSubmit.setImageUrl(dto.getImageUrl());
+        studyGroupGoalSubmitRepository.save(studyGroupGoalSubmit);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 제출했습니다."));
+    }
+
+    // 스터디 그룹 목표 제출 목록
+    public ResponseEntity<List<StudyGroupGoalSubmitListDto>> studyGroupGoalSubmitList(Long groupId) {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        StudyGroup studyGroup = studyGroupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
+        List<StudyGroupGoalSubmitListDto> submitList = studyGroupGoalSubmitRepository.findByUserGoal_StudyGroup_GroupId(groupId).stream()
+                .map(submit -> new StudyGroupGoalSubmitListDto(
+                        submit.getUserGoalId(),
+                        submit.getUserGoal().getUser().getNickname(),
+                        submit.getUser().getImageUrl(),
+                        submit.getContent(),
+                        submit.getImageUrl(),
+                        submit.getSubmittedAt(),
+                        submit.getUserGoal().getStudyGroupGoal().getGoalName()
+                ))
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(submitList);
+    }
+
+    //스터디 그룹 목표 달성 인증 성공
+    @Transactional
+public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(StudyGroupGoalSubmitResponseDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        StudyGroupGoalSubmit studyGroupGoalSubmit = studyGroupGoalSubmitRepository.findById(dto.getUserGoalId())
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
+
+        StudyGroup studyGroup = studyGroupGoalSubmit.getStudyGroup();
+
+        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
+        UserGoal userGoal = studyGroupGoalSubmit.getUserGoal();
+        userGoal.setCompleted(true);
+        userGoalRepository.save(userGoal);
+
+        userGoal.setStudyGroupGoalSubmit(null);
+        studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표 달성 인증을 완료했습니다."));
+    }
+
+    //스터디 그룹 목표 달성 인증 거절
+    @Transactional
+    public ResponseEntity<MessageDto> denyStudyGroupGoalSubmit(StudyGroupGoalSubmitResponseDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
+
+        StudyGroupGoalSubmit studyGroupGoalSubmit = studyGroupGoalSubmitRepository.findById(dto.getUserGoalId())
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
+
+        StudyGroup studyGroup = studyGroupGoalSubmit.getStudyGroup();
+
+        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
+        studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표 달성 인증을 거절했습니다."));
+    }
+
     // 스터디 그룹 D-day 설정
     public ResponseEntity<MessageDto> setStudyGroupDDay(StudyGroupDDayDto dto) {
         Users currentUser = securityUtil.getCurrentUser();
@@ -536,6 +647,5 @@ public class StudyGroupService {
         StudyGroupEnterDto studyGroupEnterDto = new StudyGroupEnterDto(studyGroup.getGroupName(), members, studyGroupDDayDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(studyGroupEnterDto);
-
     }
 }

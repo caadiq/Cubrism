@@ -6,9 +6,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Getter
@@ -48,4 +46,6 @@ public class StudyGroup {
     @OneToMany(mappedBy = "studyGroup", cascade = CascadeType.ALL)
     private List<StudyGroupGoal> studyGroupGoals;
 
+    @OneToMany(mappedBy = "studyGroup", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StudyGroupGoalSubmit> studyGroupGoalSubmit;
 }

@@ -101,6 +101,27 @@ public class StudyGroupController {
         return studyGroupService.completeStudyGroupGoal(goalId);
     }
 
+    @PostMapping("/studygroup/goal/submit") // 스터디 그룹 목표 제출
+    public ResponseEntity<MessageDto> submitStudyGroupGoal(@RequestBody StudyGroupGoalSubmitDto dto) {
+        return studyGroupService.submitStudyGroupGoal(dto);
+    }
+
+    @GetMapping("/studygroup/goal/submits/{groupId}") // 스터디 그룹 목표 제출 목록
+    public ResponseEntity<List<StudyGroupGoalSubmitListDto>> getStudyGroupGoalSubmits(@PathVariable Long groupId) {
+        return studyGroupService.studyGroupGoalSubmitList(groupId);
+    }
+
+    // 스터디 그룹 제출 목표 승인
+    @PostMapping("/studygroup/goal/submit/approve")
+    public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(@RequestBody StudyGroupGoalSubmitResponseDto dto) {
+        return studyGroupService.approveStudyGroupGoalSubmit(dto);
+    }
+
+    // 스터디 그룹 제출 목표 거절
+    @PostMapping("/studygroup/goal/submit/deny")
+    public ResponseEntity<MessageDto> denyStudyGroupGoalSubmit(@RequestBody StudyGroupGoalSubmitResponseDto dto) {
+        return studyGroupService.denyStudyGroupGoalSubmit(dto);
+    }
 
     // 스터디 그룹의 목표 리스트
     @GetMapping("/studygroup/{groupId}/goals")
@@ -111,9 +132,6 @@ public class StudyGroupController {
     // 스터디 그룹 D-day 설정
     @PostMapping("/studygroup/dday")
     public ResponseEntity<MessageDto> setStudyGroupDDay(@RequestBody StudyGroupDDayDto dto) {
-        System.out.println(dto.getGroupId());
-        System.out.println(dto.getTitle());
-        System.out.println(dto.getDay());
         return studyGroupService.setStudyGroupDDay(dto);
     }
 

@@ -18,6 +18,7 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     List<UserGoal> findByStudyGroup(StudyGroup studyGroup);
 
     List<UserGoal> findByStudyGroupGoal(StudyGroupGoal goal);
+    Optional<UserGoal> findByUserAndStudyGroupGoal(Users user, StudyGroupGoal studyGroupGoal);
 
     Optional<UserGoal> findByUserAndStudyGroupAndStudyGroupGoal(Users currentUser, StudyGroup studyGroup, StudyGroupGoal goal);
 }

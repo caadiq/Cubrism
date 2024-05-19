@@ -80,9 +80,8 @@ public class PostService {
 
         postRepository.save(post);
 
-        aiResponseService.updatePostWithAiResponse(post);
+        aiResponseService.postWithAiResponse(post);
 
-        System.out.println("게시글 작성 완료");
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("게시글을 작성했습니다."));
     }
 
@@ -125,6 +124,8 @@ public class PostService {
             throw new CustomException(ErrorCode.UPDATE_DENIED);
         }
 
+        String oldContent = post.getContent();
+
         // 삭제할 이미지가 존재하면 S3 및 DB에서 이미지 삭제
         if (!dto.getRemovedImages().isEmpty()) {
             dto.getRemovedImages().forEach(imageUrl -> {
@@ -154,16 +155,16 @@ public class PostService {
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
         post.setQualificationList(qualificationList);
-        if (post.getPostAiComments() != null) {
-            postAiCommentsRepository.delete(post.getPostAiComments());
-            post.setPostAiComments(null);
+
+        // 게시글 내용이 변경되었을 때만 AI 답변 다시 생성
+        if(!(oldContent.equals(post.getContent()))){
+            if (post.getPostAiComments() != null) {
+                postAiCommentsRepository.delete(post.getPostAiComments());
+                post.setPostAiComments(null);
+            }
+            aiResponseService.postWithAiResponse(post);
         }
-
         postRepository.save(post);
-
-        aiResponseService.updatePostWithAiResponse(post);
-
-        System.out.println("게시글 수정 완료");
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageDto("게시글을 수정했습니다."));
     }
 
