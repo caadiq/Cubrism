@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "StudyGroupGoalComplete")
-public class StudyGroupGoalComplete {
+@Table(name = "StudyGroupGoalSubmit")
+public class StudyGroupGoalSubmit {
     @Id
     @Column(name = "user_goal_id", nullable = false)
-    private Long id;
+    private Long userGoalId;
 
     @Column(name = "content", nullable = false)
     private String content;

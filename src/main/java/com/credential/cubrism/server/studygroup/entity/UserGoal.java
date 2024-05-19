@@ -31,5 +31,5 @@ public class UserGoal {
     private boolean completed;
 
     @OneToOne(mappedBy = "userGoal", cascade = CascadeType.ALL)
-    private StudyGroupGoalComplete studyGroupGoalComplete;
+    private StudyGroupGoalSubmit studyGroupGoalSubmit;
 }

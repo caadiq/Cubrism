@@ -101,6 +101,12 @@ public class StudyGroupController {
         return studyGroupService.completeStudyGroupGoal(goalId);
     }
 
+    @PostMapping("/studygroup/goal/submit")
+    public ResponseEntity<MessageDto> submitStudyGroupGoal(@RequestBody StudyGroupGoalCompleteDto dto) {
+        return studyGroupService.submitStudyGroupGoal(dto);
+    }
+
+
 
     // 스터디 그룹의 목표 리스트
     @GetMapping("/studygroup/{groupId}/goals")
@@ -111,9 +117,6 @@ public class StudyGroupController {
     // 스터디 그룹 D-day 설정
     @PostMapping("/studygroup/dday")
     public ResponseEntity<MessageDto> setStudyGroupDDay(@RequestBody StudyGroupDDayDto dto) {
-        System.out.println(dto.getGroupId());
-        System.out.println(dto.getTitle());
-        System.out.println(dto.getDay());
         return studyGroupService.setStudyGroupDDay(dto);
     }
 
