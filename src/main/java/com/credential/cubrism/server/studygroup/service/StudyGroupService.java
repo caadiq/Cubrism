@@ -519,10 +519,11 @@ public class StudyGroupService {
                 .map(submit -> new StudyGroupGoalSubmitListDto(
                         submit.getUserGoalId(),
                         submit.getUserGoal().getUser().getNickname(),
-                        submit.getUserGoal().getStudyGroupGoal().getGoalName(),
+                        submit.getUser().getImageUrl(),
                         submit.getContent(),
                         submit.getImageUrl(),
-                        submit.getSubmittedAt()
+                        submit.getSubmittedAt(),
+                        submit.getUserGoal().getStudyGroupGoal().getGoalName()
                 ))
                 .toList();
 

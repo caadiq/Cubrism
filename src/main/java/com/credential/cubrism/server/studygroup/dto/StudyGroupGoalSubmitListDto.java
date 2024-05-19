@@ -14,4 +14,5 @@ public class StudyGroupGoalSubmitListDto {
     private String content;
     private String imageUrl;
     private LocalDateTime submittedAt;
+    private String goalName;
 }
