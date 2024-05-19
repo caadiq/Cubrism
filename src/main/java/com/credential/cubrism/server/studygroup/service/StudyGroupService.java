@@ -490,9 +490,9 @@ public class StudyGroupService {
             throw new CustomException(ErrorCode.STUDY_GROUP_GOAL_ALREADY_SUBMITTED);
         }
 
-//        if (!s3Util.isFileExists(dto.getImageUrl())) {
-//            throw new CustomException(ErrorCode.S3_FILE_NOT_FOUND);
-//        }
+        if (!s3Util.isFileExists(dto.getImageUrl())) {
+            throw new CustomException(ErrorCode.S3_FILE_NOT_FOUND);
+        }
 
         StudyGroupGoalSubmit studyGroupGoalSubmit = new StudyGroupGoalSubmit();
         studyGroupGoalSubmit.setUserGoal(userGoal);
@@ -532,10 +532,10 @@ public class StudyGroupService {
 
     //스터디 그룹 목표 달성 인증 성공
     @Transactional
-public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(StudyGroupGoalSubmitResponseDto dto) {
+public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        StudyGroupGoalSubmit studyGroupGoalSubmit = studyGroupGoalSubmitRepository.findById(dto.getUserGoalId())
+        StudyGroupGoalSubmit studyGroupGoalSubmit = studyGroupGoalSubmitRepository.findById(userGoalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
 
         StudyGroup studyGroup = studyGroupGoalSubmit.getStudyGroup();
@@ -555,10 +555,10 @@ public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(StudyGroupGoalSubm
 
     //스터디 그룹 목표 달성 인증 거절
     @Transactional
-    public ResponseEntity<MessageDto> denyStudyGroupGoalSubmit(StudyGroupGoalSubmitResponseDto dto) {
+    public ResponseEntity<MessageDto> denyStudyGroupGoalSubmit(Long userGoalId) {
         Users currentUser = securityUtil.getCurrentUser();
 
-        StudyGroupGoalSubmit studyGroupGoalSubmit = studyGroupGoalSubmitRepository.findById(dto.getUserGoalId())
+        StudyGroupGoalSubmit studyGroupGoalSubmit = studyGroupGoalSubmitRepository.findById(userGoalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
 
         StudyGroup studyGroup = studyGroupGoalSubmit.getStudyGroup();
