@@ -30,6 +30,6 @@ public class UserGoal {
     @Column(name = "completed", nullable = false)
     private boolean completed;
 
-    @OneToOne(mappedBy = "userGoal", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "userGoal", cascade = CascadeType.ALL, orphanRemoval = true)
     private StudyGroupGoalSubmit studyGroupGoalSubmit;
 }

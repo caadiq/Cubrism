@@ -80,6 +80,8 @@ public enum ErrorCode {
     FAVORITE_ALREADY_ADDED(HttpStatus.CONFLICT, "이미 추가된 자격증입니다."),
     STUDY_GROUP_ALREADY_REQUESTED(HttpStatus.CONFLICT, "이미 가입 신청한 스터디 그룹입니다."),
     WebSocket_Key_NOT_FOUND(HttpStatus.CONFLICT, "WebSocket Key가 존재하지 않습니다."),
+    STUDY_GROUP_GOAL_ALREADY_SUBMITTED(HttpStatus.CONFLICT, "이미 제출된 목표입니다."),
+    STUDY_GROUP_GOAL_ALREADY_COMPLETED(HttpStatus.CONFLICT, "이미 완료된 목표입니다."),
 
 
     /**

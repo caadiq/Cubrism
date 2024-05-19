@@ -111,6 +111,18 @@ public class StudyGroupController {
         return studyGroupService.studyGroupGoalSubmitList(groupId);
     }
 
+    // 스터디 그룹 제출 목표 승인
+    @PostMapping("/studygroup/goal/submit/approve")
+    public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(@RequestBody StudyGroupGoalSubmitResponseDto dto) {
+        return studyGroupService.approveStudyGroupGoalSubmit(dto);
+    }
+
+    // 스터디 그룹 제출 목표 거절
+    @PostMapping("/studygroup/goal/submit/deny")
+    public ResponseEntity<MessageDto> denyStudyGroupGoalSubmit(@RequestBody StudyGroupGoalSubmitResponseDto dto) {
+        return studyGroupService.denyStudyGroupGoalSubmit(dto);
+    }
+
     // 스터디 그룹의 목표 리스트
     @GetMapping("/studygroup/{groupId}/goals")
     public ResponseEntity<List<StudyGroupGoalDto>> getStudyGroupGoals(@PathVariable Long groupId) {

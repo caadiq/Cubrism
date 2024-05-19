@@ -74,6 +74,6 @@ public class Users {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private FcmTokens fcmTokens;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyGroupGoalSubmit> studyGroupGoalSubmit;
 }
