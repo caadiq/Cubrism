@@ -82,6 +82,8 @@ public enum ErrorCode {
     WebSocket_Key_NOT_FOUND(HttpStatus.CONFLICT, "WebSocket Key가 존재하지 않습니다."),
     STUDY_GROUP_GOAL_ALREADY_SUBMITTED(HttpStatus.CONFLICT, "이미 제출된 목표입니다."),
     STUDY_GROUP_GOAL_ALREADY_COMPLETED(HttpStatus.CONFLICT, "이미 완료된 목표입니다."),
+    STUDY_GROUP_DDAY_PASSED(HttpStatus.CONFLICT, "D-Day가 지났습니다"),
+
 
 
     /**
