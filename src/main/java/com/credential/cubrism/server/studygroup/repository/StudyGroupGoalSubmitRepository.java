@@ -1,5 +1,6 @@
 package com.credential.cubrism.server.studygroup.repository;
 
+import com.credential.cubrism.server.studygroup.entity.StudyGroup;
 import com.credential.cubrism.server.studygroup.entity.StudyGroupGoalSubmit;
 import com.credential.cubrism.server.studygroup.entity.UserGoal;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,4 +12,6 @@ public interface StudyGroupGoalSubmitRepository extends JpaRepository<StudyGroup
     List<StudyGroupGoalSubmit> findByUserGoal_StudyGroup_GroupId(Long groupId);
 
     Optional<Object> findByUserGoal(UserGoal userGoal);
+
+    List<StudyGroupGoalSubmit> findByStudyGroup(StudyGroup studyGroup);
 }
