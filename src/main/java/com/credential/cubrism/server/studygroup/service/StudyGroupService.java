@@ -97,6 +97,10 @@ public class StudyGroupService {
         List<StudyGroupGoal> studyGroupGoals = studyGroupGoalRepository.findByStudyGroup(studyGroup);
         studyGroupGoalRepository.deleteAll(studyGroupGoals);
 
+        // 스터디 그룹과 관련된 StudyGroupGoalSubmit을 찾아 삭제
+        List<StudyGroupGoalSubmit> studyGroupGoalSubmits = studyGroupGoalSubmitRepository.findByStudyGroup(studyGroup);
+        studyGroupGoalSubmitRepository.deleteAll(studyGroupGoalSubmits);
+
         studyGroupRepository.delete(studyGroup);
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("스터디 그룹을 삭제했습니다."));
@@ -532,7 +536,7 @@ public class StudyGroupService {
 
     //스터디 그룹 목표 달성 인증 성공
     @Transactional
-public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
+    public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
         Users currentUser = securityUtil.getCurrentUser();
 
         StudyGroupGoalSubmit studyGroupGoalSubmit = studyGroupGoalSubmitRepository.findById(userGoalId)
