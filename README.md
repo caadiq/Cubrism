@@ -62,6 +62,7 @@
 </br>
 
 ## :camera_flash: 실행 화면
+![앱 실행 화면](https://raw.githubusercontent.com/caadiq/Cubrism/master/image/%EC%95%B1%20%EC%8B%A4%ED%96%89%20%ED%99%94%EB%A9%B4.jpg)
 
 </br>
 
