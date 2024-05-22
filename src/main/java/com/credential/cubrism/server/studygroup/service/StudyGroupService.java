@@ -657,7 +657,14 @@ public class StudyGroupService {
                     List<UserGoal> userGoals = userGoalRepository.findAllByUserAndStudyGroup(user, studyGroup);
 
                     List<StudyGroupGoalEnterDto> goals = userGoals.stream()
-                            .map(userGoal -> new StudyGroupGoalEnterDto(userGoal.getStudyGroupGoal().getGoalId(), userGoal.getStudyGroupGoal().getGoalName(), userGoal.isCompleted()))
+                            .map(userGoal -> {
+                                boolean submitted = studyGroupGoalSubmitRepository.findByUserGoal_UserAndUserGoal_StudyGroupGoal(user, userGoal.getStudyGroupGoal()).isPresent();
+                                return new StudyGroupGoalEnterDto(userGoal.getStudyGroupGoal().getGoalId(),
+                                        userGoal.getStudyGroupGoal().getGoalName(),
+                                        userGoal.isCompleted(),
+                                        submitted
+                                        );
+                            })
                             .collect(Collectors.toList());
 
                     Double completionPercentage = userGoals.isEmpty() ? null : (double) userGoals.stream().filter(UserGoal::isCompleted).count() / userGoals.size() * 100;

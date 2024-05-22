@@ -9,4 +9,5 @@ public class StudyGroupGoalEnterDto {
     private Long goalId;
     private String goalName;
     private boolean completed;
+    private boolean submitted;
 }
