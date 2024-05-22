@@ -555,7 +555,7 @@ public class StudyGroupService {
     }
 
     //스터디 그룹 목표 달성 인증 성공
-    @Transactional
+    @Transactional(noRollbackFor = CustomException.class)
     public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
         Users currentUser = securityUtil.getCurrentUser();
 
@@ -572,7 +572,7 @@ public class StudyGroupService {
         if(dDayPassed(studyGroup)){
             userGoal.setStudyGroupGoalSubmit(null);
             studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
-            return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("D-Day가 지났습니다."));
+            throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
         }
 
 
@@ -586,7 +586,7 @@ public class StudyGroupService {
     }
 
     //스터디 그룹 목표 달성 인증 거절
-    @Transactional
+    @Transactional(noRollbackFor = CustomException.class)
     public ResponseEntity<MessageDto> denyStudyGroupGoalSubmit(Long userGoalId) {
         Users currentUser = securityUtil.getCurrentUser();
 
@@ -599,7 +599,7 @@ public class StudyGroupService {
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
         if(dDayPassed(studyGroup)){
             studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
-            return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("D-Day가 지났습니다."));
+            throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
         }
 
         studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
