@@ -16,7 +16,482 @@
 </br>
 
 ## :abacus: API Docs
+### 회원
+---
+<details>
+<summary>회원가입</summary>
 
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /auth/signup |
+
+#### 요청
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| email | String | 이메일 |
+| password | String | 비밀번호 |
+| nickname | String | 닉네임 |
+
+```json
+{
+    "email": "test@test.com",
+    "password": "password1!",
+    "nickname": "nickname"
+}
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "회원가입에 성공했습니다."
+}
+```
+</details>
+
+<details>
+<summary>로그인</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /auth/signin |
+
+#### 요청
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| email | String | 이메일 |
+| password | String | 비밀번호 |
+| fcmToken | String | FCM (Firebase Cloud Messaging) 토큰 |
+
+```json
+{
+    "email": "test@test.com",
+    "password": "password1!",
+    "fcmToken": ""
+}
+```
+#### 응답
+##### user
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| email | String | 이메일 |
+| nickname | String | 닉네임 |
+| profileImage | String | 프로필 사진 Url |
+| provider | String | 소셜 로그인 [Google, Kakao, null(이메일)] |
+
+##### token
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| accessToken | String | JWT Access Token |
+| refreshToken | String | JWT Refresh Token |
+
+```json
+{
+    "user": {
+        "email": "test@test.com",
+        "nickname": "닉네임",
+        "profileImage": "",
+        "provider": null
+    },
+    "token": {
+        "accessToken": "",
+        "refreshToken": ""
+    }
+}
+```
+</details>
+
+<details>
+<summary>구글 로그인</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /auth/signin/google |
+
+#### 요청
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| token | String | 구글 인증 토큰 |
+| fcmToken | String | FCM (Firebase Cloud Messaging) 토큰 |
+
+```json
+{
+    "token": "",
+    "fcmToken": ""
+}
+```
+#### 응답
+##### user
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| email | String | 이메일 |
+| nickname | String | 닉네임 |
+| profileImage | String | 프로필 사진 Url |
+| provider | String | 소셜 로그인 [Google, Kakao, null(이메일)] |
+
+##### token
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| accessToken | String | JWT Access Token |
+| refreshToken | String | JWT Refresh Token |
+
+```json
+{
+    "user": {
+        "email": "test@test.com",
+        "nickname": "닉네임",
+        "profileImage": "",
+        "provider": "google"
+    },
+    "token": {
+        "accessToken": "",
+        "refreshToken": ""
+    }
+}
+```
+</details>
+
+<details>
+<summary>카카오 로그인</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /auth/signin/kakao |
+
+#### 요청
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| token | String | 카카오 인증 토큰 |
+| fcmToken | String | FCM (Firebase Cloud Messaging) 토큰 |
+
+```json
+{
+    "token": "",
+    "fcmToken": ""
+}
+```
+#### 응답
+##### user
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| email | String | 이메일 |
+| nickname | String | 닉네임 |
+| profileImage | String | 프로필 사진 Url |
+| provider | String | 소셜 로그인 [Google, Kakao, null(이메일)] |
+
+##### token
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| accessToken | String | JWT Access Token |
+| refreshToken | String | JWT Refresh Token |
+
+```json
+{
+    "user": {
+        "email": "test@test.com",
+        "nickname": "닉네임",
+        "profileImage": "",
+        "provider": "kakao"
+    },
+    "token": {
+        "accessToken": "",
+        "refreshToken": ""
+    }
+}
+```
+</details>
+
+<details>
+<summary>로그아웃</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /auth/logout |
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "로그아웃 완료"
+}
+```
+</details>
+
+<details>
+<summary>로그인 유저 정보</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /auth/users |
+
+#### 요청
+##### 파라미터
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| email | String | 이메일 |
+| nickname | String | 닉네임 |
+| profileImage | String | 프로필 사진 Url |
+| provider | String | 소셜 로그인 [Google, Kakao, null(이메일)] |
+```json
+{
+    "email": "test@test.com",
+    "nickname": "닉네임",
+    "profileImage": "",
+    "provider": null
+}
+```
+</details>
+
+<details>
+<summary>회원 정보 수정</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>PUT</code> | /auth/users |
+
+#### 요청
+##### 파라미터
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| nickname | String | 닉네임 |
+| imageUrl | String | 프로필 사진 Url |
+| isImageChange | Boolean | 프로필 사진 변경 여부 |
+
+```json
+{
+    "nickname": "닉네임",
+    "imageUrl": "",
+    "isImageChange": true
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| email | String | 이메일 |
+| nickname | String | 닉네임 |
+| profileImage | String | 프로필 사진 Url |
+| provider | String | 소셜 로그인 [Google, Kakao, null(이메일)] |
+```json
+{
+    "email": "test@test.com",
+    "nickname": "닉네임",
+    "profileImage": "",
+    "provider": null
+}
+```
+</details>
+
+<details>
+<summary>회원 탈퇴</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>DELETE</code> | /auth/users |
+
+#### 요청
+##### 파라미터
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "회원 탈퇴가 완료되었습니다."
+}
+```
+</details>
+
+<details>
+<summary>이메일 인증 번호 요청</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /auth/signup/email/request |
+
+#### 요청
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| email | String | 이메일 |
+
+```json
+{
+    "email": "test@test.com"
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "이메일 전송 완료"
+}
+```
+</details>
+
+<details>
+<summary>이메일 인증 번호 인증</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /auth/signup/email/verify |
+
+#### 요청
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| email | String | 이메일 |
+| code | String | 인증 코드 |
+
+```json
+{
+    "email": "test@test.com",
+    "code": "000000"
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "이메일 인증 완료"
+}
+```
+</details>
+
+<details>
+<summary>비밀번호 초기화 요청</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /auth/users/password |
+
+#### 요청
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| email | String | 이메일 |
+
+```json
+{
+    "email": "test@test.com"
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "이메일을 전송했습니다."
+}
+```
+</details>
+
+<details>
+<summary>Access Token 재발급</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /auth/token/access |
+
+#### 요청
+##### 파라미터
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| AccessToken | String | JWT Access Token |
+| RefreshToken | String | JWT Refresh Token |
+
+```
+AccessToken: Bearer Token
+RefreshToken: Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| accessToken | String | JWT Access Token |
+| refreshToken | String | JWT Refresh Token |
+```json
+{
+    "accessToken": "",
+    "refreshToken": null
+}
+```
+</details>
+
+<details>
+<summary>Refresh Token 재발급</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /auth/token/refresh |
+
+#### 요청
+##### 파라미터
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| accessToken | String | JWT Access Token |
+| refreshToken | String | JWT Refresh Token |
+```json
+{
+    "accessToken": null,
+    "refreshToken": ""
+}
+```
+</details>
 
 </br>
 
