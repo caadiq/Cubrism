@@ -434,12 +434,15 @@ public class StudyGroupService {
     // 스터디 그룹 목표 삭제
     @Transactional
     public ResponseEntity<MessageDto> deleteStudyGroupGoal(Long goalId) {
+        Users currentUser = securityUtil.getCurrentUser();
+
         StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
-        Users currentUser = securityUtil.getCurrentUser();
+
         StudyGroup studyGroup = goal.getStudyGroup();
         groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
         if (dDayPassed(studyGroup)) {
             throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
         }
@@ -497,7 +500,7 @@ public class StudyGroupService {
         StudyGroup studyGroup = studyGroupRepository.findById(dto.getGroupId())
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
 
-        if(dDayPassed(studyGroup)){
+        if (dDayPassed(studyGroup)) {
             throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
         }
 
@@ -549,10 +552,8 @@ public class StudyGroupService {
                         submit.getImageUrl(),
                         submit.getSubmittedAt(),
                         submit.getUserGoal().getStudyGroupGoal().getGoalName()
-                ))
+                )).sorted(Comparator.comparing(StudyGroupGoalSubmitListDto::getSubmittedAt).reversed())
                 .collect(Collectors.toList());
-
-        submitList.sort(Comparator.comparing(StudyGroupGoalSubmitListDto::getSubmittedAt).reversed());
 
         return ResponseEntity.status(HttpStatus.OK).body(submitList);
     }
@@ -570,8 +571,12 @@ public class StudyGroupService {
         groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
 
-        if(dDayPassed(studyGroup)){
+        if (dDayPassed(studyGroup)) {
             throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
+        }
+
+        if (s3Util.isFileExists(studyGroupGoalSubmit.getImageUrl())) {
+            s3Util.deleteFile(studyGroupGoalSubmit.getImageUrl());
         }
 
         UserGoal userGoal = studyGroupGoalSubmit.getUserGoal();
@@ -596,8 +601,12 @@ public class StudyGroupService {
 
         groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
-        if(dDayPassed(studyGroup)){
+        if (dDayPassed(studyGroup)) {
             throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
+        }
+
+        if (s3Util.isFileExists(studyGroupGoalSubmit.getImageUrl())) {
+            s3Util.deleteFile(studyGroupGoalSubmit.getImageUrl());
         }
 
         studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
@@ -661,7 +670,7 @@ public class StudyGroupService {
                                         userGoal.getStudyGroupGoal().getGoalName(),
                                         userGoal.isCompleted(),
                                         submitted
-                                        );
+                                );
                             })
                             .collect(Collectors.toList());
 
