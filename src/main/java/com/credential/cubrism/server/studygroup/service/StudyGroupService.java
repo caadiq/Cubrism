@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -96,6 +97,10 @@ public class StudyGroupService {
         // 스터디 그룹과 관련된 StudyGroupGoal을 찾아 삭제
         List<StudyGroupGoal> studyGroupGoals = studyGroupGoalRepository.findByStudyGroup(studyGroup);
         studyGroupGoalRepository.deleteAll(studyGroupGoals);
+
+        // 스터디 그룹과 관련된 StudyGroupGoalSubmit을 찾아 삭제
+        List<StudyGroupGoalSubmit> studyGroupGoalSubmits = studyGroupGoalSubmitRepository.findByStudyGroup(studyGroup);
+        studyGroupGoalSubmitRepository.deleteAll(studyGroupGoalSubmits);
 
         studyGroupRepository.delete(studyGroup);
 
@@ -203,7 +208,7 @@ public class StudyGroupService {
             throw new CustomException(ErrorCode.STUDY_GROUP_ALREADY_JOINED);
         }
 
-        if(pendingMembersRepository.findByUserAndStudyGroup(currentUser, studyGroup).isPresent()) {
+        if (pendingMembersRepository.findByUserAndStudyGroup(currentUser, studyGroup).isPresent()) {
             throw new CustomException(ErrorCode.STUDY_GROUP_ALREADY_REQUESTED);
         }
 
@@ -392,9 +397,17 @@ public class StudyGroupService {
     // 스터디 그룹 목표 추가
     @Transactional
     public ResponseEntity<MessageDto> addStudyGroupGoal(StudyGroupAddGoalDto dto) {
+        Users currentUser = securityUtil.getCurrentUser();
         Long groupId = dto.getStudyGroupId();
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
+        if (dDayPassed(studyGroup)) {
+            throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
+        }
 
         StudyGroupGoal goal = new StudyGroupGoal();
         goal.setGoalName(dto.getGoalName());
@@ -422,6 +435,13 @@ public class StudyGroupService {
     public ResponseEntity<MessageDto> deleteStudyGroupGoal(Long goalId) {
         StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
+        Users currentUser = securityUtil.getCurrentUser();
+        StudyGroup studyGroup = goal.getStudyGroup();
+        groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+        if (dDayPassed(studyGroup)) {
+            throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
+        }
 
         List<UserGoal> userGoals = userGoalRepository.findByStudyGroupGoal(goal);
         userGoalRepository.deleteAll(userGoals);
@@ -471,10 +491,14 @@ public class StudyGroupService {
         StudyGroupGoal goal = studyGroupGoalRepository.findById(dto.getGoalId())
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
 
-        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupGoal(currentUser, goal).orElseThrow(()->new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
+        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupGoal(currentUser, goal).orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
 
         StudyGroup studyGroup = studyGroupRepository.findById(dto.getGroupId())
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        if(dDayPassed(studyGroup)){
+            throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
+        }
 
         if (!userGoal.getUser().getUuid().equals(currentUser.getUuid())) {
             throw new CustomException(ErrorCode.USER_GOAL_NOT_MATCH);
@@ -531,8 +555,8 @@ public class StudyGroupService {
     }
 
     //스터디 그룹 목표 달성 인증 성공
-    @Transactional
-public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
+    @Transactional(noRollbackFor = CustomException.class)
+    public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
         Users currentUser = securityUtil.getCurrentUser();
 
         StudyGroupGoalSubmit studyGroupGoalSubmit = studyGroupGoalSubmitRepository.findById(userGoalId)
@@ -544,6 +568,14 @@ public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
 
         UserGoal userGoal = studyGroupGoalSubmit.getUserGoal();
+
+        if(dDayPassed(studyGroup)){
+            userGoal.setStudyGroupGoalSubmit(null);
+            studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
+            throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
+        }
+
+
         userGoal.setCompleted(true);
         userGoalRepository.save(userGoal);
 
@@ -554,7 +586,7 @@ public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
     }
 
     //스터디 그룹 목표 달성 인증 거절
-    @Transactional
+    @Transactional(noRollbackFor = CustomException.class)
     public ResponseEntity<MessageDto> denyStudyGroupGoalSubmit(Long userGoalId) {
         Users currentUser = securityUtil.getCurrentUser();
 
@@ -565,6 +597,10 @@ public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
 
         groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+        if(dDayPassed(studyGroup)){
+            studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
+            throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
+        }
 
         studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
 
@@ -621,7 +657,14 @@ public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
                     List<UserGoal> userGoals = userGoalRepository.findAllByUserAndStudyGroup(user, studyGroup);
 
                     List<StudyGroupGoalEnterDto> goals = userGoals.stream()
-                            .map(userGoal -> new StudyGroupGoalEnterDto(userGoal.getStudyGroupGoal().getGoalId(), userGoal.getStudyGroupGoal().getGoalName(), userGoal.isCompleted()))
+                            .map(userGoal -> {
+                                boolean submitted = studyGroupGoalSubmitRepository.findByUserGoal_UserAndUserGoal_StudyGroupGoal(user, userGoal.getStudyGroupGoal()).isPresent();
+                                return new StudyGroupGoalEnterDto(userGoal.getStudyGroupGoal().getGoalId(),
+                                        userGoal.getStudyGroupGoal().getGoalName(),
+                                        userGoal.isCompleted(),
+                                        submitted
+                                        );
+                            })
                             .collect(Collectors.toList());
 
                     Double completionPercentage = userGoals.isEmpty() ? null : (double) userGoals.stream().filter(UserGoal::isCompleted).count() / userGoals.size() * 100;
@@ -647,5 +690,13 @@ public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
         StudyGroupEnterDto studyGroupEnterDto = new StudyGroupEnterDto(studyGroup.getGroupName(), members, studyGroupDDayDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(studyGroupEnterDto);
+    }
+
+    //스터디 그룹의 dday가 지났는지 확인
+    public boolean dDayPassed(StudyGroup studyGroup) {
+        LocalDate today = LocalDate.now();
+        LocalDate dDay = studyGroup.getDDay().getDDay();
+
+        return !dDay.isAfter(today);
     }
 }
