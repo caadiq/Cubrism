@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -549,7 +550,9 @@ public class StudyGroupService {
                         submit.getSubmittedAt(),
                         submit.getUserGoal().getStudyGroupGoal().getGoalName()
                 ))
-                .toList();
+                .collect(Collectors.toList());
+
+        submitList.sort(Comparator.comparing(StudyGroupGoalSubmitListDto::getSubmittedAt).reversed());
 
         return ResponseEntity.status(HttpStatus.OK).body(submitList);
     }
@@ -567,15 +570,11 @@ public class StudyGroupService {
         groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
 
-        UserGoal userGoal = studyGroupGoalSubmit.getUserGoal();
-
         if(dDayPassed(studyGroup)){
-            userGoal.setStudyGroupGoalSubmit(null);
-            studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
             throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
         }
 
-
+        UserGoal userGoal = studyGroupGoalSubmit.getUserGoal();
         userGoal.setCompleted(true);
         userGoalRepository.save(userGoal);
 
@@ -586,7 +585,7 @@ public class StudyGroupService {
     }
 
     //스터디 그룹 목표 달성 인증 거절
-    @Transactional(noRollbackFor = CustomException.class)
+    @Transactional
     public ResponseEntity<MessageDto> denyStudyGroupGoalSubmit(Long userGoalId) {
         Users currentUser = securityUtil.getCurrentUser();
 
@@ -598,7 +597,6 @@ public class StudyGroupService {
         groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
         if(dDayPassed(studyGroup)){
-            studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
             throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
         }
 
