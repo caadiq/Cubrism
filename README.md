@@ -2266,6 +2266,109 @@ Authorization: Bearer Token
 
 <br>
 
+### 관심 자격증
+---
+<details>
+<summary>관심 자격증 추가</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /favorite |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| code | String | 자격증 코드 |
+```json
+{
+    "code": "1320"
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "관심 자격증이 추가되었습니다."
+}
+```
+</details>
+
+<details>
+<summary>관심 자격증 삭제</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>DELETE</code> | /favorite/{favoriteId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "관심 자격증이 삭제되었습니다."
+}
+```
+</details>
+
+<details>
+<summary>관심 자격증 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /favorites |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| index | Int | 순서 |
+| favoriteId | Int | 관심 자격증 번호 |
+| code | String | 자격증 코드 |
+| name | String | 자격증 이름 |
+```json
+[
+    {
+        "index": 1,
+        "favoriteId": 5,
+        "code": "1320",
+        "name": "정보처리기사"
+    },
+    ···
+]
+```
+</details>
+
+<br>
+
 ## :screwdriver: 적용 기술
 <ul>
   <li>Language: <img src="https://img.shields.io/badge/java-000000?style=for-the-badge&logo=openjdk&logoColor=white"> <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=HTML5&logoColor=white"></li>
