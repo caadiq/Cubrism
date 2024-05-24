@@ -235,7 +235,7 @@
 | <code>GET</code> | /auth/users |
 
 #### 요청
-##### 파라미터
+##### 헤더
 | 이름 | 타입 | 설명 |
 | --- | --- | --- |
 | Authorization | String | JWT Access Token |
@@ -269,7 +269,7 @@ Authorization: Bearer Token
 | <code>PUT</code> | /auth/users |
 
 #### 요청
-##### 파라미터
+##### 헤더
 | 이름 | 타입 | 설명 |
 | --- | --- | --- |
 | Authorization | String | JWT Access Token |
@@ -317,7 +317,7 @@ Authorization: Bearer Token
 | <code>DELETE</code> | /auth/users |
 
 #### 요청
-##### 파라미터
+##### 헤더
 | 이름 | 타입 | 설명 |
 | --- | --- | --- |
 | Authorization | String | JWT Access Token |
@@ -438,7 +438,7 @@ Authorization: Bearer Token
 | <code>POST</code> | /auth/token/access |
 
 #### 요청
-##### 파라미터
+##### 헤더
 | 이름 | 타입 | 설명 |
 | --- | --- | --- |
 | AccessToken | String | JWT Access Token |
@@ -470,7 +470,7 @@ RefreshToken: Token
 | <code>POST</code> | /auth/token/refresh |
 
 #### 요청
-##### 파라미터
+##### 헤더
 | 이름 | 타입 | 설명 |
 | --- | --- | --- |
 | Authorization | String | JWT Access Token |
@@ -522,6 +522,7 @@ Authorization: Bearer Token
 </details>
 
 <details>
+    
 <summary>대직무분야명 목록</summary>
 
 | HTTP | Path  |
@@ -697,7 +698,578 @@ field: 정보통신
 
 <br>
 
+### 게시판
+---
+<details>
+<summary>게시글 목록</summary>
 
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /posts |
+
+#### 요청
+##### 파라미터
+| 이름 | 타입 | 설명 | 필수 |
+| --- | --- | --- | --- |
+| page | Int | 페이지 | X (기본값 0) |
+| limit | Int | 한 번에 불러올 게시글 수 (0~50) | X (기본값 20) |
+| search-query | String | 검색어 | X |
+| board-id | Int | 게시판 번호 | O |
+
+```
+page: 0
+limit: 20
+search-query: 정보처리기사
+board-id: 1
+```
+#### 응답
+##### page (페이지)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| previousPage | Int | 이전 페이지 |
+| currentPage | Int | 현재 페이지 |
+| nextPage | Int | 다음 페이지 |
+
+##### postList (게시글 목록)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| postId | Int | 게시글 번호 |
+| category | String | 카테고리 |
+| nickname | String | 작성자 닉네임 |
+| imageUrl | String | 첫 번째 사진 Url |
+| title | String | 제목 |
+| content | String | 내용 |
+| createdDate | String | 작성일 |
+| commentCount | Int | 댓글 수 |
+```json
+{
+    "page": {
+        "previousPage": null,
+        "currentPage": 0,
+        "nextPage": 1
+    },
+    "postList": [
+        {
+            "postId": 208,
+            "category": "정보처리기사",
+            "nickname": "nickname",
+            "imageUrl": "",
+            "title": "정처기 필기는 언제인가요?",
+            "content": "2차때 신청하려고 하는데, 신청 기간은 언제인가요?",
+            "createdDate": "2일 전",
+            "commentCount": 0
+        },
+        ···
+    ]
+}
+```
+</details>
+
+<details>
+<summary>내 게시글 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /posts/my |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 파라미터
+| 이름 | 타입 | 설명 | 필수 |
+| --- | --- | --- | --- |
+| page | Int | 페이지 | X (기본값 0) |
+| limit | Int | 한 번에 불러올 게시글 수 (0~50) | X (기본값 20) |
+
+```
+page: 0
+limit: 20
+```
+#### 응답
+##### page (페이지)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| previousPage | Int | 이전 페이지 |
+| currentPage | Int | 현재 페이지 |
+| nextPage | Int | 다음 페이지 |
+
+##### postList (게시글 목록)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| postId | Int | 게시글 번호 |
+| category | String | 카테고리 |
+| nickname | String | 작성자 닉네임 |
+| profileImage | String | 프로필 사진 Url |
+| images | String[] | 사진 Url 목록 |
+| title | String | 제목 |
+| content | String | 내용 |
+| createdDate | String | 작성일 |
+| commentCount | Int | 댓글 수 |
+```json
+{
+    "page": {
+        "previousPage": null,
+        "currentPage": 0,
+        "nextPage": 1
+    },
+    "postList": [
+        {
+            "postId": 208,
+            "category": "정보처리기사",
+            "nickname": "nickname",
+            "profileImage": "",
+            "images": [
+                "",
+                "",
+                ""
+            ],
+            "title": "정처기 필기는 언제인가요?",
+            "content": "2차때 신청하려고 하는데, 신청 기간은 언제인가요?",
+            "createdDate": "5.21 16:25",
+            "commentCount": 0
+        },
+        ···
+    ]
+}
+```
+</details>
+
+<details>
+<summary>관심 자격증 게시글 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /posts/favorites |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 파라미터
+| 이름 | 타입 | 설명 | 필수 |
+| --- | --- | --- | --- |
+| page | Int | 페이지 | X (기본값 0) |
+| limit | Int | 한 번에 불러올 게시글 수 (0~50) | X (기본값 20) |
+| board-id | Int | 게시판 번호 | O |
+
+```
+page: 0
+limit: 20
+board-id: 1
+```
+#### 응답
+##### page (페이지)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| previousPage | Int | 이전 페이지 |
+| currentPage | Int | 현재 페이지 |
+| nextPage | Int | 다음 페이지 |
+
+##### postList (게시글 목록)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| postId | Int | 게시글 번호 |
+| category | String | 카테고리 |
+| nickname | String | 작성자 닉네임 |
+| imageUrl | String | 첫 번째 사진 Url |
+| title | String | 제목 |
+| content | String | 내용 |
+| createdDate | String | 작성일 |
+| commentCount | Int | 댓글 수 |
+```json
+{
+    "page": {
+        "previousPage": null,
+        "currentPage": 0,
+        "nextPage": 1
+    },
+    "postList": [
+        {
+            "postId": 208,
+            "category": "정보처리기사",
+            "nickname": "nickname",
+            "imageUrl": "",
+            "title": "정처기 필기는 언제인가요?",
+            "content": "2차때 신청하려고 하는데, 신청 기간은 언제인가요?",
+            "createdDate": "2일 전",
+            "commentCount": 0
+        },
+        ···
+    ]
+}
+```
+</details>
+
+<details>
+<summary>게시글 보기</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /post/{postId} |
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| postId | Int | 게시글 번호 |
+| boardName | String | 게시판 이름 |
+| category | String | 카테고리 |
+| nickname | String | 작성자 닉네임 |
+| profileImageUrl | String | 프로필 사진 Url |
+| email | String | 작성자 이메일 |
+| title | String | 제목 |
+| content | String | 내용 |
+| createdDate | LocalDateTime | 작성 날짜 |
+| modifiedDate | LocalDateTime | 수정 날짜 |
+| images | String[] | 사진 목록 |
+| aiComment | String | GPT-4o 답변 |
+
+##### comments
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| commentId | Int | 댓글 번호 |
+| replyTo | Int | 대댓글 대상 번호 |
+| replyToNickname | String | 대댓글 대상 닉네임 |
+| nickname | String | 작성자 닉네임 |
+| email | String | 작성자 이메일 |
+| content | String | 댓글 내용 |
+| createdDate | LocalDateTime | 작성 날짜 |
+| profileImageUrl | String | 프로필 사진 Url |
+| isUpdated | Boolean | 댓글 수정 여부 |
+```json
+{
+    "postId": 208,
+    "boardName": "QnA",
+    "category": "정보처리기사",
+    "nickname": "nickname",
+    "profileImageUrl": "",
+    "email": "test@test.com",
+    "title": "정처기 필기는 언제인가요?",
+    "content": "2차때 신청하려고 하는데, 신청 기간은 언제인가요?",
+    "createdDate": "2024-05-21T16:25:28",
+    "modifiedDate": "2024-05-21T16:25:34",
+    "images": [
+        "",
+        "",
+        ""
+    ],
+    "comments": [
+        {
+            "commentId": 64,
+            "replyTo": 38,
+            "replyToNickname": "nickname",
+            "nickname": "nickname2",
+            "email": "test2@test.com",
+            "content": "정보처리기사는 이 앱의 자격증 정보 목록에서 확인하세요",
+            "createdDate": "2024-05-22T11:22:01",
+            "profileImageUrl": "",
+            "isUpdated": false
+        },
+        ···
+    ],
+    "aiComment": ""
+}    
+```
+</details>
+
+<details>
+<summary>게시글 작성</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /post |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| boardId | Int | 게시판 번호 |
+| title | String | 제목 |
+| content | String | 내용 |
+| category | String | 카테고리 |
+| images | String[] | 사진 목록 |
+```json
+{
+    "boardId": 1,
+    "title": "정처기 필기는 언제인가요?",
+    "content": "2차때 신청하려고 하는데, 신청 기간은 언제인가요?",
+    "category": "정보처리기사",
+    "images": [
+        "",
+        "",
+        ""
+    ]
+}
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "게시글을 작성했습니다."
+}
+```
+</details>
+
+<details>
+<summary>게시글 삭제</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>DELETE</code> | /post/{postId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "게시글을 삭제했습니다."
+}
+```
+</details>
+
+<details>
+<summary>게시글 수정</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>PUT</code> | /post/{postId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| title | String | 제목 |
+| content | String | 내용 |
+| category | String | 카테고리 |
+| images | String[] | 추가할 사진 목록 |
+| removedImages | String[] | 삭제할 사진 목록 |
+```json
+{
+    "title": "정처기 필기는 언제인가요?",
+    "content": "2차때 신청하려고 하는데, 신청 기간은 언제인가요?",
+    "category": "정보처리기사",
+    "images": [
+        "",
+        "",
+        ""
+    ],
+    "removedImages": [
+        "",
+        "",
+        ""
+    ]
+}
+
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "게시글을 수정했습니다."
+}
+```
+</details>
+
+<details>
+<summary>댓글 작성</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /comment |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| postId | Int | 게시글 번호 |
+| content | String | 내용 |
+```json
+{
+    "postId": 208,
+    "content": "정보처리기사는 이 앱의 자격증 정보 목록에서 확인하세요"
+}
+
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "댓글을 추가했습니다."
+}
+```
+</details>
+
+<details>
+<summary>댓글 삭제</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>DELETE</code> | /comment/{commentId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "댓글을 삭제했습니다."
+}
+```
+</details>
+
+<details>
+<summary>댓글 수정</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>PUT</code> | /comment/{commentId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| content | String | 내용 |
+```json
+{
+    "content": "아니면 큐넷에서 확인하셔도 돼요"
+}
+
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "댓글을 수정했습니다."
+}
+```
+</details>
+
+<details>
+<summary>대댓글 작성</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /reply |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| postId | Int | 게시글 번호 |
+| commentId | Int | 대댓글 대상 번호 |
+| content | String | 내용 |
+```json
+{
+    "postId": 208,
+    "commentId": 64,
+    "content": "감사합니다"
+}
+
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "대댓글을 작성했습니다."
+}
+```
+</details>
+
+<br>
 
 ## :screwdriver: 적용 기술
 <ul>
