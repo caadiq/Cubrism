@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 public class StudyGroupService {
     private final StudyGroupRepository studyGroupRepository;
     private final GroupMembersRepository groupMembersRepository;
+    private final StudyGroupDDayRepository studyGroupDDayRepository;
     private final PendingMembersRepository pendingMembersRepository;
     private final StudyGroupGoalRepository studyGroupGoalRepository;
     private final StudyGroupGoalSubmitRepository studyGroupGoalSubmitRepository;
@@ -656,6 +657,9 @@ public class StudyGroupService {
     public ResponseEntity<StudyGroupDDayDto> getStudyGroupDDay(Long groupId) {
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
+
+        studyGroupDDayRepository.findByStudyGroup(studyGroup)
+                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_DDAY_NOT_FOUND));
 
         StudyGroupDDayDto studyGroupDDayDto = new StudyGroupDDayDto(
                 studyGroup.getGroupId(),
