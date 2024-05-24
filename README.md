@@ -1271,6 +1271,186 @@ Authorization: Bearer Token
 
 <br>
 
+### 일정
+---
+<details>
+<summary>일정 추가</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /schedule |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| startDate | LocalDateTime | 시작 날짜 |
+| endDate | LocalDateTime | 종료 날짜 |
+| isAllDay | Boolean | 종일 여부 |
+| title | String | 제목 |
+| content | String | 내용 |
+
+```json
+{
+    "startDate": "2024-05-24T09:00:00",
+    "endDate": "2024-05-24T12:00:00",
+    "isAllDay": false,
+    "title": "정보처리기사 필기 시험 준비",
+    "content": "기출문제 풀어보기"
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+
+```json
+{
+    "message": "일정이 추가되었습니다."
+}
+```
+</details>
+
+<details>
+<summary>일정 삭제</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>DELETE</code> | /schedule/{scheduleId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+
+```json
+{
+    "message": "일정을 삭제했습니다."
+}
+```
+</details>
+
+<details>
+<summary>일정 수정</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>PUT</code> | /schedule/{scheduleId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| startDate | LocalDateTime | 시작 날짜 |
+| endDate | LocalDateTime | 종료 날짜 |
+| isAllDay | Boolean | 종일 여부 |
+| title | String | 제목 |
+| content | String | 내용 |
+
+```json
+{
+    "startDate": "2024-05-24T00:00:00",
+    "endDate": "2024-05-24T00:00:00",
+    "isAllDay": true,
+    "title": "정보처리기사 필기 시험 준비",
+    "content": "기출문제 풀어보기"
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+
+```json
+{
+    "message": "일정을 수정했습니다."
+}
+```
+</details>
+
+<details>
+<summary>일정 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /schedules |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+
+```
+Authorization: Bearer Token
+```
+##### 파라미터
+| 이름 | 타입 | 설명 | 필수 |
+| --- | --- | --- | --- |
+| year | Int | 년 | X (기본값 null) |
+| month | Int | 월 | X (기본값 null) |
+
+```
+year: 2024
+month: 5
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| scheduleId | Int | 일정 번호 |
+| startDate | LocalDateTime | 시작 날짜 |
+| endDate | LocalDateTime | 종료 날짜 |
+| title | String | 제목 |
+| content | String | 내용 |
+| allDay | Boolean | 종일 여부 |
+
+```json
+[
+    {
+        "scheduleId": 102,
+        "startDate": "2024-05-24T00:00:00",
+        "endDate": "2024-05-24T00:00:00",
+        "title": "정보처리기사 필기 시험 준비",
+        "content": "기출문제 풀어보기",
+        "allDay": true
+    },
+    ···
+]
+```
+</details>
+
+<br>
+
 ## :screwdriver: 적용 기술
 <ul>
   <li>Language: <img src="https://img.shields.io/badge/java-000000?style=for-the-badge&logo=openjdk&logoColor=white"> <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=HTML5&logoColor=white"></li>
