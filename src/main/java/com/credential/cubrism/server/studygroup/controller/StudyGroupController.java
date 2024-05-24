@@ -96,11 +96,6 @@ public class StudyGroupController {
         return studyGroupService.deleteStudyGroupGoal(goalId);
     }
 
-    @PutMapping("/studygroup/goal/{goalId}") // 스터디 그룹 목표 완료
-    public ResponseEntity<MessageDto> completeStudyGroupGoal(@PathVariable Long goalId) {
-        return studyGroupService.completeStudyGroupGoal(goalId);
-    }
-
     @PostMapping("/studygroup/goal/submit") // 스터디 그룹 목표 제출
     public ResponseEntity<MessageDto> submitStudyGroupGoal(@RequestBody StudyGroupGoalSubmitDto dto) {
         return studyGroupService.submitStudyGroupGoal(dto);

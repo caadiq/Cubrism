@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -433,12 +434,15 @@ public class StudyGroupService {
     // 스터디 그룹 목표 삭제
     @Transactional
     public ResponseEntity<MessageDto> deleteStudyGroupGoal(Long goalId) {
+        Users currentUser = securityUtil.getCurrentUser();
+
         StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
-        Users currentUser = securityUtil.getCurrentUser();
+
         StudyGroup studyGroup = goal.getStudyGroup();
         groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
+
         if (dDayPassed(studyGroup)) {
             throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
         }
@@ -450,23 +454,6 @@ public class StudyGroupService {
 
         return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 삭제했습니다."));
     }
-
-    // 스터디 그룹 목표 완료
-    @Transactional
-    public ResponseEntity<MessageDto> completeStudyGroupGoal(Long goalId) {
-        Users currentUser = securityUtil.getCurrentUser();
-        StudyGroupGoal goal = studyGroupGoalRepository.findById(goalId)
-                .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_GOAL_NOT_FOUND));
-
-        UserGoal userGoal = userGoalRepository.findByUserAndStudyGroupAndStudyGroupGoal(currentUser, goal.getStudyGroup(), goal)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_GOAL_NOT_FOUND));
-
-        userGoal.setCompleted(true);
-        userGoalRepository.save(userGoal);
-
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 완료했습니다."));
-    }
-
 
     public ResponseEntity<List<StudyGroupGoalDto>> getStudyGroupGoals(Long groupId) {
         StudyGroup studyGroup = studyGroupRepository.findById(groupId)
@@ -496,7 +483,7 @@ public class StudyGroupService {
         StudyGroup studyGroup = studyGroupRepository.findById(dto.getGroupId())
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_FOUND));
 
-        if(dDayPassed(studyGroup)){
+        if (dDayPassed(studyGroup)) {
             throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
         }
 
@@ -526,7 +513,7 @@ public class StudyGroupService {
         studyGroupGoalSubmit.setImageUrl(dto.getImageUrl());
         studyGroupGoalSubmitRepository.save(studyGroupGoalSubmit);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 제출했습니다."));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표를 달성했습니다."));
     }
 
     // 스터디 그룹 목표 제출 목록
@@ -548,14 +535,14 @@ public class StudyGroupService {
                         submit.getImageUrl(),
                         submit.getSubmittedAt(),
                         submit.getUserGoal().getStudyGroupGoal().getGoalName()
-                ))
-                .toList();
+                )).sorted(Comparator.comparing(StudyGroupGoalSubmitListDto::getSubmittedAt).reversed())
+                .collect(Collectors.toList());
 
         return ResponseEntity.status(HttpStatus.OK).body(submitList);
     }
 
     //스터디 그룹 목표 달성 인증 성공
-    @Transactional
+    @Transactional(noRollbackFor = CustomException.class)
     public ResponseEntity<MessageDto> approveStudyGroupGoalSubmit(Long userGoalId) {
         Users currentUser = securityUtil.getCurrentUser();
 
@@ -567,22 +554,37 @@ public class StudyGroupService {
         groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
 
-        UserGoal userGoal = studyGroupGoalSubmit.getUserGoal();
-
-        if(dDayPassed(studyGroup)){
-            userGoal.setStudyGroupGoalSubmit(null);
-            studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
-            return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("D-Day가 지났습니다."));
+        if (dDayPassed(studyGroup)) {
+            throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
         }
 
+        if (s3Util.isFileExists(studyGroupGoalSubmit.getImageUrl())) {
+            s3Util.deleteFile(studyGroupGoalSubmit.getImageUrl());
+        }
 
+        UserGoal userGoal = studyGroupGoalSubmit.getUserGoal();
         userGoal.setCompleted(true);
         userGoalRepository.save(userGoal);
 
         userGoal.setStudyGroupGoalSubmit(null);
         studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표 달성 인증을 완료했습니다."));
+        String fcmToken = fcmRepository.findByUserId(userGoal.getUser().getUuid())
+                .map(FcmTokens::getToken)
+                .orElse(null);
+
+        // FCM 토큰이 존재하는 경우 알림 전송
+        if (fcmToken != null && !userGoal.getUser().getUuid().equals(currentUser.getUuid())) {
+            // 알림 메시지
+            String title = "스터디 그룹 목표 달성 인증 성공";
+            String body = "스터디 그룹 관리자가 목표 달성을 승인했습니다.";
+            String type = "STUDY|" + studyGroup.getGroupId();
+
+            // 알림 전송
+            fcmUtils.sendMessageTo(fcmToken, title, body, type);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표 달성을 승인했습니다."));
     }
 
     //스터디 그룹 목표 달성 인증 거절
@@ -597,14 +599,32 @@ public class StudyGroupService {
 
         groupMembersRepository.findByUserAndStudyGroupAndAdmin(currentUser, studyGroup, true)
                 .orElseThrow(() -> new CustomException(ErrorCode.STUDY_GROUP_NOT_ADMIN));
-        if(dDayPassed(studyGroup)){
-            studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
-            return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("D-Day가 지났습니다."));
+        if (dDayPassed(studyGroup)) {
+            throw new CustomException(ErrorCode.STUDY_GROUP_DDAY_PASSED);
+        }
+
+        if (s3Util.isFileExists(studyGroupGoalSubmit.getImageUrl())) {
+            s3Util.deleteFile(studyGroupGoalSubmit.getImageUrl());
         }
 
         studyGroupGoalSubmitRepository.delete(studyGroupGoalSubmit);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표 달성 인증을 거절했습니다."));
+        String fcmToken = fcmRepository.findByUserId(studyGroupGoalSubmit.getUser().getUuid())
+                .map(FcmTokens::getToken)
+                .orElse(null);
+
+        // FCM 토큰이 존재하는 경우 알림 전송
+        if (fcmToken != null && !studyGroupGoalSubmit.getUser().getUuid().equals(currentUser.getUuid())) {
+            // 알림 메시지
+            String title = "스터디 그룹 목표 달성 인증 거절";
+            String body = "스터디 그룹 관리자가 목표 달성을 거절했습니다.";
+            String type = "STUDY|" + studyGroup.getGroupId();
+
+            // 알림 전송
+            fcmUtils.sendMessageTo(fcmToken, title, body, type);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageDto("목표 달성을 거절했습니다."));
     }
 
     // 스터디 그룹 D-day 설정
@@ -657,7 +677,14 @@ public class StudyGroupService {
                     List<UserGoal> userGoals = userGoalRepository.findAllByUserAndStudyGroup(user, studyGroup);
 
                     List<StudyGroupGoalEnterDto> goals = userGoals.stream()
-                            .map(userGoal -> new StudyGroupGoalEnterDto(userGoal.getStudyGroupGoal().getGoalId(), userGoal.getStudyGroupGoal().getGoalName(), userGoal.isCompleted()))
+                            .map(userGoal -> {
+                                boolean submitted = studyGroupGoalSubmitRepository.findByUserGoal_UserAndUserGoal_StudyGroupGoal(user, userGoal.getStudyGroupGoal()).isPresent();
+                                return new StudyGroupGoalEnterDto(userGoal.getStudyGroupGoal().getGoalId(),
+                                        userGoal.getStudyGroupGoal().getGoalName(),
+                                        userGoal.isCompleted(),
+                                        submitted
+                                );
+                            })
                             .collect(Collectors.toList());
 
                     Double completionPercentage = userGoals.isEmpty() ? null : (double) userGoals.stream().filter(UserGoal::isCompleted).count() / userGoals.size() * 100;
