@@ -2264,6 +2264,48 @@ Authorization: Bearer Token
 ```
 </details>
 
+<details>
+<summary>채팅 메시지 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /studygroup/{groupId}/chats |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| id | UUID | 채팅 번호 |
+| email | String | 이메일 |
+| username | String | 닉네임 |
+| profileImgUrl | String | 프로필 사진 Url |
+| createdAt | LocalDateTime | 메시지 입력 날짜 |
+| content | String | 내용 |
+| isDateHeader | Boolean | 각 날짜의 첫 번째 메시지 여부 |
+```json
+[
+    {
+        "id": "bb51ef28-fade-4dde-b6c1-bd66e5a8f822",
+        "email": "test@test.com",
+        "username": "nickname",
+        "profileImgUrl": "",
+        "createdAt": "2024-05-09T15:58:40.87829",
+        "content": "안녕하세요",
+        "isDateHeader": true
+    },
+    ···
+]
+```
+</details>
+
 <br>
 
 ### 관심 자격증
@@ -2361,6 +2403,58 @@ Authorization: Bearer Token
         "favoriteId": 5,
         "code": "1320",
         "name": "정보처리기사"
+    },
+    ···
+]
+```
+</details>
+
+<br>
+
+### S3버킷
+---
+<details>
+<summary>Presigned Url 요청</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /s3/pre-signed-url |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| filePath | String | S3 버킷 파일 경로 |
+| fileName | String | 파일 이름 |
+```json
+[
+    {
+        "filePath": "post_images",
+        "fileName": "image.png"
+    },
+    ···
+]
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| fileName | String | 파일 이름 |
+| presignedUrl | String | Presigned Url |
+| fileUrl | String | 파일 Url |
+```json
+[
+    {
+        "fileName": "image.png",
+        "presignedUrl": "",
+        "fileUrl": ""
     },
     ···
 ]
