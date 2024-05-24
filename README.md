@@ -1451,6 +1451,821 @@ month: 5
 
 <br>
 
+### 스터디 그룹
+---
+<details>
+<summary>스터디 그룹 생성</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /studygroup |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| groupName | String | 스터디 그룹 이름 |
+| groupDescription | String | 스터디 그룹 소개 |
+| maxMembers | Int | 최대 인원수 |
+| tags | String[] | 태그 목록 |
+```json
+{
+    "groupName": "정보처리기사 같이 따실분 구해요~",
+    "groupDescription": "정보처리기사 자격증 준비 같이 하실 분들 구합니다!",
+    "maxMembers": 4,
+    "tags": [
+        "정보처리기사",
+        "열공"
+    ]
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "스터디 그룹을 생성했습니다."
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 삭제</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>DELETE</code> | /studygroup/{groupId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "스터디 그룹을 삭제했습니다."
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /studygroups |
+
+#### 요청
+##### 파라미터
+| 이름 | 타입 | 설명 | 필수 |
+| --- | --- | --- | --- |
+| page | Int | 페이지 | X (기본값 0) |
+| limit | Int | 한 번에 불러올 게시글 수 (0~50) | X (기본값 20) |
+| recruiting | Boolean | 모집 완료 포함 (true: 포함, false: 제외) | X (기본값 true) |
+
+```
+page: 0
+limit: 20
+recruiting: true
+```
+#### 응답
+##### page (페이지)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| previousPage | Int | 이전 페이지 |
+| currentPage | Int | 현재 페이지 |
+| nextPage | Int | 다음 페이지 |
+
+##### studyGroupList (스터디 그룹 목록)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| studyGroupId | Int | 스터디 그룹 번호 |
+| groupName | String | 스터디 그룹 이름 |
+| groupDescription | String | 스터디 그룹 소개 |
+| currentMembers | Int | 현재 인원수 |
+| maxMembers | Int | 최대 인원수 |
+| tags | String[] | 태그 목록 |
+| recruiting | Boolean | 모집 여부 (true: 모집 중, false: 모집 완료) |
+```json
+{
+    "page": {
+        "previousPage": null,
+        "currentPage": 0,
+        "nextPage": 1
+    },
+     "studyGroupList": [
+        {
+            "studyGroupId": 57,
+            "groupName": "정보처리기사 같이 따실분 구해요~",
+            "groupDescription": "정보처리기사 자격증 준비 같이 하실 분들 구합니다!",
+            "currentMembers": 2,
+            "maxMembers": 4,
+            "tags": [
+                "정보처리기사",
+                "열공"
+            ],
+            "recruiting": true
+        },
+        ···
+    ]
+}
+```
+</details>
+
+<details>
+<summary>내가 가입한 스터디 그룹 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /studygroups/my |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+##### 파라미터
+| 이름 | 타입 | 설명 | 필수 |
+| --- | --- | --- | --- |
+| page | Int | 페이지 | X (기본값 0) |
+| limit | Int | 한 번에 불러올 게시글 수 (0~50) | X (기본값 20) |
+
+```
+page: 0
+limit: 20
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| studyGroupId | Int | 스터디 그룹 번호 |
+| groupName | String | 스터디 그룹 이름 |
+| groupDescription | String | 스터디 그룹 소개 |
+| currentMembers | Int | 현재 인원수 |
+| maxMembers | Int | 최대 인원수 |
+| tags | String[] | 태그 목록 |
+| recruiting | Boolean | 모집 여부 (true: 모집 중, false: 모집 완료) |
+```json
+[
+    {
+        "studyGroupId": 57,
+        "groupName": "정보처리기사 같이 따실분 구해요~",
+        "groupDescription": "정보처리기사 자격증 준비 같이 하실 분들 구합니다!",
+        "currentMembers": 2,
+        "maxMembers": 4,
+        "tags": [
+            "정보처리기사",
+            "열공"
+        ],
+        "recruiting": true
+    },
+    ···
+]
+```
+</details>
+
+<details>
+<summary>스터디 그룹 정보</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /studygroup/{groupId} |
+
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| studyGroupId | Int | 스터디 그룹 번호 |
+| groupName | String | 스터디 그룹 이름 |
+| groupDescription | String | 스터디 그룹 소개 |
+| groupAdmin | String | 스터디 그룹 관리자 닉네임 |
+| currentMembers | Int | 현재 인원수 |
+| maxMembers | Int | 최대 인원수 |
+| tags | String[] | 태그 목록 |
+| members | String[] | 스터디 그룹 멤버 이메일 목록 |
+| recruiting | Boolean | 모집 여부 (true: 모집 중, false: 모집 완료) |
+```json
+{
+    "studyGroupId": 57,
+    "groupName": "정보처리기사 같이 따실분 구해요~",
+    "groupDescription": "정보처리기사 자격증 준비 같이 하실 분들 구합니다!",
+    "groupAdmin": "nickname",
+    "adminProfileImage": "",
+    "currentMembers": 2,
+    "maxMembers": 4,
+    "tags": [
+        "정보처리기사",
+        "열공"
+    ],
+    "members": [
+        "test@test.com"
+    ],
+    "recruiting": true
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 가입 신청</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /studygroup/join/request/{groupId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "스터디 그룹 가입을 요청했습니다."
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 가입 신청 취소</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>DELETE</code> | /studygroup/join/request/{memberId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "스터디 그룹 가입 신청을 취소했습니다."
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 가입 신청 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /studygroup/join/requests |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| memberId | UUID | 가입 신청 번호 |
+| groupName | String | 스터디 그룹 이름 |
+| groupDescription | String | 스터디 그룹 소개 |
+| tags | String[] | 태그 목록 |
+| groupAdmin | String | 스터디 그룹 관리자 닉네임 |
+| groupAdminProfileImage | String | 스터디 그룹 관리자 프로필 사진 Url |
+| requestDate | LocalDateTime | 신청 날짜 |
+```json
+[
+    {
+        "memberId": "f71e4cac-1b5a-4099-85ff-3573d862976b",
+        "groupName": "정보처리기사 같이 따실분 구해요~",
+        "groupDescription": "정보처리기사 자격증 준비 같이 하실 분들 구합니다!",
+        "tags": [
+            "정보처리기사",
+            "열공"
+        ],
+        "groupAdmin": "nickname",
+        "groupAdminProfileImage": "",
+        "requestDate": "2024-05-23T19:10:31"
+    },
+    ···
+]
+```
+</details>
+
+<details>
+<summary>스터디 그룹 가입 승인</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>PUT</code> | /studygroup/join/receive/{memberId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "스터디 그룹 가입을 승인했습니다."
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 가입 거절</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>DELETE</code> | /studygroup/join/receive/{memberId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "스터디 그룹 가입을 거절했습니다."
+}
+```
+</details>
+
+<details>
+<summary>해당 스터디 그룹 가입 신청 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /studygroup/join/receives/{groupId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| memberId | UUID | 가입 신청 번호 |
+| groupName | String | 스터디 그룹 이름 |
+| userName | String | 가입 신청한 유저 닉네임 |
+| userImage | String | 가입 신청한 유저 프로필 사진 Url |
+| requestDate | LocalDateTime | 신청 날짜 |
+```json
+[
+    {
+        "memberId": "f71e4cac-1b5a-4099-85ff-3573d862976b",
+        "groupName": "정보처리기사 같이 따실분 구해요~",
+        "userName": "nickname",
+        "userImage": "",
+        "requestDate": "2024-05-23T19:10:31"
+    },
+    ···
+]
+```
+</details>
+
+<details>
+<summary>스터디 그룹 목표 추가</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /studygroup/goal |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| studyGroupId | Int | 스터디 그룹 번호 |
+| goalName | String | 목표 이름 |
+```json
+{
+    "studyGroupId": 57,
+    "goalName": "필기 시험 합격"
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "목표를 추가했습니다."
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 목표 삭제</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>DELETE</code> | /studygroup/goal/{goalId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "목표를 삭제했습니다."
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 목표 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /studygroup/{groupId}/goals |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| goalId | Int | 목표 번호 |
+| goalName | String | 목표 이름 |
+```json
+[
+    {
+        "goalId": 1,
+        "goalName": "필기 시험 합격"
+    },
+    ···
+]
+```
+</details>
+
+<details>
+<summary>스터디 그룹 목표 달성 인증</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /studygroup/goal/submit |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| goalId | Int | 목표 번호 |
+| groupId | Int | 스터디 그룹 번호 |
+| content | String | 인증 내용 |
+| imageUrl | String | 인증 사진 Url |
+```json
+{
+    "goalId": 1,
+    "groupId": 57,
+    "content": "필기 시험 합격했습니다!",
+    "imageUrl": ""
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "목표를 달성했습니다."
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 목표 달성 목록</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /studygroup/goal/submits/{groupId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| userGoalId | Int | 유저 목표 번호 |
+| nickname | String | 제출자 닉네임 |
+| profileImageUrl | String | 제출자 프로필 사진 Url |
+| content | String | 인증 내용 |
+| imageUrl | String | 인증 사진 Url |
+| submittedAt | LocalDateTime | 제출 날짜 |
+| goalName | String | 목표 이름 |
+```json
+[
+    {
+        "userGoalId": 1,
+        "nickname": "테스트",
+        "profileImageUrl": "",
+        "content": "필기 시험 합격했습니다!",
+        "imageUrl": "",
+        "submittedAt": "2024-05-23T19:18:17",
+        "goalName": "필기 시험 합격"
+    }
+]
+```
+</details>
+
+<details>
+<summary>스터디 그룹 목표 달성 승인</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>PUT</code> | /studygroup/goal/submit/{userGoalId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "목표 달성을 승인했습니다."
+}
+```
+</details>
+
+</details>
+
+<details>
+<summary>스터디 그룹 목표 달성 거절</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>DELETE</code> | /studygroup/goal/submit/{userGoalId} |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "목표 달성을 거절했습니다."
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 D-Day 설정</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>POST</code> | /studygroup/dday |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| groupId | Int | 스터디 그룹 번호 |
+| title | String | D-Day 제목 |
+| day | DateTime | D-Day 날짜 |
+```json
+{
+    "groupId": 57,
+    "title": "정보처리기사 자격증 따기",
+    "day": "2024-12-31"
+}
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| message | String | 결과 메시지 |
+```json
+{
+    "message": "D-Day를 설정했습니다."
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 D-Day 정보</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /studygroup/{groupId}/dday |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| groupId | Int | 스터디 그룹 번호 |
+| title | String | D-Day 제목 |
+| day | DateTime | D-Day 날짜 |
+```json
+{
+    "groupId": 57,
+    "title": "정보처리기사 자격증 따기",
+    "day": "2024-12-31"
+}
+```
+</details>
+
+<details>
+<summary>스터디 그룹 정보</summary>
+
+| HTTP | Path  |
+| --- | --- |
+| <code>GET</code> | /studygroup/{groupId}/enter |
+
+#### 요청
+##### 헤더
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| Authorization | String | JWT Access Token |
+```
+Authorization: Bearer Token
+```
+#### 응답
+##### 본문
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| groupName | String | 스터디 그룹 이름 |
+
+##### members (멤버 목록)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| nickname | String | 닉네임 |
+| email | String | 이메일 |
+| profileImage | String | 프로필 사진 Url |
+| admin | Boolean | 관리자 여부 |
+
+##### UserGoal (목표 개인 진행 상황)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| completionPercentage | Double | 목표 달성률 |
+
+##### goals (목표 목록)
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| goalId | Int | 목표 번호 |
+| goalName | String | 목표 이름 |
+| completed | Boolean | 목표 달성 여부 |
+| submitted | Boolean | 목표 달성 인증 제출 여부 |
+
+##### day
+| 이름 | 타입 | 설명 |
+| --- | --- | --- |
+| groupId | Int | 스터디 그룹 번호 |
+| title | String | D-Day 제목 |
+| day | DateTime | D-Day 날짜 |
+```json
+{
+    "groupName": "정보처리기사 같이 따실분 구해요~",
+    "members": [
+        {
+            "nickname": "nickname",
+            "email": "test@test.com",
+            "profileImage": "",
+            "admin": true,
+            "userGoal": {
+                "goals": [
+                    {
+                        "goalId": 1,
+                        "goalName": "정보처리기사 자격증 따기",
+                        "completed": false,
+                        "submitted": false
+                    },
+                    ···
+                ],
+                "completionPercentage": 0
+            }
+        },
+        ···
+    ],
+    "day": {
+        "groupId": 57,
+        "title": "정보처리기사 자격증 따기",
+        "day": "2024-12-31"
+    }
+}
+```
+</details>
+
+<br>
+
 ## :screwdriver: 적용 기술
 <ul>
   <li>Language: <img src="https://img.shields.io/badge/java-000000?style=for-the-badge&logo=openjdk&logoColor=white"> <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=HTML5&logoColor=white"></li>
