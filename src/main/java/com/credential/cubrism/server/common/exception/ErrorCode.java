@@ -62,6 +62,7 @@ public enum ErrorCode {
     REPLY_NOT_FOUND(HttpStatus.NOT_FOUND, "대댓글이 존재하지 않습니다."),
     STUDY_GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹이 존재하지 않습니다."),
     STUDY_GROUP_GOAL_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹 목표가 존재하지 않습니다."),
+    STUDY_GROUP_DDAY_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디 그룹 D-Day가 존재하지 않습니다."),
     FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "관심 자격증이 존재하지 않습니다."),
     Null_SessionAttributes(HttpStatus.NOT_FOUND,"SessionAttributes가 null입니다." ),
     PENDING_MEMBER_NOT_FOUND(HttpStatus.FORBIDDEN, "가입 신청한 유저가 존재하지 않습니다."),
