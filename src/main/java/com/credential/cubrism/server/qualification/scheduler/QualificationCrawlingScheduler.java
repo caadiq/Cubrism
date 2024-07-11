@@ -1,6 +1,7 @@
 package com.credential.cubrism.server.qualification.scheduler;
 
 import com.credential.cubrism.server.qualification.service.QualificationCrawlingService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -19,4 +20,5 @@ public class QualificationCrawlingScheduler {
     public void saveQualificationDetails() {
         qualificationDetailsService.getQualificationDetails();
     }
+
 }
